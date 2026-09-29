@@ -3,7 +3,7 @@
 #pragma once
 
 namespace SpinoCore::Core::Engine {
-    struct APIModules {
+    struct APIModules final {
         ~APIModules();
     };
 }

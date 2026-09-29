@@ -60,6 +60,10 @@ namespace SpinoCore {
 
     void Engine::Shutdown() {
         Logs::Logger::Force("[ENGINE] Shutting down...");
+
+        mApp.reset();
+        mContext.reset();
+
         Logs::Logger::Force("[ENGINE] Finished successfully.");
         Logs::LogSystem::Shutdown();
     }

@@ -16,6 +16,8 @@ set(ENGINE_SOURCES
     #App
     "include/SpinoCore/App/AppModules.h"
     "include/SpinoCore/App/UserApplication.h"
+    #FileSystem
+    "include/SpinoCore/FileSystem/FileLoader.h"
     #Logs
     "include/SpinoCore/Logs/Logger.h"
 "include/SpinoCore/Engine.h"
@@ -25,6 +27,13 @@ set(ENGINE_SOURCES
     "src/Core/Engine/CoreModules.h"
     "src/Core/Engine/ModulesInitializer.cpp"
     "src/Core/Engine/ModulesInitializer.h"
+    #FileSystem"
+    "src/FileSystem/Helpers/FileHelpers.cpp"
+    "src/FileSystem/Helpers/FileHelpers.h"
+    "src/FileSystem/FileManager.cpp"
+    "src/FileSystem/FileManager.h"
+    "src/FileSystem/FileWorker.cpp"
+    "src/FileSystem/FileWorker.h"
     #Logs
     "src/Logs/ConsoleSink.h"
     "src/Logs/LogSink.h"
