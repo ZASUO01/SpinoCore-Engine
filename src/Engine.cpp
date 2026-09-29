@@ -1,14 +1,19 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
 #include "SpinoCore/Engine.h"
-#include "SpinoCore/Logs/Logger.h"
-#include "Logs/LogSystem.h"
 #include "SpinoCore/App/AppModules.h"
 #include "SpinoCore/App/UserApplication.h"
+#include "SpinoCore/Logs/Logger.h"
+#include "Core/Engine/APIModules.h"
+#include "Core/Engine/CoreModules.h"
+#include "Core/Engine/ModulesInitializer.h"
+#include "Logs/LogSystem.h"
+
 
 namespace SpinoCore {
     struct Engine::Context {
-
+        Core::Engine::APIModules apiModules;
+        Core::Engine::CoreModules coreModules;
     };
 
     Engine::Engine(ConstructorKey, std::unique_ptr<App::UserApplication> app)
@@ -32,6 +37,13 @@ namespace SpinoCore {
     bool Engine::Initialize() {
         Logs::LogSystem::Initialize();
         Logs::Logger::Force("[ENGINE] Initializing...");
+
+        auto& apiModules = mContext->apiModules;
+        if (auto& coreModules = mContext->coreModules; !Core::Engine::ModulesInitializer::Initialize(apiModules, coreModules)) {
+            Logs::Logger::Error("[ENGINE] Failed to initialize modules.");
+            return false;
+        }
+
         if (!InitializeResources()) return false;
 
         App::AppModules appModules = {};

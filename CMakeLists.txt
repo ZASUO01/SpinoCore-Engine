@@ -20,6 +20,11 @@ set(ENGINE_SOURCES
     "include/SpinoCore/Logs/Logger.h"
 "include/SpinoCore/Engine.h"
 #src
+    #Core
+    "src/Core/Engine/APIModules.h"
+    "src/Core/Engine/CoreModules.h"
+    "src/Core/Engine/ModulesInitializer.cpp"
+    "src/Core/Engine/ModulesInitializer.h"
     #Logs
     "src/Logs/ConsoleSink.h"
     "src/Logs/LogSink.h"
