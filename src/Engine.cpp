@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
 #include "SpinoCore/Engine.h"
+#include "SpinoCore/Logs/Logger.h"
+#include "Logs/LogSystem.h"
 #include "SpinoCore/App/AppModules.h"
 #include "SpinoCore/App/UserApplication.h"
 
@@ -28,17 +30,27 @@ namespace SpinoCore {
     }
 
     bool Engine::Initialize() {
+        Logs::LogSystem::Initialize();
+        Logs::Logger::Force("[ENGINE] Initializing...");
         if (!InitializeResources()) return false;
 
         App::AppModules appModules = {};
         mApp->Initialize(appModules);
 
+        Logs::Logger::Force("[ENGINE] Initialized successfully.");
         return true;
     }
 
-    void Engine::Run() {}
+    void Engine::Run() {
+        Logs::Logger::Force("[ENGINE] Running...");
+        Logs::Logger::Force("[ENGINE] Stopped.");
+    }
 
-    void Engine::Shutdown() {}
+    void Engine::Shutdown() {
+        Logs::Logger::Force("[ENGINE] Shutting down...");
+        Logs::Logger::Force("[ENGINE] Finished successfully.");
+        Logs::LogSystem::Shutdown();
+    }
 
     bool Engine::InitializeResources() {
         return true;

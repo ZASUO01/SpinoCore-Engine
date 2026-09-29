@@ -13,11 +13,18 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # ======================================
 set(ENGINE_SOURCES
 #include
-"include/SpinoCore/Engine.h"
     #App
     "include/SpinoCore/App/AppModules.h"
     "include/SpinoCore/App/UserApplication.h"
+    #Logs
+    "include/SpinoCore/Logs/Logger.h"
+"include/SpinoCore/Engine.h"
 #src
+    #Logs
+    "src/Logs/ConsoleSink.h"
+    "src/Logs/LogSink.h"
+    "src/Logs/LogSystem.cpp"
+    "src/Logs/LogSystem.h"
 "src/Engine.cpp"
 )
 
