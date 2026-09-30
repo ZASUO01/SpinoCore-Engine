@@ -62,7 +62,7 @@ namespace SpinoCore::FileSystem::Core {
             }
         }
 
-        Logs::Logger::Error("[VIRTUAL FILE SYSTEM] Failed to read: None of the mounts at '{}' protocol provides the path'{}'.", parsed->protocol, parsed->path);
+        Logs::Logger::Error("[VIRTUAL FILE SYSTEM] Failed to read. None of the mounts at '{}' protocol provides the path '{}'.", parsed->protocol, parsed->path);
         return std::nullopt;
     }
 

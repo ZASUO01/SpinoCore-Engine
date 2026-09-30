@@ -2,11 +2,35 @@
 // Copyright (c) 2026 ZASUO01
 #pragma once
 #include <memory>
+#include <stop_token>
+#include <thread>
+#include <vector>
+#include "Utils/ThreadSafeQueue.h"
 
 namespace SpinoCore::FileSystem {
     namespace Core {
         class VirtualFileSystem;
     }
+
+    enum class FileOpType {
+        READ,
+        WRITE
+    };
+
+    struct FileRequest {
+        uint64_t id;
+        FileOpType op;
+        std::string virtualPath;
+        std::vector<uint8_t> data;
+    };
+
+    struct FileResponse {
+        uint64_t id;
+        FileOpType op;
+        bool success;
+        std::string virtualPath;
+        std::vector<uint8_t> data;
+    };
 
     class FileWorker final {
     public:
@@ -21,7 +45,15 @@ namespace SpinoCore::FileSystem {
 
         [[nodiscard]] static std::unique_ptr<FileWorker> Create(std::unique_ptr<Core::VirtualFileSystem> vfs);
 
+        void RequestAsync(const FileRequest &request);
+        [[nodiscard]] FileResponse RequestSync(const FileRequest &request) const;
     private:
-        std::unique_ptr<Core::VirtualFileSystem> mVfs;
+        void WorkerRoutine(const std::stop_token& stopToken);
+
+         Utils::ThreadSafeQueue<FileRequest> mRequestQueue;
+         Utils::ThreadSafeQueue<FileResponse> mResponseQueue;
+         std::unique_ptr<Core::VirtualFileSystem> mFileSystem;
+         std::jthread mWorkerThread;
+         std::atomic<uint32_t> mPendingTasks{0};
     };
 }

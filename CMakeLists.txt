@@ -22,6 +22,8 @@ set(ENGINE_SOURCES
     "include/SpinoCore/Logs/Logger.h"
 "include/SpinoCore/Engine.h"
 #src
+    #Config
+    "src/Config/Constants.h"
     #Core
     "src/Core/Engine/APIModules.h"
     "src/Core/Engine/CoreModules.h"
@@ -48,13 +50,18 @@ set(ENGINE_SOURCES
     "src/Logs/LogSink.h"
     "src/Logs/LogSystem.cpp"
     "src/Logs/LogSystem.h"
+    #Utils
+    "src/Utils/JSON/JSONUtils.cpp"
+    "src/Utils/JSON/JSONUtils.h"
+    "src/Utils/ConstString.h"
+    "src/Utils/ThreadSafeQueue.h"
 "src/Engine.cpp"
 )
 
-#set(EXTERNAL_SOURCES
+set(EXTERNAL_SOURCES
 #        "${CMAKE_CURRENT_SOURCE_DIR}/vendor/glad/src/glad.c"
-#        "${CMAKE_CURRENT_SOURCE_DIR}/vendor/nlohmann/json.hpp"
-#)
+        "${CMAKE_CURRENT_SOURCE_DIR}/vendor/nlohmann/json.hpp"
+)
 
 # ======================================
 # Static library compiling
@@ -71,7 +78,7 @@ target_include_directories(${PROJECT_NAME}
         PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/src"
 #        "${CMAKE_CURRENT_SOURCE_DIR}/vendor/glad/include"
-#        "${CMAKE_CURRENT_SOURCE_DIR}/vendor"
+        "${CMAKE_CURRENT_SOURCE_DIR}/vendor"
 )
 
 # ======================================
@@ -127,11 +134,11 @@ endif()
 # ======================================
 # cmake scripts
 # ======================================
-#list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-#include(SyncDirectory)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+include(SyncDirectory)
 
-#target_sync_directory(
-#        ${PROJECT_NAME}
-#        "${CMAKE_CURRENT_SOURCE_DIR}/@base-resources"
-#        "${CMAKE_BINARY_DIR}/@base-resources"
-#)
+target_sync_directory(
+        ${PROJECT_NAME}
+        "${CMAKE_CURRENT_SOURCE_DIR}/@base-resources"
+        "${CMAKE_BINARY_DIR}/@base-resources"
+)

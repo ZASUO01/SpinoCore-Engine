@@ -42,7 +42,7 @@ namespace SpinoCore::FileSystem::Mount {
 
         const auto targetPath = ResolvePhysicalPath(localPath);
         if (!targetPath || !Exists(localPath)) {
-            Logs::Logger::Error("[FOLDER MOUNT] Failed to read. The path '{}' is either inexistent or invalid).", localPath);
+            Logs::Logger::Error("[FOLDER MOUNT] Failed to read. The path '{}' is either inexistent or invalid.", localPath);
             return std::nullopt;
         }
 
@@ -73,7 +73,7 @@ namespace SpinoCore::FileSystem::Mount {
     bool FolderMount::Initialize() {
         std::error_code ec;
         if (!std::filesystem::exists(mRootPath, ec) || ec || !std::filesystem::is_directory(mRootPath, ec)) {
-            Logs::Logger::Error("[FOLDER MOUNT] Invalid root path or not a directory: {}", mRootPath.string());
+            Logs::Logger::Error("[FOLDER MOUNT] Root path is either not valid or not a directory: {}", mRootPath.string());
             return false;
         }
 

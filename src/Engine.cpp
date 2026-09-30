@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
 #include "SpinoCore/Engine.h"
+
+#include "Config/Constants.h"
 #include "SpinoCore/App/AppModules.h"
 #include "SpinoCore/App/UserApplication.h"
 #include "SpinoCore/Logs/Logger.h"
@@ -43,8 +45,10 @@ namespace SpinoCore {
             Logs::Logger::Error("[ENGINE] Failed to initialize modules.");
             return false;
         }
+        Logs::Logger::Info("[ENGINE] Modules initialized successfully.");
 
         if (!InitializeResources()) return false;
+        Logs::Logger::Info("[ENGINE] Resources initialized successfully.");
 
         App::AppModules appModules = {};
         mApp->Initialize(appModules);
@@ -68,7 +72,17 @@ namespace SpinoCore {
         Logs::LogSystem::Shutdown();
     }
 
-    bool Engine::InitializeResources() {
+    bool Engine::InitializeResources() const {
+        using namespace Config::Constants::FileSystem;
+
+        const auto& fileManager = mContext->apiModules.fileManager;
+        if (!fileManager) {
+            Logs::Logger::Error("[ENGINE] Failed to initialize resources. File Manager not initialized.");
+            return false;
+        }
+
+        if (!fileManager->LoadFilesSync(BASE_MANIFEST_PATH.data())) return false;
+
         return true;
     }
 }

@@ -22,7 +22,7 @@ namespace SpinoCore {
         static void Launch(std::unique_ptr<App::UserApplication> app);
     private:
         [[nodiscard]] bool Initialize();
-        [[nodiscard]] bool InitializeResources();
+        [[nodiscard]] bool InitializeResources() const;
         void Run();
         void Shutdown();
 
