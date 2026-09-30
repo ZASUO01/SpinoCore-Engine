@@ -9,7 +9,15 @@ namespace SpinoCore::FileSystem {
               WorkerRoutine(st);
         });
     }
-    FileWorker::~FileWorker() = default;
+    FileWorker::~FileWorker() {
+        mWorkerThread.request_stop();
+
+        mRequestQueue.Push(FileRequest{0, FileOpType::READ, "", {}});
+
+        if (mWorkerThread.joinable()) {
+            mWorkerThread.join();
+        }
+    }
 
     std::unique_ptr<FileWorker> FileWorker::Create(std::unique_ptr<Core::VirtualFileSystem> vfs) {
         return std::make_unique<FileWorker>(ConstructorKey{}, std::move(vfs));
@@ -58,6 +66,11 @@ namespace SpinoCore::FileSystem {
             }
 
             auto&[id, op, virtualPath, data] = *reqOpt;
+
+            if (virtualPath.empty()) {
+                continue;
+            }
+
             FileResponse res = {
                 .id = id,
                 .op = op,

@@ -34,7 +34,7 @@ namespace SpinoCore::FileSystem::Helpers {
             return std::vector<uint8_t>{};
         }
 
-        std::vector<uint8_t> buffer(bytesToRead);
+        auto rawBuffer = std::make_unique_for_overwrite<uint8_t[]>(bytesToRead);
 
         file.seekg(static_cast<std::streamoff>(offset), std::ios::beg);
         if (!file.good()) {
@@ -42,8 +42,8 @@ namespace SpinoCore::FileSystem::Helpers {
             return std::nullopt;
         }
 
-        if (file.read(reinterpret_cast<char*>(buffer.data()), static_cast<std::streamsize>(bytesToRead))) {
-            return buffer;
+        if (file.read(reinterpret_cast<char*>(rawBuffer.get()), static_cast<std::streamsize>(bytesToRead))) {
+            return std::vector(rawBuffer.get(), rawBuffer.get() + bytesToRead);
         }
 
         Logs::Logger::Error("[FILE HELPERS] Failed to read bytes from file '{}'.", path.string());
