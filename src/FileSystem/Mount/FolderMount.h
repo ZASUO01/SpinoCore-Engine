@@ -2,6 +2,7 @@
 // Copyright (c) 2026 ZASUO01
 #pragma once
 #include <filesystem>
+#include <shared_mutex>
 #include "MountPoint.h"
 
 namespace SpinoCore::FileSystem::Mount {
@@ -29,6 +30,7 @@ namespace SpinoCore::FileSystem::Mount {
     private:
         [[nodiscard]] std::optional<std::filesystem::path> ResolvePhysicalPath(std::string_view localPath) const;
 
+        mutable std::shared_mutex mMountMutex;
         std::filesystem::path mRootPath;
         bool mIsReadOnly;
         bool mIsMounted{false};

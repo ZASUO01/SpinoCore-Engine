@@ -42,6 +42,14 @@ namespace SpinoCore::FileSystem {
         return res;
     }
 
+    std::optional<FileResponse> FileWorker::TryPopResponse() {
+        return mResponseQueue.TryPop();
+    }
+
+    bool FileWorker::IsBusy() const noexcept {
+        return mPendingTasks.load(std::memory_order_relaxed) > 0;
+    }
+
     void FileWorker::WorkerRoutine(const std::stop_token& stopToken) {
         while (!stopToken.stop_requested()) {
             auto reqOpt = mRequestQueue.WaitAndPop(stopToken);

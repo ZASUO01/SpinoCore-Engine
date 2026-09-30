@@ -1,6 +1,7 @@
 set(INTEGRATION_SOURCES
 #FileSystem
     "FileSystem/FileHelpers_test.cpp"
+    "FileSystem/FileWorker_test.cpp"
     "FileSystem/FolderMount_test.cpp"
     "FileSystem/VirtualFileSystem_test.cpp"
 )

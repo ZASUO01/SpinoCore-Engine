@@ -4,6 +4,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <shared_mutex>
 #include <string_view>
 #include <unordered_map>
 #include <vector>
@@ -46,16 +47,13 @@ namespace SpinoCore::FileSystem::Core {
             std::unique_ptr<TMount> mount = TMount::Create(std::forward<Args>(args)...);
             if (!mount) return false;
 
-            std::lock_guard lock(mMutex);
+            std::unique_lock lock(mMutex);
 
             auto it = mMounts.find(protocol);
             if (it == mMounts.end()) {
                 it = mMounts.emplace(std::string(protocol), std::vector<std::unique_ptr<Mount::MountPoint>>{}).first;
             }
             it->second.push_back(std::move(mount));
-
-            mLastProtocolCache = "";
-            mLastMountsCache = nullptr;
 
             return true;
         }
@@ -67,7 +65,7 @@ namespace SpinoCore::FileSystem::Core {
     private:
         [[nodiscard]] const std::vector<std::unique_ptr<Mount::MountPoint>>* GetMountsForProtocol(std::string_view protocol) const;
 
-        mutable std::mutex mMutex;
+        mutable std::shared_mutex mMutex;
 
         std::unordered_map<
             std::string,
@@ -75,8 +73,5 @@ namespace SpinoCore::FileSystem::Core {
             StringHash,
             std::equal_to<>
         > mMounts;
-
-        mutable std::string_view mLastProtocolCache;
-        mutable const std::vector<std::unique_ptr<Mount::MountPoint>>* mLastMountsCache{nullptr};
     };
 }

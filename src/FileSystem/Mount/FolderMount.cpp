@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
 #include "FolderMount.h"
+
+#include <mutex>
+
 #include "FileSystem/Helpers/FileHelpers.h"
 #include "SpinoCore/Logs/Logger.h"
 
@@ -27,11 +30,9 @@ namespace SpinoCore::FileSystem::Mount {
         const auto targetPath = ResolvePhysicalPath(localPath);
         if (!targetPath) return false;
 
+        std::shared_lock lock(mMountMutex);
         std::error_code ec;
-        const bool exists = std::filesystem::exists(*targetPath, ec);
-        const bool isRegular = std::filesystem::is_regular_file(*targetPath, ec);
-
-        return exists && !ec && isRegular;
+        return std::filesystem::is_regular_file(*targetPath, ec) && !ec;
     }
 
     std::optional<std::vector<uint8_t> > FolderMount::Read(const std::string_view localPath) const {
@@ -41,11 +42,9 @@ namespace SpinoCore::FileSystem::Mount {
         }
 
         const auto targetPath = ResolvePhysicalPath(localPath);
-        if (!targetPath || !Exists(localPath)) {
-            Logs::Logger::Error("[FOLDER MOUNT] Failed to read. The path '{}' is either inexistent or invalid.", localPath);
-            return std::nullopt;
-        }
+        if (!targetPath) return std::nullopt;
 
+        std::shared_lock lock(mMountMutex);
         return Helpers::ReadFile(*targetPath);
     }
 
@@ -58,6 +57,7 @@ namespace SpinoCore::FileSystem::Mount {
         const auto targetPath = ResolvePhysicalPath(localPath);
         if (!targetPath) return false;
 
+        std::unique_lock lock(mMountMutex);
         std::error_code ec;
         const auto parentPath = targetPath->parent_path();
 
@@ -99,13 +99,6 @@ namespace SpinoCore::FileSystem::Mount {
             return std::nullopt;
         }
 
-        std::error_code ec;
-        auto resolved = std::filesystem::weakly_canonical(mRootPath / relativeTarget, ec);
-
-        if (ec) {
-            Logs::Logger::Error("[FOLDER MOUNT] Internal error while evaluating canonical path '{}': {}", localPath, ec.message());
-            return std::nullopt;
-        }
-        return resolved;
+        return mRootPath / relativeTarget;
     }
 }

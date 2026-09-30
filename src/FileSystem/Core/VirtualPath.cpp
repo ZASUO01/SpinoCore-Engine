@@ -32,11 +32,11 @@ namespace SpinoCore::FileSystem::Core {
     }
 
     bool IsValidVirtualPath(const std::string_view virtualPath) {
-        if (virtualPath.empty()) {
+        if (virtualPath.empty() || virtualPath.front() == '/' || virtualPath.back() == '/') {
             return false;
         }
 
-        if (virtualPath.front() == '/') {
+        if (virtualPath.find("..") != std::string_view::npos) {
             return false;
         }
 

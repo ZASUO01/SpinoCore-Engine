@@ -20,8 +20,10 @@ namespace SpinoCore::Utils {
 
 
         void Push(T item) {
-            std::lock_guard lock(mMutex);
-            mQueue.push(std::move(item));
+            {
+                std::lock_guard lock(mMutex);
+                mQueue.push(std::move(item));
+            }
             mConditionVariable.notify_one();
         }
 

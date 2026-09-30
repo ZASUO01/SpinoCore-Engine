@@ -2,10 +2,23 @@
 // Copyright (c) 2026 ZASUO01
 #include "VirtualFileSystem.h"
 #include <ranges>
+#include <shared_mutex>
+
 #include "VirtualPath.h"
 #include "FileSystem/Mount/MountPoint.h"
 
 namespace SpinoCore::FileSystem::Core {
+    namespace {
+        struct ThreadLocalProtocolCache {
+            const VirtualFileSystem* vfsInstance{nullptr};
+            std::string protocol;
+            const std::vector<std::unique_ptr<Mount::MountPoint>>* mounts{nullptr};
+        };
+
+        thread_local ThreadLocalProtocolCache tProtocolCache;
+    }
+
+
     VirtualFileSystem::VirtualFileSystem(ConstructorKey) {}
     VirtualFileSystem::~VirtualFileSystem() = default;
 
@@ -20,7 +33,7 @@ namespace SpinoCore::FileSystem::Core {
             return false;
         }
 
-        std::lock_guard lock(mMutex);
+        std::shared_lock lock(mMutex);
         const auto mounts = GetMountsForProtocol(parsed->protocol);
 
         if (!mounts) {
@@ -46,7 +59,7 @@ namespace SpinoCore::FileSystem::Core {
             return std::nullopt;
         }
 
-        std::lock_guard lock(mMutex);
+        std::shared_lock lock(mMutex);
         const auto mounts = GetMountsForProtocol(parsed->protocol);
 
         if (!mounts) {
@@ -73,7 +86,7 @@ namespace SpinoCore::FileSystem::Core {
             return false;
         }
 
-        std::lock_guard lock(mMutex);
+        std::shared_lock lock(mMutex);
         const auto mounts = GetMountsForProtocol(parsed->protocol);
 
         if (!mounts) {
@@ -98,17 +111,18 @@ namespace SpinoCore::FileSystem::Core {
     }
 
     const std::vector<std::unique_ptr<Mount::MountPoint>>* VirtualFileSystem::GetMountsForProtocol(const std::string_view protocol) const {
-        if (mLastMountsCache && mLastProtocolCache == protocol) {
-            return mLastMountsCache;
+        if (tProtocolCache.vfsInstance == this && tProtocolCache.mounts && tProtocolCache.protocol == protocol) {
+            return tProtocolCache.mounts;
         }
 
-        const auto it = mMounts.find(protocol);
+        const auto it = mMounts.find(std::string(protocol));
         if (it == mMounts.end()) {
             return nullptr;
         }
 
-        mLastProtocolCache = it->first;
-        mLastMountsCache = &it->second;
-        return mLastMountsCache;
+        tProtocolCache.vfsInstance = this;
+        tProtocolCache.protocol = it->first;
+        tProtocolCache.mounts = &it->second;
+        return tProtocolCache.mounts;
     }
 }

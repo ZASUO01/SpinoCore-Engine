@@ -47,6 +47,9 @@ namespace SpinoCore::FileSystem {
 
         void RequestAsync(const FileRequest &request);
         [[nodiscard]] FileResponse RequestSync(const FileRequest &request) const;
+
+        [[nodiscard]] std::optional<FileResponse> TryPopResponse();
+        [[nodiscard]] bool IsBusy() const noexcept;
     private:
         void WorkerRoutine(const std::stop_token& stopToken);
 

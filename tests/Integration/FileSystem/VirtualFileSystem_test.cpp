@@ -6,6 +6,9 @@
 #include <string>
 #include <system_error>
 #include "FileSystem/Core/VirtualFileSystem.h"
+
+#include <thread>
+
 #include "FileSystem/Mount/FolderMount.h"
 
 using namespace SpinoCore::FileSystem;
@@ -72,7 +75,7 @@ TEST_F(VirtualFileSystemIntegrationTest, ShouldRouteReadAndWriteToCorrectMounts)
 }
 
 TEST_F(VirtualFileSystemIntegrationTest, ShouldPrioritizeLastMountedFolderForReads) {
-    auto vfs = VirtualFileSystem::Create();
+    const auto vfs = VirtualFileSystem::Create();
 
     ASSERT_TRUE(vfs->Mount<FolderMount>("data", baseDir, true));
     ASSERT_TRUE(vfs->Mount<FolderMount>("data", modDir, true));
@@ -111,4 +114,102 @@ TEST_F(VirtualFileSystemIntegrationTest, ShouldFailToWriteIfAllMountsAreReadOnly
     EXPECT_FALSE(vfs->Write("res://banned_write.bin", {0xFF}));
     EXPECT_FALSE(std::filesystem::exists(baseDir / "banned_write.bin"));
     EXPECT_FALSE(std::filesystem::exists(modDir / "banned_write.bin"));
+}
+
+TEST_F(VirtualFileSystemIntegrationTest, ShouldRouteConcurrentReadsWithoutBlocking) {
+    const auto vfs = VirtualFileSystem::Create();
+
+    ASSERT_TRUE(vfs->Mount<FolderMount>("res", baseDir, true));
+    ASSERT_TRUE(vfs->Mount<FolderMount>("mod", modDir, true));
+
+    CreateRawFile(baseDir / "tex1.png", "TEXTURE_1");
+    CreateRawFile(modDir / "model1.obj", "MODEL_1");
+
+    constexpr int NUM_THREADS = 10;
+    std::atomic successCount{0};
+
+    std::vector<std::jthread> readers;
+    for (int i = 0; i < NUM_THREADS; ++i) {
+        readers.emplace_back([&, i] {
+            if (i % 2 == 0) {
+                for (int k = 0; k < 50; ++k) {
+                    if (auto data = vfs->Read("res://tex1.png")) ++successCount;
+                }
+            } else {
+                for (int k = 0; k < 50; ++k) {
+                    if (auto data = vfs->Read("mod://model1.obj")) ++successCount;
+                }
+            }
+        });
+    }
+    readers.clear();
+
+    EXPECT_EQ(successCount.load(), NUM_THREADS * 50);
+}
+
+TEST_F(VirtualFileSystemIntegrationTest, ShouldAllowConcurrentReadAndWriteOnDifferentProtocols) {
+    const auto vfs = VirtualFileSystem::Create();
+
+    ASSERT_TRUE(vfs->Mount<FolderMount>("res", baseDir, true));
+    ASSERT_TRUE(vfs->Mount<FolderMount>("user", saveDir, false));
+
+    CreateRawFile(baseDir / "music.ogg", "AUDIO_DATA");
+
+    std::atomic writeSuccess{false};
+    std::atomic readSuccess{0};
+
+    std::jthread writer([&] {
+        writeSuccess = vfs->Write("user://autosave.dat", {'S', 'A', 'V', 'E'});
+    });
+
+    std::vector<std::jthread> readers;
+    for (int i = 0; i < 4; ++i) {
+        readers.emplace_back([&] {
+            for (int k = 0; k < 20; ++k) {
+                if (auto data = vfs->Read("res://music.ogg")) ++readSuccess;
+            }
+        });
+    }
+
+    writer.join();
+    readers.clear();
+
+    EXPECT_TRUE(writeSuccess.load());
+    EXPECT_EQ(readSuccess.load(), 4 * 20);
+    EXPECT_TRUE(std::filesystem::exists(saveDir / "autosave.dat"));
+}
+
+TEST_F(VirtualFileSystemIntegrationTest, ShouldSafelyMountNewDrivesWhileReading) {
+    const auto vfs = VirtualFileSystem::Create();
+    ASSERT_TRUE(vfs->Mount<FolderMount>("sys", baseDir, true));
+
+    CreateRawFile(baseDir / "core.bin", "CORE");
+
+    std::atomic isReading{true};
+    std::atomic totalReads{0};
+
+    std::jthread reader([&] {
+        while (isReading.load()) {
+            if (vfs->Read("sys://core.bin")) {
+                ++totalReads;
+            }
+        }
+    });
+
+    std::jthread mounter([&] {
+        std::error_code ec;
+        auto dlcDir = testRoot / "dlc_1";
+        std::filesystem::create_directories(dlcDir, ec);
+        CreateRawFile(dlcDir / "dlc_asset.bin", "DLC_DATA");
+
+        EXPECT_TRUE(vfs->Mount<FolderMount>("dlc", dlcDir, true));
+
+        EXPECT_TRUE(vfs->Exists("dlc://dlc_asset.bin"));
+        isReading = false;
+    });
+
+    mounter.join();
+    reader.join();
+
+    EXPECT_GT(totalReads.load(), 0);
 }

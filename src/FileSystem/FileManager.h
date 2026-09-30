@@ -31,7 +31,7 @@ namespace SpinoCore::FileSystem {
 
         [[nodiscard]] std::optional<json> LoadJSONFile(std::string_view manifestPath, const std::vector<std::string>& requiredFields = {}) const;
     private:
-        [[nodiscard]] static bool IsValidFileManifest(json& inJSON);
+        [[nodiscard]] static bool IsValidFileManifest(const json& inJSON);
 
         Core::Engine::CoreModules& mCoreModules;
     };

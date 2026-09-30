@@ -8,6 +8,8 @@
 #include <system_error>
 #include "FileSystem/Mount/FolderMount.h"
 
+#include <thread>
+
 using namespace SpinoCore::FileSystem;
 using namespace SpinoCore::FileSystem::Mount;
 
@@ -163,4 +165,60 @@ TEST_F(FolderMountIntegrationTest, ShouldOverwriteExistingFileCorrectly) {
 
     const std::string result(data->begin(), data->end());
     EXPECT_EQ(result, "NEW");
+}
+
+TEST_F(FolderMountIntegrationTest, ShouldHandleConcurrentReadsSafely) {
+    const auto mount = FolderMount::Create(testDir, true);
+    ASSERT_NE(mount, nullptr);
+
+    CreateRawFile(testDir / "shared_asset.txt", "CONCURRENT_DATA");
+
+    constexpr int NUM_THREADS = 10;
+    constexpr int READS_PER_THREAD = 100;
+    std::atomic successfulReads{0};
+
+    std::vector<std::jthread> readers;
+    for (int i = 0; i < NUM_THREADS; ++i) {
+        readers.emplace_back([&] {
+            for (int j = 0; j < READS_PER_THREAD; ++j) {
+                if (auto data = mount->Read("shared_asset.txt"); data && std::string(data->begin(), data->end()) == "CONCURRENT_DATA") {
+                    ++successfulReads;
+                }
+            }
+        });
+    }
+    readers.clear();
+
+    EXPECT_EQ(successfulReads.load(), NUM_THREADS * READS_PER_THREAD);
+}
+
+TEST_F(FolderMountIntegrationTest, ShouldHandleConcurrentWritesSafely) {
+    const auto mount = FolderMount::Create(testDir, false);
+    ASSERT_NE(mount, nullptr);
+
+    constexpr int NUM_THREADS = 10;
+    std::atomic successfulWrites{0};
+
+    std::vector<std::jthread> writers;
+    for (int i = 0; i < NUM_THREADS; ++i) {
+        writers.emplace_back([&, i] {
+            const std::string filename = "thread_output_" + std::to_string(i) + ".bin";
+            std::string content = "THREAD_DATA_" + std::to_string(i);
+
+            if (const std::vector<uint8_t> data(content.begin(), content.end()); mount->Write(filename, data)) {
+                ++successfulWrites;
+            }
+        });
+    }
+    writers.clear();
+
+    EXPECT_EQ(successfulWrites.load(), NUM_THREADS);
+
+    for (int i = 0; i < NUM_THREADS; ++i) {
+        std::string filename = "thread_output_" + std::to_string(i) + ".bin";
+        auto data = mount->Read(filename);
+
+        ASSERT_TRUE(data.has_value());
+        EXPECT_EQ(std::string(data->begin(), data->end()), "THREAD_DATA_" + std::to_string(i));
+    }
 }

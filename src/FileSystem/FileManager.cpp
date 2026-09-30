@@ -58,7 +58,7 @@ namespace SpinoCore::FileSystem {
         return Utils::JSON::ParseJSONFromBytes(response.data, requiredFields);
     }
 
-    [[nodiscard]] bool FileManager::IsValidFileManifest(json& inJSON) {
+    [[nodiscard]] bool FileManager::IsValidFileManifest(const json& inJSON) {
         using namespace Config::Constants::FileSystem;
 
         if (!inJSON.is_object()) {
