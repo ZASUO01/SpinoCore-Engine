@@ -11,5 +11,8 @@ namespace SpinoCore::Core::Engine {
         ModulesInitializer() = delete;
 
         [[nodiscard]] static bool Initialize(APIModules& api, CoreModules& core);
+
+    private:
+        [[nodiscard]] static bool InitializeFileModules(APIModules& api, CoreModules& core);
     };
 }

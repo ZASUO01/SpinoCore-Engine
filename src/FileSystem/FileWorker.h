@@ -4,10 +4,14 @@
 #include <memory>
 
 namespace SpinoCore::FileSystem {
+    namespace Core {
+        class VirtualFileSystem;
+    }
+
     class FileWorker final {
     public:
         class ConstructorKey{ friend class FileWorker; ConstructorKey() = default; };
-        explicit FileWorker(ConstructorKey);
+        explicit FileWorker(ConstructorKey, std::unique_ptr<Core::VirtualFileSystem> vfs);
         ~FileWorker();
 
         FileWorker(const FileWorker&) = delete;
@@ -15,6 +19,9 @@ namespace SpinoCore::FileSystem {
         FileWorker(FileWorker&&) = delete;
         FileWorker& operator=(FileWorker&&) = delete;
 
-        [[nodiscard]] static std::unique_ptr<FileWorker> Create();
+        [[nodiscard]] static std::unique_ptr<FileWorker> Create(std::unique_ptr<Core::VirtualFileSystem> vfs);
+
+    private:
+        std::unique_ptr<Core::VirtualFileSystem> mVfs;
     };
 }

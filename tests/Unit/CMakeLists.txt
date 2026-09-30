@@ -1,6 +1,11 @@
 set(UNIT_SOURCES
+#FileSystem
+    "FileSystem/VirtualFileSystem_test.cpp"
+    "FileSystem/VirtualPath_test.cpp"
 #Logs
     "Logs/Logs_test.cpp"
+#Utils
+    "Utils/ConstString_test.cpp"
 )
 
 add_executable("SpinoCoreUnitTests" ${UNIT_SOURCES})
