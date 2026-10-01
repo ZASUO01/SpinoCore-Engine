@@ -16,6 +16,9 @@ set(ENGINE_SOURCES
     #App
     "include/SpinoCore/App/AppModules.h"
     "include/SpinoCore/App/UserApplication.h"
+    #Config
+    "include/SpinoCore/Config/ConfigEntry.h"
+    "include/SpinoCore/Config/Store.h"
     #FileSystem
     "include/SpinoCore/FileSystem/FileLoader.h"
     #Logs
@@ -141,4 +144,16 @@ target_sync_directory(
         ${PROJECT_NAME}
         "${CMAKE_CURRENT_SOURCE_DIR}/@base-resources"
         "${CMAKE_BINARY_DIR}/@base-resources"
+)
+
+target_sync_directory(
+        ${PROJECT_NAME}
+        "${CMAKE_SOURCE_DIR}/@config"
+        "${CMAKE_BINARY_DIR}/@config"
+)
+
+target_sync_directory(
+        ${PROJECT_NAME}
+        "${CMAKE_SOURCE_DIR}/@assets"
+        "${CMAKE_BINARY_DIR}/@assets"
 )

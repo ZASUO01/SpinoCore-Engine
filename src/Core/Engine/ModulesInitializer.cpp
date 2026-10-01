@@ -14,6 +14,8 @@ namespace SpinoCore::Core::Engine {
     bool ModulesInitializer::Initialize(APIModules &api, CoreModules &core) {
         if (!InitializeFileModules(api, core)) return false;
 
+        InitializeConfigModule(core);
+
         return true;
     }
 
@@ -28,6 +30,9 @@ namespace SpinoCore::Core::Engine {
                     BASE_RESOURCES_PATH.data()
         )) return false;
 
+        if (!vfs->Mount<FileSystem::Mount::FolderMount>(CONFIG_PATH.data(), CONFIG_PATH.data())) return false;
+        if (!vfs->Mount<FileSystem::Mount::FolderMount>(ASSETS_PATH.data(), ASSETS_PATH.data())) return false;
+
         core.fileWorker = FileSystem::FileWorker::Create(std::move(vfs));
         if (!core.fileWorker) return false;
 
@@ -35,5 +40,12 @@ namespace SpinoCore::Core::Engine {
         if (!api.fileManager) return false;
 
         return true;
+    }
+
+    void ModulesInitializer::InitializeConfigModule(const CoreModules &core) {
+        auto& fileWorker = core.fileWorker;
+        if (!fileWorker) return;
+
+
     }
 }

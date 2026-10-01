@@ -1,4 +1,7 @@
 set(UNIT_SOURCES
+#Config
+    "Config/ConfigKey_test.cpp"
+    "Config/Store_test.cpp"
 #FileSystem
     "FileSystem/VirtualFileSystem_test.cpp"
     "FileSystem/VirtualPath_test.cpp"

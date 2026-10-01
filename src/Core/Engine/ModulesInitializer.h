@@ -14,5 +14,6 @@ namespace SpinoCore::Core::Engine {
 
     private:
         [[nodiscard]] static bool InitializeFileModules(APIModules& api, CoreModules& core);
+        static void InitializeConfigModule(const CoreModules& core);
     };
 }
