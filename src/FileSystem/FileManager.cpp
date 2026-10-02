@@ -43,14 +43,14 @@ namespace SpinoCore::FileSystem {
         return true;
     }
 
-    std::optional<json> FileManager::LoadJSONFile(std::string_view manifestPath, const std::vector<std::string>& requiredFields) const {
+    std::optional<json> FileManager::LoadJSONFile(std::string_view JSONFilePath, const std::vector<std::string>& requiredFields) const {
         const auto& fileWorker = mCoreModules.fileWorker;
         if (!fileWorker) {
             Logs::Logger::Error("[FILE MANAGER] File Worker not initialized.");
             return std::nullopt;
         }
 
-        const FileRequest request = { .id = 0, .op = FileOpType::READ, .virtualPath = manifestPath.data() };
+        const FileRequest request = { .id = 0, .op = FileOpType::READ, .virtualPath = JSONFilePath.data() };
         const auto response = fileWorker->RequestSync(request);
 
         if (!response.success) return std::nullopt;
@@ -76,7 +76,7 @@ namespace SpinoCore::FileSystem {
             return false;
         }
 
-        if (const auto files = inJSON["files"]; !files.is_array()) {
+        if (const auto& files = inJSON["files"]; !files.is_array()) {
             Logs::Logger::Error("[FILE MANAGER] JSON files must be an array.");
             return false;
         }

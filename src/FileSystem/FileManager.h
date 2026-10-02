@@ -29,7 +29,7 @@ namespace SpinoCore::FileSystem {
         void LoadFiles(std::string_view manifestPath) override;
         [[nodiscard]] bool LoadFilesSync(std::string_view manifestPath) const;
 
-        [[nodiscard]] std::optional<json> LoadJSONFile(std::string_view manifestPath, const std::vector<std::string>& requiredFields = {}) const;
+        [[nodiscard]] std::optional<json> LoadJSONFile(std::string_view JSONFilePath, const std::vector<std::string>& requiredFields = {}) const;
     private:
         [[nodiscard]] static bool IsValidFileManifest(const json& inJSON);
 

@@ -26,6 +26,8 @@ set(ENGINE_SOURCES
 "include/SpinoCore/Engine.h"
 #src
     #Config
+    "src/Config/Helpers/ConfigHelpers.cpp"
+    "src/Config/Helpers/ConfigHelpers.h"
     "src/Config/Constants.h"
     #Core
     "src/Core/Engine/APIModules.h"
