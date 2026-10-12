@@ -17,6 +17,22 @@ set(ENGINE_SOURCES
     "include/SpinoCore/App/UserApplication.h"
 "include/SpinoCore/Launch.h"
 #src
+    #Core
+    "src/Core/Engine/CoreModules.h"
+    "src/Core/Events/Handler.cpp"
+    "src/Core/Events/Handler.h"
+    #Defs
+    "src/Defs/ClockConcept.h"
+    "src/Defs/FrameOperationsConcept.h"
+    #Runtime
+    "src/Runtime/FrameOperations.cpp"
+    "src/Runtime/FrameOperations.h"
+    "src/Runtime/LoopDriver.h"
+    "src/Runtime/SDLClock.h"
+    #SDL
+    "src/SDL/Context.cpp"
+    "src/SDL/Context.h"
+    "src/SDL/Structs.h"
 "src/Engine.cpp"
 "src/Engine.h"
 "src/Launch.cpp"

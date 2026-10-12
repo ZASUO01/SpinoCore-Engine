@@ -2,6 +2,12 @@
 // Copyright (c) 2026 ZASUO01
 #pragma once
 #include <memory>
+
+#include "Core/Engine/CoreModules.h"
+#include "Runtime/FrameOperations.h"
+#include "Runtime/LoopDriver.h"
+#include "Runtime/SDLClock.h"
+#include "SDL/Context.h"
 #include "SpinoCore/App/UserApplication.h"
 
 namespace SpinoCore {
@@ -23,6 +29,10 @@ namespace SpinoCore {
     private:
         void Shutdown();
 
+        std::optional<SDL::Context> mSDLContext;
+        Core::Engine::CoreModules mCoreModules;
+        Runtime::LoopDriver<Runtime::SDLClock> mLoopDriver{};
+        Runtime::FrameOperations mOperations{mCoreModules};
         UniqueUserApp mApp{nullptr};
     };
 }

@@ -9,11 +9,16 @@ namespace SpinoCore {
     }
 
     bool Engine::Initialize() {
+
+        const SDL::AppMetadata data{.appName = "test", .appVersion = "test", .appIdentifier = "test", .appCreator = "test", .appURL = "test"};
+        mSDLContext = SDL::Context::Create(data);
+        if (!mSDLContext.has_value()) return false;
+
         return true;
     }
 
     void Engine::Run() {
-
+        mLoopDriver.Run(mOperations);
     }
 
     void Engine::Shutdown() {
