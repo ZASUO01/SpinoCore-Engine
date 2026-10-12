@@ -17,9 +17,9 @@ set(ENGINE_SOURCES
     "include/SpinoCore/App/UserApplication.h"
 "include/SpinoCore/Launch.h"
 #src
-    "src/Engine.cpp"
-    "src/Engine.h"
-    "src/Launch.cpp"
+"src/Engine.cpp"
+"src/Engine.h"
+"src/Launch.cpp"
 )
 
 set(EXTERNAL_SOURCES
