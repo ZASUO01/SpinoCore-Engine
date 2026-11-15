@@ -20,9 +20,13 @@ add_library(SpinoCore::Runtime ALIAS ${PROJECT_NAME})
 target_sources(${PROJECT_NAME} PRIVATE
 #include/SpinoCore
     #Core
-        "include/SpinoCore/Core/Window/WindowManager.h"
-        "include/SpinoCore/Core/Window/WindowProps.h"
-        "include/SpinoCore/Core/Window/WindowSize.h"
+        #Cameras
+            "include/SpinoCore/Core/Cameras/Camera.h"
+            "include/SpinoCore/Core/Cameras/CamerasManager.h"
+        #Window
+            "include/SpinoCore/Core/Window/WindowManager.h"
+            "include/SpinoCore/Core/Window/WindowProps.h"
+            "include/SpinoCore/Core/Window/WindowSize.h"
     #Game
         "include/SpinoCore/Game/GameApplication.h"
         "include/SpinoCore/Game/GameInfo.h"
@@ -47,6 +51,10 @@ target_sources(${PROJECT_NAME} PRIVATE
     "include/SpinoCore/LaunchOptions.h"
 #src
     #Core
+        #Cameras
+            "src/Core/Cameras/DefaultCamera.h"
+            "src/Core/Cameras/EngineCamerasManager.cpp"
+            "src/Core/Cameras/EngineCamerasManager.h"
         #Engine
             "src/Core/Engine/Engine.cpp"
             "src/Core/Engine/Engine.h"
@@ -56,6 +64,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         #Events
             "src/Core/Events/TypeEvents/InputEvents.h"
             "src/Core/Events/TypeEvents/TypeEvent.h"
+            "src/Core/Events/TypeEvents/WindowEvents.h"
             "src/Core/Events/EventBus.h"
             "src/Core/Events/Handler.cpp"
             "src/Core/Events/Handler.h"

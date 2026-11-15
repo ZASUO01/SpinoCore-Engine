@@ -22,7 +22,10 @@ namespace SpinoCore::Core::Engine {
         mSDLContext.emplace(options.gameInfo);
 
         mEngineModules.window.emplace(options.windowProps);
-        mEngineModules.renderer.emplace(mEngineModules.window->GetSDLWindow());
+        auto window = mEngineModules.window->GetSDLWindow();
+        auto size = mEngineModules.window->GetSize();
+        mEngineModules.renderer.emplace(window, size, mEventBus);
+        mEngineModules.camerasManager.emplace(size, *mEngineModules.renderer, mEventBus);
 
         constexpr Game::InitializationContext ctx{};
         mGame->Initialize(ctx);

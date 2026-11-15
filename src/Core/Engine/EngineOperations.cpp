@@ -21,8 +21,8 @@ namespace SpinoCore::Core::Engine {
     void EngineOperations::ProcessInputs() {
     }
 
-    void EngineOperations::UpdateSimulation(float /*deltaTime*/) {
-
+    void EngineOperations::UpdateSimulation(const float deltaTime) {
+        mModules.camerasManager->Update(deltaTime);
     }
 
     void EngineOperations::Interpolate(float /*alpha*/) {
