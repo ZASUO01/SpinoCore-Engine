@@ -19,6 +19,10 @@ add_library(SpinoCore::Runtime ALIAS ${PROJECT_NAME})
 
 target_sources(${PROJECT_NAME} PRIVATE
 #include/SpinoCore
+    #Core
+        "include/SpinoCore/Core/Window/WindowManager.h"
+        "include/SpinoCore/Core/Window/WindowProps.h"
+        "include/SpinoCore/Core/Window/WindowSize.h"
     #Game
         "include/SpinoCore/Game/GameApplication.h"
         "include/SpinoCore/Game/GameInfo.h"
@@ -30,6 +34,8 @@ target_sources(${PROJECT_NAME} PRIVATE
         "include/SpinoCore/Logs/LogSink.h"
     #Runtime
         "include/SpinoCore/Runtime/LoopingManager.h"
+    #Utils
+        "include/SpinoCore/Utils/Size2D.h"
     "include/SpinoCore/Launch.h"
     "include/SpinoCore/LaunchOptions.h"
 #src
@@ -46,6 +52,10 @@ target_sources(${PROJECT_NAME} PRIVATE
             "src/Core/Events/EventBus.h"
             "src/Core/Events/Handler.cpp"
             "src/Core/Events/Handler.h"
+        #Window
+            "src/Core/Window/EngineWindow.cpp"
+            "src/Core/Window/EngineWindow.h"
+            "src/Core/Window/WindowSizeHelpers.h"
     #Logs
         "src/Logs/ConsoleSink.h"
         "src/Logs/LogSystem.cpp"
@@ -54,8 +64,12 @@ target_sources(${PROJECT_NAME} PRIVATE
         "src/Runtime/FrameOperations.h"
         "src/Runtime/GameLooping.h"
     #SDL
+        #Helpers
+            "src/SDL/Helpers/Helpers.cpp"
+            "src/SDL/Helpers/Helpers.h"
         "src/SDL/Context.cpp"
         "src/SDL/Context.h"
+        "src/SDL/Structs.h"
     "src/Launch.cpp"
 )
 

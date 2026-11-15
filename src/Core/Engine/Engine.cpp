@@ -21,6 +21,8 @@ namespace SpinoCore::Core::Engine {
     void Engine::Initialize(const LaunchOptions& options) {
         mSDLContext.emplace(options.gameInfo);
 
+        mEngineModules.window.emplace(options.windowProps);
+
         constexpr Game::InitializationContext ctx{};
         mGame->Initialize(ctx);
 
