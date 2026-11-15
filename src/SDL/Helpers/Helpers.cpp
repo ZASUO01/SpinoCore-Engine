@@ -28,7 +28,7 @@ namespace SpinoCore::SDL::Helpers {
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
 #endif
 
-        return UniqueSDLWindow(SDL_CreateWindow(title, width, height, SDL_WINDOW_OPENGL));
+        return UniqueSDLWindow(SDL_CreateWindow(title, width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN));
     }
 
     UniqueGLContext CreateGLContext(SDL_Window* window) noexcept {

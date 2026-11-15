@@ -25,6 +25,21 @@ namespace SpinoCore::Core::Window {
             return Size2D{.width = bounds.w, .height = bounds.h};
         }
 
+        [[nodiscard]] std::optional<Size2D> UsableArea(SDL_Window* window) noexcept {
+            auto area = UsableArea(SDL_GetDisplayForWindow(window));
+            int top = 0, left = 0, bottom = 0, right = 0;
+            if (area && SDL_GetWindowBordersSize(window, &top, &left, &bottom, &right)) {
+                area->width -= left + right;
+                area->height -= top + bottom;
+            }
+            return area;
+        }
+
+        [[nodiscard]] std::string_view LastSDLError() noexcept {
+            const char* error = SDL_GetError();
+            return *error ? error : "no matching display mode or unknown error";
+        }
+
         [[nodiscard]] bool ApplyExactFullscreenMode(SDL_Window* window, const Size2D resolution) noexcept {
             SDL_DisplayMode displayMode;
             return SDL_GetClosestFullscreenDisplayMode(SDL_GetDisplayForWindow(window),
@@ -58,6 +73,8 @@ namespace SpinoCore::Core::Window {
         if (props.windowMode != WindowMode::Windowed) {
             SetMode(props.windowMode);
         }
+
+        SDL_ShowWindow(mSDLWindow.get());
     }
 
     EngineWindow::~EngineWindow() = default;
@@ -72,11 +89,13 @@ namespace SpinoCore::Core::Window {
     bool EngineWindow::SetMode(const WindowMode mode) noexcept {
         SDL_Window* const window = mSDLWindow.get();
         bool switched = false;
+        SDL_ClearError();
 
         switch (mode) {
             case WindowMode::Windowed:
                 switched = SDL_SetWindowFullscreen(window, false)
                     && SDL_SetWindowSize(window, mWindowedSize.width, mWindowedSize.height);
+                if (switched) SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
                 break;
             case WindowMode::BorderlessFullscreen:
                 switched = SDL_SetWindowFullscreenMode(window, nullptr) && SDL_SetWindowFullscreen(window, true);
@@ -95,7 +114,7 @@ namespace SpinoCore::Core::Window {
         SDL_SyncWindow(window);
 
         if (!switched) {
-            Logs::Logger::Warn("[ENGINE WINDOW] Could not switch to {} mode: {}", ModeName(mode), SDL_GetError());
+            Logs::Logger::Warn("[ENGINE WINDOW] Could not switch to {} mode: {}", ModeName(mode), LastSDLError());
         }
         return switched;
     }
@@ -115,11 +134,12 @@ namespace SpinoCore::Core::Window {
         SDL_Window* const window = mSDLWindow.get();
         const WindowMode mode = GetMode();
         bool applied = false;
+        SDL_ClearError();
 
         if (mode == WindowMode::Fullscreen) {
             applied = ApplyExactFullscreenMode(window, size);
         } else {
-            const auto available = UsableArea(SDL_GetDisplayForWindow(window));
+            const auto available = UsableArea(window);
             applied = available && Fits(size, *available);
             if (applied && mode == WindowMode::Windowed) {
                 applied = SDL_SetWindowSize(window, size.width, size.height);
