@@ -52,7 +52,7 @@ namespace SpinoCore::Core::Window {
 
     EngineWindow::EngineWindow(const WindowProps &props) {
         if (props.title.empty()) {
-            throw std::invalid_argument("[ENGINE WINDOW] Window title must not be empty.");
+            throw std::invalid_argument("[WINDOW] Window title must not be empty.");
         }
 
         const auto currentDisplay = SDL_GetPrimaryDisplay();
@@ -61,13 +61,13 @@ namespace SpinoCore::Core::Window {
 
         mWindowedSize = FitStandardWindowSize(props.size, available);
         if (mWindowedSize != props.size) {
-            Logs::Logger::Warn("[ENGINE WINDOW] Window size {}x{} is not available, using {}x{} instead.",
+            Logs::Logger::Warn("Window size {}x{} is not available, using {}x{} instead.",
                 props.size.width, props.size.height, mWindowedSize.width, mWindowedSize.height);
         }
 
         mSDLWindow = SDL::Helpers::CreateSDLWindow(props.title.c_str(), mWindowedSize.width, mWindowedSize.height);
         if (!mSDLWindow) {
-            throw std::runtime_error(std::format("[ENGINE WINDOW] Could not create window: {}", SDL_GetError()));
+            throw std::runtime_error(std::format("[WINDOW] Could not create window: {}", SDL_GetError()));
         }
 
         if (props.windowMode != WindowMode::Windowed) {
@@ -114,7 +114,7 @@ namespace SpinoCore::Core::Window {
         SDL_SyncWindow(window);
 
         if (!switched) {
-            Logs::Logger::Warn("[ENGINE WINDOW] Could not switch to {} mode: {}", ModeName(mode), LastSDLError());
+            Logs::Logger::Warn("Could not switch to {} mode: {}", ModeName(mode), LastSDLError());
         }
         return switched;
     }
@@ -127,7 +127,7 @@ namespace SpinoCore::Core::Window {
 
     bool EngineWindow::SetSize(const Size2D size) noexcept {
         if (!IsStandardWindowSize(size)) {
-            Logs::Logger::Warn("[ENGINE WINDOW] {}x{} is not an allowed window size.", size.width, size.height);
+            Logs::Logger::Warn("{}x{} is not an allowed window size.", size.width, size.height);
             return false;
         }
 
@@ -150,7 +150,7 @@ namespace SpinoCore::Core::Window {
         SDL_SyncWindow(window);
 
         if (!applied) {
-            Logs::Logger::Warn("[ENGINE WINDOW] Could not apply window size {}x{} in {} mode.",
+            Logs::Logger::Warn("Could not apply window size {}x{} in {} mode.",
                 size.width, size.height, ModeName(mode));
             return false;
         }

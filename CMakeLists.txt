@@ -52,6 +52,9 @@ target_sources(${PROJECT_NAME} PRIVATE
             "src/Core/Events/EventBus.h"
             "src/Core/Events/Handler.cpp"
             "src/Core/Events/Handler.h"
+        #Rendering
+            "src/Core/Rendering/Renderer.cpp"
+            "src/Core/Rendering/Renderer.h"
         #Window
             "src/Core/Window/EngineWindow.cpp"
             "src/Core/Window/EngineWindow.h"

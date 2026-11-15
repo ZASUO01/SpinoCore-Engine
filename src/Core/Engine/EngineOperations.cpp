@@ -30,7 +30,7 @@ namespace SpinoCore::Core::Engine {
     }
 
     void EngineOperations::Render() {
-
+        mModules.renderer->Draw();
     }
 
     Runtime::FrameOperations::Duration EngineOperations::GetFramePeriod() {
