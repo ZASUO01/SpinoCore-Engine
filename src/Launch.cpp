@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
 #include "SpinoCore/Launch.h"
-#include "Core/Engine.h"
+#include "Core/Engine/Engine.h"
 #include "Logs/LogSystem.h"
 #include "SpinoCore/Logs/Logger.h"
 
@@ -55,7 +55,7 @@ namespace SpinoCore {
         }
 
         try {
-            Core::Engine engine{ std::move(game), launchOptions };
+            Core::Engine::Engine engine{ std::move(game), launchOptions };
             engine.Run();
         }catch(std::exception& e) {
             Logs::Logger::Fatal("The engine execution failed due exception: {}", e.what());

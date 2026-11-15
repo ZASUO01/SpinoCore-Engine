@@ -28,17 +28,27 @@ target_sources(${PROJECT_NAME} PRIVATE
         "include/SpinoCore/Logs/LogLevel.h"
         "include/SpinoCore/Logs/LogOptions.h"
         "include/SpinoCore/Logs/LogSink.h"
+    #Runtime
+        "include/SpinoCore/Runtime/LoopingManager.h"
     "include/SpinoCore/Launch.h"
     "include/SpinoCore/LaunchOptions.h"
 #src
     #Core
         #Engine
-        "src/Core/Engine.cpp"
-        "src/Core/Engine.h"
+            "src/Core/Engine/Engine.cpp"
+            "src/Core/Engine/Engine.h"
+            "src/Core/Engine/EngineOperations.cpp"
+            "src/Core/Engine/EngineOperations.h"
+        #Events
+            "src/Core/Events/Handler.cpp"
+            "src/Core/Events/Handler.h"
     #Logs
         "src/Logs/ConsoleSink.h"
         "src/Logs/LogSystem.cpp"
         "src/Logs/LogSystem.h"
+    #Runtime
+        "src/Runtime/FrameOperations.h"
+        "src/Runtime/GameLooping.h"
     #SDL
         "src/SDL/Context.cpp"
         "src/SDL/Context.h"

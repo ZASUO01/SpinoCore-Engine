@@ -3,12 +3,13 @@
 #pragma once
 #include <memory>
 #include <optional>
-
+#include "EngineOperations.h"
+#include "Runtime/GameLooping.h"
 #include "SpinoCore/LaunchOptions.h"
 #include "SpinoCore/Game/GameApplication.h"
 #include "SDL/Context.h"
 
-namespace SpinoCore::Core {
+namespace SpinoCore::Core::Engine {
     class Engine final {
     public:
         Engine(std::unique_ptr<Game::GameApplication> game, const LaunchOptions& options);
@@ -26,6 +27,8 @@ namespace SpinoCore::Core {
         static void Shutdown();
 
         std::optional<SDL::Context> mSDLContext{};
+        EngineOperations mEngineOperations{};
+        Runtime::GameLooping<> mGameLooping{};
         std::unique_ptr<Game::GameApplication> mGame{nullptr};
     };
 }
