@@ -4,7 +4,7 @@
 #include "SpinoCore/Game/InitializationContext.h"
 #include "SpinoCore/Logs/Logger.h"
 
-namespace SpinoCore::Core::Engine {
+namespace SpinoCore::Core {
     Engine::Engine(std::unique_ptr<Game::GameApplication> game, const LaunchOptions &options) :mGame(std::move(game))
     {
         Initialize(options);
@@ -18,7 +18,8 @@ namespace SpinoCore::Core::Engine {
         // TODO
     }
 
-    void Engine::Initialize(const LaunchOptions& /*options*/) const {
+    void Engine::Initialize(const LaunchOptions& options) {
+        mSDLContext.emplace(options.gameInfo);
 
         constexpr Game::InitializationContext ctx{};
         mGame->Initialize(ctx);

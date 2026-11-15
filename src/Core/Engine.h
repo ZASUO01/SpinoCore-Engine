@@ -2,10 +2,13 @@
 // Copyright (c) 2026 ZASUO01
 #pragma once
 #include <memory>
+#include <optional>
+
 #include "SpinoCore/LaunchOptions.h"
 #include "SpinoCore/Game/GameApplication.h"
+#include "SDL/Context.h"
 
-namespace SpinoCore::Core::Engine {
+namespace SpinoCore::Core {
     class Engine final {
     public:
         Engine(std::unique_ptr<Game::GameApplication> game, const LaunchOptions& options);
@@ -19,9 +22,10 @@ namespace SpinoCore::Core::Engine {
         void Run();
 
     private:
-        void Initialize(const LaunchOptions& options) const;
+        void Initialize(const LaunchOptions& options);
         static void Shutdown();
 
+        std::optional<SDL::Context> mSDLContext{};
         std::unique_ptr<Game::GameApplication> mGame{nullptr};
     };
 }
