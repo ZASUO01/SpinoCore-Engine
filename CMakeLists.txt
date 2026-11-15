@@ -19,7 +19,11 @@ add_library(SpinoCore::Runtime ALIAS ${PROJECT_NAME})
 
 target_sources(${PROJECT_NAME} PRIVATE
 #include/SpinoCore
+    #Game
+        "include/SpinoCore/Game/GameApplication.h"
+        "include/SpinoCore/Game/InitializationContext.h"
     "include/SpinoCore/Launch.h"
+    "include/SpinoCore/LaunchOptions.h"
 #src
     "src/Launch.cpp"
 )
