@@ -76,6 +76,14 @@ namespace SpinoCore::Core::Events {
             return Subscription{this, uniqueEventID, listenerID};
         }
 
+        // Shortcut for listening with a member function: bus.Listen<MyEvent, &MyClass::OnMyEvent>(this)
+        template <std::derived_from<TypeEvent> TEvent, auto Method, typename TOwner>
+        [[nodiscard]] Subscription Listen(TOwner* owner) {
+            return Listen<TEvent>([](TEvent& event, void* context) {
+                (static_cast<TOwner*>(context)->*Method)(event);
+            }, owner);
+        }
+
         template <std::derived_from<TypeEvent> TEvent>
         void Dispatch(TEvent& event) {
             const auto uniqueEventID = TypeEvent::ID<TEvent>();

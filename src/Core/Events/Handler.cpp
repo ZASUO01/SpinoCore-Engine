@@ -15,6 +15,12 @@ namespace SpinoCore::Core::Events {
             SDL_GetWindowSizeInPixels(window, &resizeEvent.pixelSize.width, &resizeEvent.pixelSize.height);
             bus.Dispatch(resizeEvent);
         }
+
+        void DispatchVisibility(EventBus& bus, const bool visible) {
+            WindowVisibilityChangedEvent event;
+            event.visible = visible;
+            bus.Dispatch(event);
+        }
     }
 
     bool Handler::PollEvents(EventBus& bus) {
@@ -35,10 +41,21 @@ namespace SpinoCore::Core::Events {
                     resizedWindow = event.window.windowID;
                     break;
                 case SDL_EVENT_WINDOW_MINIMIZED:
-                case SDL_EVENT_WINDOW_RESTORED: {
-                    WindowMinimizeEvent minimizeEvent{};
-                    minimizeEvent.minimized = event.type == SDL_EVENT_WINDOW_MINIMIZED;
-                    bus.Dispatch(minimizeEvent);
+                case SDL_EVENT_WINDOW_HIDDEN:
+                case SDL_EVENT_WINDOW_OCCLUDED:
+                    DispatchVisibility(bus, false);
+                    break;
+                case SDL_EVENT_WINDOW_RESTORED:
+                case SDL_EVENT_WINDOW_SHOWN:
+                case SDL_EVENT_WINDOW_EXPOSED:
+                    DispatchVisibility(bus, true);
+                    break;
+                case SDL_EVENT_WINDOW_ENTER_FULLSCREEN:
+                case SDL_EVENT_WINDOW_LEAVE_FULLSCREEN:
+                case SDL_EVENT_WINDOW_DISPLAY_CHANGED:
+                case SDL_EVENT_DISPLAY_CURRENT_MODE_CHANGED: {
+                    WindowPresentationChangedEvent presentationChangedEvent{};
+                    bus.Dispatch(presentationChangedEvent);
                     break;
                 }
                 case SDL_EVENT_KEY_DOWN:

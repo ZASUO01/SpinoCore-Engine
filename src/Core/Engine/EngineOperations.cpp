@@ -34,7 +34,7 @@ namespace SpinoCore::Core::Engine {
     }
 
     Runtime::FrameOperations::Duration EngineOperations::GetFramePeriod() {
-        return  Duration{16'666'666};
+        return  mModules.renderer->GetFramePeriod();
     }
 }
 

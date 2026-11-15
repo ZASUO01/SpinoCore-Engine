@@ -19,12 +19,7 @@ namespace SpinoCore::Core::Cameras {
         mCurrentCamera = mCameras["default"].get();
         UpdateRenderer();
 
-        mResizeSubscription = bus.Listen<Events::WindowResizeEvent>([](
-            Events::WindowResizeEvent& event, //NOLINT
-            void* context
-        ) {
-            static_cast<EngineCamerasManager*>(context)->Resize(event.size);
-        }, this);
+        mResizeSubscription = bus.Listen<Events::WindowResizeEvent, &EngineCamerasManager::OnResize>(this);
     }
 
     EngineCamerasManager::~EngineCamerasManager() = default;
@@ -40,6 +35,7 @@ namespace SpinoCore::Core::Cameras {
         if (const auto it = mCameras.find(name); it != mCameras.end()) {
             mCurrentCamera = it->second.get();
             mCurrentCameraName = name;
+            UpdateRenderer();
         }
     }
 
@@ -49,6 +45,8 @@ namespace SpinoCore::Core::Cameras {
         if (const auto it = mCameras.find(name); it != mCameras.end()) {
             if (mCurrentCameraName == name) {
                 mCurrentCamera = mCameras["default"].get();
+                mCurrentCameraName = "default";
+                UpdateRenderer();
             }
             mCameras.erase(it);
         }
@@ -69,11 +67,11 @@ namespace SpinoCore::Core::Cameras {
     }
 
     void EngineCamerasManager::UpdateRenderer() const {
-        mRenderer.SetProjectionMatrix(mCurrentCamera->GetProjectionMatrix());
-        mRenderer.SetViewMatrix(mCurrentCamera->GetViewMatrix());
+        mRenderer.SetCamera(mCurrentCamera->GetViewMatrix(), mCurrentCamera->GetProjectionMatrix());
     }
 
-    void EngineCamerasManager::Resize(const Utils::Size2D size) {
+    void EngineCamerasManager::OnResize(Events::WindowResizeEvent& event) {
+        const Utils::Size2D size = event.size;
         if (size.width <= 0 || size.height <= 0) return;
 
         mViewportSize = size;

@@ -1,14 +1,23 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
 #pragma once
+#include "Presenter.h"
 #include "Core/Events/EventBus.h"
-#include "SDL/Structs.h"
+#include "Core/Events/TypeEvents/WindowEvents.h"
 #include "SpinoCore/Math/Matrix.h"
 #include "SpinoCore/Utils/Size2D.h"
 
 namespace SpinoCore::Core::Rendering {
+    struct CameraMatrices final {
+        Math::Matrix4f view{Math::Matrix4f::Identity()};
+        Math::Matrix4f projection{Math::Matrix4f::Identity()};
+        Math::Matrix4f viewProjection{Math::Matrix4f::Identity()};
+    };
+
     class Renderer final {
     public:
+        using Duration = Presenter::Duration;
+
         explicit Renderer(SDL_Window* window, Utils::Size2D windowSize, Events::EventBus& bus);
         ~Renderer();
 
@@ -18,26 +27,20 @@ namespace SpinoCore::Core::Rendering {
         Renderer& operator=(Renderer&&) = delete;
 
         void Draw();
+        [[nodiscard]] Duration GetFramePeriod() const noexcept { return mPresenter.GetFramePeriod(); }
 
-        void SetViewMatrix(const Math::Matrix4f& matrix);
-        void SetProjectionMatrix(const Math::Matrix4f& matrix);
+        void SetCamera(const Math::Matrix4f& view, const Math::Matrix4f& projection);
+
     private:
         static constexpr float ORTHO_NEAR_PLANE = -1.0f;
         static constexpr float ORTHO_FAR_PLANE = 1.0f;
 
-        void SetOrthoViewMatrix(float width, float height, float near, float far);
+        void OnResize(const Events::WindowResizeEvent& event);
         void Resize(Utils::Size2D size, Utils::Size2D pixelSize);
 
-        SDL::UniqueGLContext mGLContext{nullptr};
-        SDL_Window* mSDLWindow{nullptr};
-
-        Math::Matrix4f mViewMatrix{Math::Matrix4f::Identity()};
-        Math::Matrix4f mProjectionMatrix{Math::Matrix4f::Identity()};
-        Math::Matrix4f mViewProjectionMatrix{Math::Matrix4f::Identity()};
-        Math::Matrix4f mOrthoViewProjectionMatrix;
-        bool mMinimized{false};
-
+        Presenter mPresenter;
+        CameraMatrices mCamera{};
+        Math::Matrix4f mOrthoViewProjectionMatrix{Math::Matrix4f::Identity()};
         Events::EventBus::Subscription mResizeSubscription;
-        Events::EventBus::Subscription mMinimizeSubscription;
     };
 }

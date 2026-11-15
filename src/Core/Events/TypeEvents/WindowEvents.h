@@ -10,7 +10,9 @@ namespace SpinoCore::Core::Events {
         Utils::Size2D pixelSize{};
     };
 
-    struct WindowMinimizeEvent final : TypeEvent {
-        bool minimized{false};
+    struct WindowVisibilityChangedEvent final : TypeEvent {
+        bool visible{true};
     };
+
+    struct WindowPresentationChangedEvent final : TypeEvent {};
 }

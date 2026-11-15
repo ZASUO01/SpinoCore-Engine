@@ -4,6 +4,7 @@
 #include <unordered_map>
 
 #include "Core/Events/EventBus.h"
+#include "Core/Events/TypeEvents/WindowEvents.h"
 #include "Core/Rendering/Renderer.h"
 #include "SpinoCore/Core/Cameras/CamerasManager.h"
 
@@ -27,7 +28,7 @@ namespace SpinoCore::Core::Cameras {
 
     private:
         void UpdateRenderer() const;
-        void Resize(Utils::Size2D size);
+        void OnResize(Events::WindowResizeEvent& event);
 
         Rendering::Renderer& mRenderer;
         Camera *mCurrentCamera{nullptr};

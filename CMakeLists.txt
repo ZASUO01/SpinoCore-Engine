@@ -69,8 +69,12 @@ target_sources(${PROJECT_NAME} PRIVATE
             "src/Core/Events/Handler.cpp"
             "src/Core/Events/Handler.h"
         #Rendering
+            "src/Core/Rendering/Presenter.cpp"
+            "src/Core/Rendering/Presenter.h"
             "src/Core/Rendering/Renderer.cpp"
             "src/Core/Rendering/Renderer.h"
+            "src/Core/Rendering/VSyncGuard.cpp"
+            "src/Core/Rendering/VSyncGuard.h"
         #Window
             "src/Core/Window/EngineWindow.cpp"
             "src/Core/Window/EngineWindow.h"
