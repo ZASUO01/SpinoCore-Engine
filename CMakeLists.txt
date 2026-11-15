@@ -32,9 +32,16 @@ target_sources(${PROJECT_NAME} PRIVATE
         "include/SpinoCore/Logs/LogLevel.h"
         "include/SpinoCore/Logs/LogOptions.h"
         "include/SpinoCore/Logs/LogSink.h"
+    #Math
+        "include/SpinoCore/Math/Math.h"
+        "include/SpinoCore/Math/Matrix.h"
+        "include/SpinoCore/Math/MatrixFactory.h"
+        "include/SpinoCore/Math/Quaternion.h"
+        "include/SpinoCore/Math/Vector.h"
     #Runtime
         "include/SpinoCore/Runtime/LoopingManager.h"
     #Utils
+        "include/SpinoCore/Utils/Random.h"
         "include/SpinoCore/Utils/Size2D.h"
     "include/SpinoCore/Launch.h"
     "include/SpinoCore/LaunchOptions.h"
