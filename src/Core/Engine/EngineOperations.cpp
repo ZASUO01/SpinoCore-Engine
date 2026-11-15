@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
 #include "EngineOperations.h"
-
 #include "Core/Events/Handler.h"
 
 namespace SpinoCore::Core::Engine {
-    EngineOperations::EngineOperations() = default;
+    EngineOperations::EngineOperations(EngineModules& modules, Events::EventBus& bus)
+    :mModules(modules)
+    ,mEventBus(bus)
+    {}
     EngineOperations::~EngineOperations() = default;
 
     bool EngineOperations::ProcessEvents() {
-        return Events::Handler::PollEvents();
+        return Events::Handler::PollEvents(mEventBus);
     }
 
     bool EngineOperations::PrepareSimulation() {
@@ -17,7 +19,6 @@ namespace SpinoCore::Core::Engine {
     }
 
     void EngineOperations::ProcessInputs() {
-
     }
 
     void EngineOperations::UpdateSimulation(float /*deltaTime*/) {

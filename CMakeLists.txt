@@ -37,9 +37,13 @@ target_sources(${PROJECT_NAME} PRIVATE
         #Engine
             "src/Core/Engine/Engine.cpp"
             "src/Core/Engine/Engine.h"
+            "src/Core/Engine/EngineModules.h"
             "src/Core/Engine/EngineOperations.cpp"
             "src/Core/Engine/EngineOperations.h"
         #Events
+            "src/Core/Events/TypeEvents/InputEvents.h"
+            "src/Core/Events/TypeEvents/TypeEvent.h"
+            "src/Core/Events/EventBus.h"
             "src/Core/Events/Handler.cpp"
             "src/Core/Events/Handler.h"
     #Logs
