@@ -22,9 +22,22 @@ target_sources(${PROJECT_NAME} PRIVATE
     #Game
         "include/SpinoCore/Game/GameApplication.h"
         "include/SpinoCore/Game/InitializationContext.h"
+    #Logs
+        "include/SpinoCore/Logs/Logger.h"
+        "include/SpinoCore/Logs/LogLevel.h"
+        "include/SpinoCore/Logs/LogOptions.h"
+        "include/SpinoCore/Logs/LogSink.h"
     "include/SpinoCore/Launch.h"
     "include/SpinoCore/LaunchOptions.h"
 #src
+    #Core
+        #Engine
+            "src/Core/Engine/Engine.cpp"
+            "src/Core/Engine/Engine.h"
+    #Logs
+        "src/Logs/ConsoleSink.h"
+        "src/Logs/LogSystem.cpp"
+        "src/Logs/LogSystem.h"
     "src/Launch.cpp"
 )
 
