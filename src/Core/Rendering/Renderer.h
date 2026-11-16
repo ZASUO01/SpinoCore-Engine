@@ -2,6 +2,7 @@
 // Copyright (c) 2026 ZASUO01
 #pragma once
 #include "Presenter.h"
+#include "RendererOperations.h"
 #include "Core/Events/EventBus.h"
 #include "Core/Events/TypeEvents/WindowEvents.h"
 #include "SpinoCore/Math/Matrix.h"
@@ -41,6 +42,8 @@ namespace SpinoCore::Core::Rendering {
         Presenter mPresenter;
         CameraMatrices mCamera{};
         Math::Matrix4f mOrthoViewProjectionMatrix{Math::Matrix4f::Identity()};
+        RendererOperations mRendererOperations{};
         Events::EventBus::Subscription mResizeSubscription;
+
     };
 }

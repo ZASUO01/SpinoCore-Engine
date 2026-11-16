@@ -23,6 +23,9 @@ target_sources(${PROJECT_NAME} PRIVATE
         #Cameras
             "include/SpinoCore/Core/Cameras/Camera.h"
             "include/SpinoCore/Core/Cameras/CamerasManager.h"
+        #Scenes
+            "include/SpinoCore/Core/Scenes/Scene.h"
+            "include/SpinoCore/Core/Scenes/ScenesManager.h"
         #Window
             "include/SpinoCore/Core/Window/WindowManager.h"
             "include/SpinoCore/Core/Window/WindowProps.h"
@@ -73,12 +76,24 @@ target_sources(${PROJECT_NAME} PRIVATE
             "src/Core/Rendering/Presenter.h"
             "src/Core/Rendering/Renderer.cpp"
             "src/Core/Rendering/Renderer.h"
+            "src/Core/Rendering/RendererOperations.cpp"
+            "src/Core/Rendering/RendererOperations.h"
             "src/Core/Rendering/VSyncGuard.cpp"
             "src/Core/Rendering/VSyncGuard.h"
         #Window
             "src/Core/Window/EngineWindow.cpp"
             "src/Core/Window/EngineWindow.h"
             "src/Core/Window/WindowSizeHelpers.h"
+    #Graphics
+        #Geometry
+            "src/Graphics/Geometry/VertexArray.cpp"
+            "src/Graphics/Geometry/VertexArray.h"
+        #Shaders
+            "src/Graphics/Shaders/Shader.cpp"
+            "src/Graphics/Shaders/Shader.h"
+            "src/Graphics/Shaders/ShaderHelpers.cpp"
+            "src/Graphics/Shaders/ShaderHelpers.h"
+            "src/Graphics/Shaders/UIShader.h"
     #Logs
         "src/Logs/ConsoleSink.h"
         "src/Logs/LogSystem.cpp"
