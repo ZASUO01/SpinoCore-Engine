@@ -80,6 +80,9 @@ target_sources(${PROJECT_NAME} PRIVATE
             "src/Core/Rendering/RendererOperations.h"
             "src/Core/Rendering/VSyncGuard.cpp"
             "src/Core/Rendering/VSyncGuard.h"
+        #UI
+            "src/Core/UI/Elements/UIElement.cpp"
+            "src/Core/UI/Elements/UIElement.h"
         #Window
             "src/Core/Window/EngineWindow.cpp"
             "src/Core/Window/EngineWindow.h"
