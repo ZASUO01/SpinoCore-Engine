@@ -2,6 +2,7 @@
 // Copyright (c) 2026 ZASUO01
 #pragma once
 #include <memory>
+
 #include "Scene.h"
 
 namespace SpinoCore::Core::Scenes {
@@ -9,7 +10,7 @@ namespace SpinoCore::Core::Scenes {
     public:
         virtual ~ScenesManager() = default;
 
-        virtual void PushScene(std::unique_ptr<Scene> scene);
-        virtual void PopScene();
+        virtual void PushScene(std::unique_ptr<Scene> scene) = 0;
+        virtual void PopScene() = 0;
     };
 }

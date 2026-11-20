@@ -2,6 +2,7 @@
 // Copyright (c) 2026 ZASUO01
 #pragma once
 #include "Presenter.h"
+#include "RenderCommands.h"
 #include "RendererOperations.h"
 #include "Core/Events/EventBus.h"
 #include "Core/Events/TypeEvents/WindowEvents.h"
@@ -32,6 +33,8 @@ namespace SpinoCore::Core::Rendering {
 
         void SetCamera(const Math::Matrix4f& view, const Math::Matrix4f& projection);
 
+        // UI elements push their commands here every frame; consumed by Draw().
+        [[nodiscard]] UIDrawList& GetUIDrawList() noexcept { return mUICommands; }
     private:
         static constexpr float ORTHO_NEAR_PLANE = -1.0f;
         static constexpr float ORTHO_FAR_PLANE = 1.0f;
@@ -45,5 +48,6 @@ namespace SpinoCore::Core::Rendering {
         RendererOperations mRendererOperations{};
         Events::EventBus::Subscription mResizeSubscription;
 
+        UIDrawList mUICommands;
     };
 }

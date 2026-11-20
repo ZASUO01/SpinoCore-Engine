@@ -1,39 +1,33 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
 #include "Engine.h"
+#include <utility>
+#include "SpinoCore/Core/Scenes/StartContext.h"
 #include "SpinoCore/Game/InitializationContext.h"
-#include "SpinoCore/Logs/Logger.h"
+#include "Core/Scenes/EngineScenesManager.h"
 
 namespace SpinoCore::Core::Engine {
-    Engine::Engine(std::unique_ptr<Game::GameApplication> game, const LaunchOptions &options) :mGame(std::move(game))
+    Engine::Engine(std::unique_ptr<Game::GameApplication> game, const LaunchOptions &launchOptions)
+    :mGame(std::move(game))
     {
-        Initialize(options);
-    }
-
-    Engine::~Engine() {
-        Shutdown();
+        Initialize(launchOptions);
     }
 
     void Engine::Run() {
-        mGameLooping.Run(mEngineOperations);
+        // TODO
     }
 
-    void Engine::Initialize(const LaunchOptions& options) {
-        mSDLContext.emplace(options.gameInfo);
+    void Engine::Initialize(const LaunchOptions& /*launchOptions*/) {
 
-        mEngineModules.window.emplace(options.windowProps);
-        auto window = mEngineModules.window->GetSDLWindow();
-        auto size = mEngineModules.window->GetSize();
-        mEngineModules.renderer.emplace(window, size, mEventBus);
-        mEngineModules.camerasManager.emplace(size, *mEngineModules.renderer, mEventBus);
+        Scenes::StartContext sceneStartContext{};
+        Scenes::ScenesManagerInput scenesManagerInput {
+            .startContext = sceneStartContext
+        };
+        mEngineModules.scenesManager.emplace(scenesManagerInput);
 
-        constexpr Game::InitializationContext ctx{};
-        mGame->Initialize(ctx);
-
-        Logs::Logger::Info("The application has been initialized.");
-    }
-
-    void Engine::Shutdown() {
-        Logs::Logger::Info("The application has been shut down.");
+        const Game::InitializationContext gameInitializationContext {
+            .scenesManager = *mEngineModules.scenesManager
+        };
+        mGame->Initialize(gameInitializationContext);
     }
 }

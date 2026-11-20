@@ -4,9 +4,11 @@
 #include <mutex>
 #include <utility>
 #include <stdexcept>
+#include <memory>
 #include "LogSystem.h"
 #include "ConsoleSink.h"
 #include "SpinoCore/Logs/Logger.h"
+#include "SpinoCore/Logs/LogSink.h"
 
 namespace SpinoCore::Logs {
     namespace {

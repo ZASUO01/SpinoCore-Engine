@@ -4,7 +4,9 @@
 #include <chrono>
 #include <format>
 #include <iostream>
+#include <string>
 #include <string_view>
+#include "SpinoCore/Logs/LogLevel.h"
 #include "SpinoCore/Logs/LogSink.h"
 
 namespace SpinoCore::Logs {

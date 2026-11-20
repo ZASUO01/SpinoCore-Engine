@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
 #pragma once
+#include <memory>
+#include <vector>
 #include "EngineModules.h"
 #include "Core/Events/EventBus.h"
+#include "../../../include/SpinoCore/Core/UI/Elements/Element.h"
 #include "Runtime/FrameOperations.h"
 
 namespace SpinoCore::Core::Engine {
@@ -22,5 +25,6 @@ namespace SpinoCore::Core::Engine {
     private:
         EngineModules& mModules;
         Events::EventBus& mEventBus;
+        std::vector<std::unique_ptr<UI::Elements::Element>> mUIElements;
     };
 }

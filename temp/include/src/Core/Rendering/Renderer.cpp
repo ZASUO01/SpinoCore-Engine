@@ -21,10 +21,13 @@ namespace SpinoCore::Core::Rendering {
     Renderer::~Renderer() = default;
 
     void Renderer::Draw() {
-        if (!mPresenter.IsVisible()) return;
+        if (!mPresenter.IsVisible()) {
+            mUICommands.commands.clear(); // don't let commands pile up while minimized
+            return;
+        }
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
-        mRendererOperations.DrawUIPass();
+
+        mRendererOperations.DrawUIPass(mUICommands, mOrthoViewProjectionMatrix);
         mPresenter.Present();
     }
 

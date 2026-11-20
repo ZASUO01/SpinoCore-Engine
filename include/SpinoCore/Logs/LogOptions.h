@@ -2,8 +2,8 @@
 // Copyright (c) 2026 ZASUO01
 #pragma once
 #include <memory>
+#include "LogLevel.h"
 #include "LogSink.h"
-#include "SpinoCore/Logs/LogLevel.h"
 
 namespace SpinoCore::Logs {
     struct LogOptions final {
