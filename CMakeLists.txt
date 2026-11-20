@@ -28,6 +28,12 @@ target_sources(${PROJECT_NAME} PRIVATE
             "include/SpinoCore/Core/Scenes/Scene.h"
             "include/SpinoCore/Core/Scenes/ScenesManager.h"
             "include/SpinoCore/Core/Scenes/StartContext.h"
+        #UI
+            #Elements
+                "include/SpinoCore/Core/UI/Elements/Element.h"
+                "include/SpinoCore/Core/UI/Elements/Rect.h"
+            "include/SpinoCore/Core/UI/Screen.h"
+            "include/SpinoCore/Core/UI/ScreensManager.h"
         #Window
             "include/SpinoCore/Core/Window/WindowManager.h"
             "include/SpinoCore/Core/Window/WindowProps.h"
@@ -74,6 +80,10 @@ target_sources(${PROJECT_NAME} PRIVATE
             "src/Core/Events/Handler.cpp"
             "src/Core/Events/Handler.h"
         #Rendering
+            #Drawer
+                "src/Core/Rendering/Drawer/DrawCommands.h"
+                "src/Core/Rendering/Drawer/Drawer.cpp"
+                "src/Core/Rendering/Drawer/Drawer.h"
             #Presenter
                 "src/Core/Rendering/Presenter/Presenter.cpp"
                 "src/Core/Rendering/Presenter/Presenter.h"
@@ -85,6 +95,13 @@ target_sources(${PROJECT_NAME} PRIVATE
             "src/Core/Scenes/EngineScenesManager.cpp"
             "src/Core/Scenes/EngineScenesManager.h"
             "src/Core/Scenes/Scene.cpp"
+        #UI
+            #Elements
+                "src/Core/UI/Elements/Element.cpp"
+                "src/Core/UI/Elements/Rect.cpp"
+            "src/Core/UI/EngineScreensManager.cpp"
+            "src/Core/UI/EngineScreensManager.h"
+            "src/Core/UI/Screen.cpp"
         #Window
             "src/Core/Window/EngineWindow.cpp"
             "src/Core/Window/EngineWindow.h"

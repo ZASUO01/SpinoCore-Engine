@@ -11,6 +11,8 @@
 #include "SpinoCore/Core/Cameras/CamerasManager.h"
 #include "SpinoCore/Core/Scenes/Scene.h"
 #include "SpinoCore/Core/Scenes/StartContext.h"
+#include "SpinoCore/Core/UI/Screen.h"
+#include "SpinoCore/Core/UI/ScreensManager.h"
 
 namespace {
     using SpinoCore::Core::Cameras::Camera;
@@ -19,11 +21,14 @@ namespace {
     using SpinoCore::Core::Scenes::Scene;
     using SpinoCore::Core::Scenes::ScenesManagerInput;
     using SpinoCore::Core::Scenes::StartContext;
+    using SpinoCore::Core::UI::Screen;
+    using SpinoCore::Core::UI::ScreensManager;
 
     struct SceneEvents final {
         int starts{0};
         std::vector<int> destroyedScenes{};
-        const CamerasManager* startedWith{nullptr};
+        const CamerasManager* startedWithCameras{nullptr};
+        const ScreensManager* startedWithScreens{nullptr};
     };
 
     // The scenes manager only hands this to the scenes; it never calls into it.
@@ -35,6 +40,12 @@ namespace {
         void RemoveCamera(const std::string& /*name*/) override {}
     };
 
+    class NullScreensManager final : public ScreensManager {
+    public:
+        void PushScreen(std::unique_ptr<Screen> /*screen*/) override {}
+        void PopScreen() override {}
+    };
+
     class TrackedScene final : public Scene {
     public:
         explicit TrackedScene(SceneEvents& events, const int id = 0) : mEvents(events), mId(id) {}
@@ -43,7 +54,8 @@ namespace {
     protected:
         void OnStart(const StartContext& ctx) override {
             ++mEvents.starts;
-            mEvents.startedWith = &ctx.camerasManager;
+            mEvents.startedWithCameras = &ctx.camerasManager;
+            mEvents.startedWithScreens = &ctx.screensManager;
         }
 
     private:
@@ -56,7 +68,8 @@ namespace {
         // Declared before the manager so it outlives the scenes the manager destroys.
         SceneEvents events{};
         NullCamerasManager camerasManager{};
-        StartContext startContext{.camerasManager = camerasManager};
+        NullScreensManager screensManager{};
+        StartContext startContext{.camerasManager = camerasManager, .screensManager = screensManager};
         EngineScenesManager scenesManager{ScenesManagerInput{.startContext = startContext}};
     };
 
@@ -66,10 +79,11 @@ namespace {
         EXPECT_EQ(events.starts, 1);
     }
 
-    TEST_F(EngineScenesManagerTests, StartedScenesReceiveTheCamerasManager) {
+    TEST_F(EngineScenesManagerTests, StartedScenesReceiveTheEngineManagers) {
         scenesManager.PushScene(std::make_unique<TrackedScene>(events));
 
-        EXPECT_EQ(events.startedWith, &camerasManager);
+        EXPECT_EQ(events.startedWithCameras, &camerasManager);
+        EXPECT_EQ(events.startedWithScreens, &screensManager);
     }
 
     TEST_F(EngineScenesManagerTests, PushedSceneBecomesTheCurrentScene) {

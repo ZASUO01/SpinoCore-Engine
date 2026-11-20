@@ -19,11 +19,14 @@ namespace SpinoCore::Core::Engine {
 
     void EngineOperations::ProcessSimulationInputs() {}
 
-    void EngineOperations::UpdateSimulation(float /*deltaTime*/) {}
+    void EngineOperations::UpdateSimulation(const float deltaTime) {
+        mModules.camerasManager->Update(deltaTime);
+    }
 
     void EngineOperations::Interpolate(float /*alpha*/) {}
 
     void EngineOperations::Render() {
+        mModules.screensManager.GetDrawCommands(mModules.renderer->GetUIDrawList());
         mModules.renderer->Draw();
     }
 

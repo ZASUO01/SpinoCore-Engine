@@ -6,6 +6,8 @@
 #include "Core/Events/EventBus.h"
 #include "Core/Events/TypeEvents/WindowEvents.h"
 #include "Core/Rendering/Presenter/Presenter.h"
+#include "Drawer/DrawCommands.h"
+#include "Drawer/Drawer.h"
 #include "SpinoCore/Math/Matrix.h"
 
 namespace SpinoCore::Core::Rendering {
@@ -34,6 +36,8 @@ namespace SpinoCore::Core::Rendering {
         [[nodiscard]] const CameraMatrices& GetCameraMatrices() const noexcept { return mCamera; }
         [[nodiscard]] const Math::Matrix4f& GetOrthoViewProjection() const noexcept { return mOrthoViewProjectionMatrix; }
 
+        [[nodiscard]] UIDrawList& GetUIDrawList() { return mDrawer.GetUIDrawList(); }
+
     private:
         static constexpr float ORTHO_NEAR_PLANE = -1.0f;
         static constexpr float ORTHO_FAR_PLANE = 1.0f;
@@ -42,6 +46,7 @@ namespace SpinoCore::Core::Rendering {
         void Resize(Utils::Size2D size, Utils::Size2D pixelSize);
 
         Presenter mPresenter;
+        Drawer mDrawer;
         CameraMatrices mCamera{};
         Math::Matrix4f mOrthoViewProjectionMatrix{Math::Matrix4f::Identity()};
         Events::EventBus::Subscription mResizeSubscription;

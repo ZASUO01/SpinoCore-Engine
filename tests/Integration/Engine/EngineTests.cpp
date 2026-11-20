@@ -9,6 +9,8 @@
 #include "Core/Engine/Engine.h"
 #include "SpinoCore/Core/Scenes/Scene.h"
 #include "SpinoCore/Core/Scenes/StartContext.h"
+#include "SpinoCore/Core/UI/Screen.h"
+#include "SpinoCore/Core/UI/ScreensManager.h"
 #include "SpinoCore/Game/GameApplication.h"
 #include "SpinoCore/Game/InitializationContext.h"
 #include "SpinoCore/LaunchOptions.h"
@@ -44,6 +46,45 @@ namespace {
 
     private:
         std::vector<std::string>& mDestructions;
+    };
+
+    class LoggedScreen final : public SpinoCore::Core::UI::Screen {
+    public:
+        explicit LoggedScreen(std::vector<std::string>& log) : mLog(log) {}
+        ~LoggedScreen() override { mLog.emplace_back("screen destroyed"); }
+
+        void OnEnter() override { mLog.emplace_back("screen entered"); }
+        void OnPause() override {}
+        void OnResume() override {}
+        void OnExit() override {}
+
+    private:
+        std::vector<std::string>& mLog;
+    };
+
+    class ScreenPushingScene final : public Scene {
+    public:
+        explicit ScreenPushingScene(std::vector<std::string>& log) : mLog(log) {}
+
+    protected:
+        void OnStart(const StartContext& ctx) override {
+            ctx.screensManager.PushScreen(std::make_unique<LoggedScreen>(mLog));
+        }
+
+    private:
+        std::vector<std::string>& mLog;
+    };
+
+    class ScreenGame final : public GameApplication {
+    public:
+        explicit ScreenGame(std::vector<std::string>& log) : mLog(log) {}
+
+        void Initialize(const InitializationContext& ctx) override {
+            ctx.scenesManager.PushScene(std::make_unique<ScreenPushingScene>(mLog));
+        }
+
+    private:
+        std::vector<std::string>& mLog;
     };
 
     // Records whether the scene could reach the engine's default camera when it started.
@@ -111,6 +152,14 @@ namespace {
         { const Engine engine{std::make_unique<CameraProbeGame>(sawDefaultCamera), LaunchOptions{}}; }
 
         EXPECT_TRUE(sawDefaultCamera);
+    }
+
+    TEST_F(EngineTests, ScenesCanPushScreensThatLiveUntilTheEngineShutsDown) {
+        std::vector<std::string> log;
+
+        { const Engine engine{std::make_unique<ScreenGame>(log), LaunchOptions{}}; }
+
+        EXPECT_EQ(log, (std::vector<std::string>{"screen entered", "screen destroyed"}));
     }
 
     TEST_F(EngineTests, FailingToInitializeShutsSDLDown) {

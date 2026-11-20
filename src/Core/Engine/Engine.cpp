@@ -43,7 +43,8 @@ namespace SpinoCore::Core::Engine {
         mEngineModules.camerasManager.emplace(size, *mEngineModules.renderer, mEngineModules.eventBus);
 
         const Scenes::StartContext sceneStartContext{
-            .camerasManager = *mEngineModules.camerasManager
+            .camerasManager = *mEngineModules.camerasManager,
+            .screensManager = mEngineModules.screensManager
         };
 
         Scenes::ScenesManagerInput scenesManagerInput {

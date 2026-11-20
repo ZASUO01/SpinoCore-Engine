@@ -120,4 +120,14 @@ namespace {
 
         for (std::size_t i = 0; i < 16; ++i) EXPECT_FLOAT_EQ(renderer->GetOrthoViewProjection().data[i], before.data[i]);
     }
+
+    // The engine refills the UI draw list every frame, so each Draw must consume it.
+    TEST_F(RendererTests, DrawConsumesTheUIDrawList) {
+        renderer->GetUIDrawList().commands.push_back({.key = 1});
+        renderer->GetUIDrawList().commands.push_back({.key = 2});
+
+        renderer->Draw();
+
+        EXPECT_TRUE(renderer->GetUIDrawList().commands.empty());
+    }
 }

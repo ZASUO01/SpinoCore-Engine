@@ -1,0 +1,103 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 ZASUO01
+#pragma once
+#include <cstdint>
+#include <memory>
+#include <vector>
+#include "SpinoCore/Math/Matrix.h"
+#include "SpinoCore/Math/Vector.h"
+
+namespace SpinoCore::Core::Rendering {
+    struct UIDrawList;
+}
+
+namespace SpinoCore::Core::UI::Elements {
+    struct ElementInput {
+        Math::Vector2f anchor{0.0f, 0.0f};
+        Math::Vector2f offSet{0.0f, 0.0f};
+        Math::Vector2f size{20.0f, 20.0f};
+        float scale{1.0f};
+        float angleDegrees{0.0f};
+        float anchorAngleDegrees{0.0f};
+        bool visible{true};
+        int drawOrder{100};
+    };
+
+    class Element {
+    public:
+        static constexpr std::uint8_t MAX_DEPTH = 4;
+
+        explicit Element(const ElementInput& input = {});
+        virtual ~Element();
+
+        Element(const Element&) = delete;
+        Element& operator=(const Element&) = delete;
+        Element(Element&&) = delete;
+        Element& operator=(Element&&) = delete;
+
+        void SetAnchor(const Math::Vector2f& anchor) { mAnchor = anchor; SetTransformDirty(); }
+        [[nodiscard]] const Math::Vector2f& GetAnchor() const { return mAnchor; }
+
+        void SetOffset(const Math::Vector2f& offset) { mOffset = offset; SetTransformDirty(); }
+        [[nodiscard]] const Math::Vector2f& GetOffset() const { return mOffset; }
+
+        void SetSize(const Math::Vector2f& size) { mSize = size; SetTransformDirty(); }
+        [[nodiscard]] const Math::Vector2f& GetSize() const { return mSize; }
+
+        void SetScale(const float scale) { mScale = scale; SetTransformDirty(); }
+        [[nodiscard]] float GetScale() const { return mScale; }
+        [[nodiscard]] Math::Vector2f GetScaledSize() const { return {mSize.x * mScale, mSize.y * mScale}; }
+
+        void SetAngleDegrees(const float angle) { mAngleDegrees = angle; SetTransformDirty(); }
+        [[nodiscard]] float GetAngleDegrees() const { return mAngleDegrees; }
+
+        void SetAnchorAngleDegrees(const float angle) { mAnchorAngleDegrees = angle; SetTransformDirty(); }
+        [[nodiscard]] float GetAnchorAngleDegrees() const { return mAnchorAngleDegrees; }
+
+        void SetIsVisible(const bool visible) { mIsVisible = visible; }
+        [[nodiscard]] bool IsVisible() const { return mIsVisible; }
+
+        void SetDrawOrder(const int drawOrder) { if (drawOrder > 0) mDrawOrder = drawOrder; }
+        [[nodiscard]] int GetDrawOrder() const { return mDrawOrder; }
+
+        Element& AddChild(std::unique_ptr<Element>&& child);
+        std::unique_ptr<Element> RemoveChild(const Element& child);
+
+        [[nodiscard]] Element* GetParent() const { return mParent; }
+        [[nodiscard]] std::uint8_t GetDepth() const { return mDepth; }
+        [[nodiscard]] const std::vector<std::unique_ptr<Element>>& GetChildren() const { return mChildren; }
+
+        [[nodiscard]] const Math::Matrix4f& GetTransform();
+        [[nodiscard]] const Math::Matrix4f& GetWorldFrame();
+        [[nodiscard]] float GetWorldScale();
+
+        void GetDrawCommand(Rendering::UIDrawList& drawList, int drawLayer);
+
+    protected:
+        virtual void SetDrawCommand(Rendering::UIDrawList& drawList, int drawLayer) = 0;
+    private:
+        void SetTransformDirty();
+        void UpdateTransform();
+        void SetDepth(std::uint8_t depth);
+
+        [[nodiscard]] std::uint8_t GetSubtreeHeight() const;
+
+        Math::Vector2f mAnchor;
+        Math::Vector2f mOffset;
+        Math::Vector2f mSize;
+        float mScale;
+        float mAngleDegrees;
+        float mAnchorAngleDegrees;
+        bool mIsVisible;
+        int mDrawOrder;
+
+        Math::Matrix4f mTransform{Math::Matrix4f::Identity()};
+        Math::Matrix4f mWorldFrame{Math::Matrix4f::Identity()};
+        float mWorldScale{1.0f};
+        bool mIsTransformDirty{true};
+        std::uint8_t mDepth{0};
+
+        Element* mParent{nullptr};
+        std::vector<std::unique_ptr<Element>> mChildren;
+    };
+}
