@@ -15,7 +15,7 @@ namespace SpinoCore::Core::Scenes {
     class EngineScenesManager final : public ScenesManager {
     public:
         explicit EngineScenesManager(const ScenesManagerInput& input);
-        ~EngineScenesManager() override = default;
+        ~EngineScenesManager() override;
 
         void PushScene(std::unique_ptr<Scene> scene) override;
         void PopScene() override;

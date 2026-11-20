@@ -29,6 +29,9 @@ namespace SpinoCore::Core::Engine {
         // Engine modules
         mEngineModules.window.emplace(launchOptions.windowProps);
 
+        auto window = mEngineModules.window->GetSDLWindow();
+        auto windowSize = mEngineModules.window->GetSize();
+        mEngineModules.renderer.emplace(window, windowSize, mEngineModules.eventBus);
 
         constexpr Scenes::StartContext sceneStartContext{};
         Scenes::ScenesManagerInput scenesManagerInput {

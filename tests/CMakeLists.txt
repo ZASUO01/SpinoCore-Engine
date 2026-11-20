@@ -46,9 +46,13 @@ function(spinocore_add_test target)
 
     target_link_libraries(${target} PRIVATE SpinoCore::Runtime GTest::gtest_main)
 
+    # Mesa software drivers (common in CI) report OpenGL 4.5, but the engine asks for 4.6.
+    # The override only affects Mesa and lets the GL-dependent tests run there.
     gtest_discover_tests(${target}
             TEST_PREFIX "${ARG_LABEL}."
-            PROPERTIES LABELS "${ARG_LABEL}"
+            PROPERTIES
+                LABELS "${ARG_LABEL}"
+                ENVIRONMENT "MESA_GL_VERSION_OVERRIDE=4.6"
     )
 endfunction()
 

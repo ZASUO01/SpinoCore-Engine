@@ -51,8 +51,20 @@ target_sources(${PROJECT_NAME} PRIVATE
             "src/Core/Engine/EngineOperations.cpp"
             "src/Core/Engine/EngineOperations.h"
         #Events
+            #TypeEvents
+                "src/Core/Events/TypeEvents/TypeEvent.h"
+                "src/Core/Events/TypeEvents/WindowEvents.h"
+            "src/Core/Events/EventBus.h"
             "src/Core/Events/Handler.cpp"
             "src/Core/Events/Handler.h"
+        #Rendering
+            #Presenter
+                "src/Core/Rendering/Presenter/Presenter.cpp"
+                "src/Core/Rendering/Presenter/Presenter.h"
+                "src/Core/Rendering/Presenter/VSyncGuard.cpp"
+                "src/Core/Rendering/Presenter/VSyncGuard.h"
+            "src/Core/Rendering/Renderer.cpp"
+            "src/Core/Rendering/Renderer.h"
         #Scenes
             "src/Core/Scenes/EngineScenesManager.cpp"
             "src/Core/Scenes/EngineScenesManager.h"

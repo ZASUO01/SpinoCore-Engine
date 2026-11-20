@@ -34,6 +34,25 @@ namespace {
         std::vector<CapturedLog>& mLogs;
     };
 
+    class ThrowingSink final : public LogSink {
+    public:
+        void Write(const LogRecord& /*record*/) override { throw std::runtime_error("sink failed"); }
+    };
+
+    // A sink that logs while writing, which would recurse forever without the reentrancy guard.
+    class LoggingSink final : public LogSink {
+    public:
+        explicit LoggingSink(std::vector<CapturedLog>& logs) : mLogs(logs) {}
+
+        void Write(const LogRecord& record) override {
+            mLogs.push_back({record.level, std::string{record.message}});
+            Logger::Warn("logged from inside the sink");
+        }
+
+    private:
+        std::vector<CapturedLog>& mLogs;
+    };
+
     class LoggingTests : public testing::Test {
     protected:
         void TearDown() override {
@@ -125,5 +144,21 @@ namespace {
         Logger::Force("core message");
 
         EXPECT_EQ(logs.size(), 1u);
+    }
+
+    TEST_F(LogSystemTests, AFailingSinkDoesNotStopTheLogger) {
+        const LogSystem logSystem{std::make_unique<ThrowingSink>()};
+
+        EXPECT_NO_THROW(Logger::Error("this sink will throw"));
+    }
+
+    TEST_F(LogSystemTests, MessagesLoggedFromInsideASinkAreDropped) {
+        std::vector<CapturedLog> logs;
+        const LogSystem logSystem{std::make_unique<LoggingSink>(logs)};
+
+        Logger::Info("outer message");
+
+        ASSERT_EQ(logs.size(), 1u);
+        EXPECT_EQ(logs[0].message, "outer message");
     }
 }

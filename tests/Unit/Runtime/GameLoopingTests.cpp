@@ -33,6 +33,7 @@ namespace {
         int framesToRun{0};
         Duration timePerFrame{0};
         bool simulationReady{true};
+        int notReadyFrame{0};
         std::function<void()> onRender{};
 
         int frameInputsProcessed{0};
@@ -43,7 +44,7 @@ namespace {
         int framesRendered{0};
 
         bool ProcessEvents() override { return mFramesStarted++ < framesToRun; }
-        bool PrepareSimulation() override { return simulationReady; }
+        bool PrepareSimulation() override { return simulationReady && mFramesStarted != notReadyFrame; }
         void ProcessFrameInputs() override { ++frameInputsProcessed; }
         void ProcessSimulationInputs() override { ++simulationInputsProcessed; }
 
@@ -167,6 +168,18 @@ namespace {
         looping.Run(operations);
 
         EXPECT_EQ(operations.simulationUpdates, 0);
+    }
+
+    TEST_F(GameLoopingTests, DropsLeftoverTimeWhenTheSimulationWasNotReady) {
+        GameLooping looping;
+        ScriptedFrameOperations operations;
+        operations.framesToRun = 4;
+        operations.timePerFrame = SimulationStep + SimulationStep / 2;
+        operations.notReadyFrame = 3;
+
+        looping.Run(operations);
+
+        EXPECT_EQ(operations.simulationUpdates, 2);
     }
 
     TEST_F(GameLoopingTests, DoesNotUpdateTheSimulationWhilePaused) {

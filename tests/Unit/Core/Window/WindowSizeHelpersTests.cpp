@@ -50,4 +50,10 @@ namespace {
 
         EXPECT_EQ(fitted, WINDOW_SIZE_MIN);
     }
+
+    TEST(WindowSizeHelpers, SizeSmallerThanTheMinimumGrowsToTheMinimum) {
+        constexpr Size2D fitted = FitStandardWindowSize({.width = 640, .height = 480}, WINDOW_SIZE_MAX);
+
+        EXPECT_EQ(fitted, WINDOW_SIZE_MIN);
+    }
 }

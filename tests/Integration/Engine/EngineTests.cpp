@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <vector>
 #include <gtest/gtest.h>
@@ -45,6 +46,13 @@ namespace {
         std::vector<std::string>& mDestructions;
     };
 
+    class FailingGame final : public GameApplication {
+    public:
+        void Initialize(const InitializationContext& /*ctx*/) override {
+            throw std::runtime_error("game failed to initialize");
+        }
+    };
+
     class EngineTests : public testing::Test {
     protected:
         void SetUp() override {
@@ -69,5 +77,11 @@ namespace {
         engine.reset();
 
         EXPECT_EQ(destructions, (std::vector<std::string>{"scene", "game"}));
+    }
+
+    TEST_F(EngineTests, FailingToInitializeShutsSDLDown) {
+        EXPECT_THROW(Engine(std::make_unique<FailingGame>(), LaunchOptions{}), std::runtime_error);
+
+        EXPECT_EQ(SDL_WasInit(0), 0u);
     }
 }
