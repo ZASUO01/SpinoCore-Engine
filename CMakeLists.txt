@@ -38,8 +38,17 @@ target_sources(${PROJECT_NAME} PRIVATE
         "include/SpinoCore/Logs/LogLevel.h"
         "include/SpinoCore/Logs/LogOptions.h"
         "include/SpinoCore/Logs/LogSink.h"
+    #Math
+        "include/SpinoCore/Math/Math.h"
+        "include/SpinoCore/Math/Matrix.h"
+        "include/SpinoCore/Math/MatrixFactory.h"
+        "include/SpinoCore/Math/Vector.h"
+        "include/SpinoCore/Math/Quaternion.h"
     #Runtime
         "include/SpinoCore/Runtime/LoopingManager.h"
+    #Utils
+        "include/SpinoCore/Utils/Random.h"
+        "include/SpinoCore/Utils/Size2D.h"
     "include/SpinoCore/Launch.h"
     "include/SpinoCore/LaunchOptions.h"
 #src
@@ -73,6 +82,17 @@ target_sources(${PROJECT_NAME} PRIVATE
             "src/Core/Window/EngineWindow.cpp"
             "src/Core/Window/EngineWindow.h"
             "src/Core/Window/WindowSizeHelpers.h"
+    #Graphics
+        #Geometry
+            "src/Graphics/Geometry/VertexArray.cpp"
+            "src/Graphics/Geometry/VertexArray.h"
+        #Shders
+            #Sources
+                "src/Graphics/Shaders/Sources/UIShader.h"
+            "src/Graphics/Shaders/Shader.cpp"
+            "src/Graphics/Shaders/Shader.h"
+            "src/Graphics/Shaders/ShaderHelpers.cpp"
+            "src/Graphics/Shaders/ShaderHelpers.h"
     #Logs
         "src/Logs/ConsoleSink.h"
         "src/Logs/LogSystem.cpp"
