@@ -5,6 +5,7 @@
 #include "SpinoCore/Core/Scenes/StartContext.h"
 #include "SpinoCore/Game/InitializationContext.h"
 #include "Core/Scenes/EngineScenesManager.h"
+#include "SpinoCore/LaunchOptions.h"
 
 namespace SpinoCore::Core::Engine {
     Engine::Engine(std::unique_ptr<Game::GameApplication> game, const LaunchOptions &launchOptions)
@@ -17,9 +18,10 @@ namespace SpinoCore::Core::Engine {
         // TODO
     }
 
-    void Engine::Initialize(const LaunchOptions& /*launchOptions*/) {
+    void Engine::Initialize(const LaunchOptions& launchOptions) {
+        mSDLContext.emplace(launchOptions.gameInfo);
 
-        Scenes::StartContext sceneStartContext{};
+        constexpr Scenes::StartContext sceneStartContext{};
         Scenes::ScenesManagerInput scenesManagerInput {
             .startContext = sceneStartContext
         };

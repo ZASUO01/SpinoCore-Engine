@@ -10,6 +10,7 @@ project(
 # Options
 # ====================================
 option(SPINOCORE_WARNINGS_AS_ERRORS "Treat compiler warnings as errors in the engine" OFF)
+option(SPINOCORE_BUILD_TESTS "Enable testing and build the project tests" OFF)
 
 # ======================================
 # Engine library
@@ -26,6 +27,7 @@ target_sources(${PROJECT_NAME} PRIVATE
             "include/SpinoCore/Core/Scenes/StartContext.h"
     #Game
         "include/SpinoCore/Game/GameApplication.h"
+        "include/SpinoCore/Game/GameInfo.h"
         "include/SpinoCore/Game/InitializationContext.h"
     #Logs
         "include/SpinoCore/Logs/Logger.h"
@@ -48,6 +50,9 @@ target_sources(${PROJECT_NAME} PRIVATE
         "src/Logs/ConsoleSink.h"
         "src/Logs/LogSystem.cpp"
         "src/Logs/LogSystem.h"
+    #SDL
+        "src/SDL/Context.cpp"
+        "src/SDL/Context.h"
     "src/Launch.cpp"
 )
 
@@ -104,3 +109,11 @@ FetchContent_MakeAvailable(SDL3)
 # ======================================
 add_subdirectory(vendor/glad)
 target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3-static SpinoCore::glad)
+
+# ======================================
+# Tests
+# ======================================
+if(SPINOCORE_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif ()

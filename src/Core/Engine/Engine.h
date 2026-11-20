@@ -2,8 +2,10 @@
 // Copyright (c) 2026 ZASUO01
 #pragma once
 #include <memory>
+#include <optional>
 #include "SpinoCore/Game/GameApplication.h"
 #include "EngineModules.h"
+#include "SDL/Context.h"
 
 namespace SpinoCore {
     struct LaunchOptions;
@@ -25,6 +27,7 @@ namespace SpinoCore::Core::Engine {
     private:
         void Initialize(const LaunchOptions& launchOptions);
 
+        std::optional<SDL::Context> mSDLContext{};
         EngineModules mEngineModules{};
         std::unique_ptr<Game::GameApplication> mGame{nullptr};
     };
