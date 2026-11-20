@@ -17,7 +17,7 @@ namespace SpinoCore::Core::Engine {
     class Engine final {
     public:
         Engine(std::unique_ptr<Game::GameApplication> game, const LaunchOptions& launchOptions);
-        ~Engine() = default;
+        ~Engine();
 
         Engine(const Engine&) = delete;
         Engine& operator=(const Engine&) = delete;

@@ -35,7 +35,8 @@ namespace {
         bool simulationReady{true};
         std::function<void()> onRender{};
 
-        int inputsProcessed{0};
+        int frameInputsProcessed{0};
+        int simulationInputsProcessed{0};
         int simulationUpdates{0};
         float lastDeltaTime{0.0f};
         float lastAlpha{0.0f};
@@ -43,7 +44,8 @@ namespace {
 
         bool ProcessEvents() override { return mFramesStarted++ < framesToRun; }
         bool PrepareSimulation() override { return simulationReady; }
-        void ProcessInputs() override { ++inputsProcessed; }
+        void ProcessFrameInputs() override { ++frameInputsProcessed; }
+        void ProcessSimulationInputs() override { ++simulationInputsProcessed; }
 
         void UpdateSimulation(const float deltaTime) override {
             ++simulationUpdates;
@@ -100,7 +102,7 @@ namespace {
         EXPECT_EQ(operations.simulationUpdates, 3);
     }
 
-    TEST_F(GameLoopingTests, ProcessesInputsBeforeEverySimulationUpdate) {
+    TEST_F(GameLoopingTests, ProcessesFrameInputsOncePerFrame) {
         GameLooping looping;
         ScriptedFrameOperations operations;
         operations.framesToRun = 2;
@@ -108,7 +110,18 @@ namespace {
 
         looping.Run(operations);
 
-        EXPECT_EQ(operations.inputsProcessed, 3);
+        EXPECT_EQ(operations.frameInputsProcessed, 2);
+    }
+
+    TEST_F(GameLoopingTests, ProcessesSimulationInputsOncePerSimulationUpdate) {
+        GameLooping looping;
+        ScriptedFrameOperations operations;
+        operations.framesToRun = 2;
+        operations.timePerFrame = 3 * SimulationStep;
+
+        looping.Run(operations);
+
+        EXPECT_EQ(operations.simulationInputsProcessed, 3);
     }
 
     TEST_F(GameLoopingTests, UpdatesTheSimulationWithAFixedSixtiethOfASecond) {
@@ -201,6 +214,31 @@ namespace {
         looping.Run(operations);
 
         EXPECT_EQ(operations.framesRendered, 1);
+    }
+
+    TEST_F(GameLoopingTests, StopRequestedBeforeRunningEndsTheLoopAfterTheFirstFrame) {
+        GameLooping looping;
+        ScriptedFrameOperations operations;
+        operations.framesToRun = 10;
+        looping.Stop();
+
+        looping.Run(operations);
+
+        EXPECT_EQ(operations.framesRendered, 1);
+    }
+
+    TEST_F(GameLoopingTests, RunsNormallyAgainAfterAStoppedRun) {
+        GameLooping looping;
+        ScriptedFrameOperations stoppedOperations;
+        stoppedOperations.framesToRun = 10;
+        stoppedOperations.onRender = [&looping] { looping.Stop(); };
+        looping.Run(stoppedOperations);
+        ScriptedFrameOperations operations;
+        operations.framesToRun = 3;
+
+        looping.Run(operations);
+
+        EXPECT_EQ(operations.framesRendered, 3);
     }
 
     TEST_F(GameLoopingTests, MeasuresFramesPerSecondOverOneSecondOfFrames) {

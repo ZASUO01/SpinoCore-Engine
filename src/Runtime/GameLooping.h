@@ -5,6 +5,7 @@
 #include <atomic>
 #include <chrono>
 #include <cstdint>
+#include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_timer.h>
 #include "FrameOperations.h"
 #include "SpinoCore/Runtime/LoopingManager.h"
@@ -20,8 +21,6 @@ namespace SpinoCore::Runtime {
         ~GameLooping() override = default;
 
         void Run(FrameOperations& operations) {
-            mStopRequested.store(false, std::memory_order::relaxed);
-
             constexpr float fixedDeltaSeconds = std::chrono::duration<float>(FixedDelta).count();
             Duration accumulator{0};
             auto previousTime = Clock::now();
@@ -36,13 +35,14 @@ namespace SpinoCore::Runtime {
                 );
                 previousTime = frameStart;
 
-                if (!operations.ProcessEvents()) return;
+                if (!operations.ProcessEvents()) break;
+                operations.ProcessFrameInputs();
 
                 if (operations.PrepareSimulation()) {
                     if (!mPaused.load(std::memory_order_relaxed)) {
                         accumulator += frameTime;
                         while (accumulator >= FixedDelta) {
-                            operations.ProcessInputs();
+                            operations.ProcessSimulationInputs();
                             operations.UpdateSimulation(fixedDeltaSeconds);
                             accumulator -= FixedDelta;
                         }
@@ -54,7 +54,7 @@ namespace SpinoCore::Runtime {
                 }
                 operations.Render();
 
-                if (mStopRequested.load(std::memory_order_relaxed)) return;
+                if (mStopRequested.load(std::memory_order_relaxed)) break;
 
                 const Duration minimumFramePeriod = operations.GetFramePeriod();
                 if (const Duration workTime = std::chrono::duration_cast<Duration>(Clock::now() - frameStart); workTime < minimumFramePeriod) {
@@ -70,6 +70,8 @@ namespace SpinoCore::Runtime {
                     fpsSampleStart = frameEnd;
                 }
             }
+
+            mStopRequested.store(false, std::memory_order_relaxed);
         }
 
         [[nodiscard]] float GetMeasuredFPS() const noexcept override { return mMeasuredFps.load(std::memory_order_relaxed); }

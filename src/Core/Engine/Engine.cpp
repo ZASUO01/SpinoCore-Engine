@@ -14,12 +14,21 @@ namespace SpinoCore::Core::Engine {
         Initialize(launchOptions);
     }
 
+    Engine::~Engine() {
+        mEngineModules.scenesManager.reset();
+    }
+
     void Engine::Run() {
         mGameLooping.Run(mEngineOperations);
     }
 
     void Engine::Initialize(const LaunchOptions& launchOptions) {
+        // SDL context
         mSDLContext.emplace(launchOptions.gameInfo);
+
+        // Engine modules
+        mEngineModules.window.emplace(launchOptions.windowProps);
+
 
         constexpr Scenes::StartContext sceneStartContext{};
         Scenes::ScenesManagerInput scenesManagerInput {

@@ -20,6 +20,8 @@ namespace SpinoCore::Core::Scenes {
         void PushScene(std::unique_ptr<Scene> scene) override;
         void PopScene() override;
 
+        [[nodiscard]] Scene* GetCurrentScene() const noexcept;
+
     private:
         std::stack<std::unique_ptr<Scene>> mSceneStack;
         Scene* mCurrentScene{nullptr};

@@ -14,7 +14,9 @@ namespace SpinoCore::Core::Engine {
         return true;
     }
 
-    void EngineOperations::ProcessInputs() {}
+    void EngineOperations::ProcessFrameInputs() {}
+
+    void EngineOperations::ProcessSimulationInputs() {}
 
     void EngineOperations::UpdateSimulation(float /*deltaTime*/) {}
 

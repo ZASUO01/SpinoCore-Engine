@@ -12,7 +12,8 @@ namespace SpinoCore::Runtime {
 
         [[nodiscard]] virtual bool ProcessEvents() = 0;
         [[nodiscard]] virtual bool PrepareSimulation() = 0;
-        virtual void ProcessInputs() = 0;
+        virtual void ProcessFrameInputs() = 0;
+        virtual void ProcessSimulationInputs() = 0;
         virtual void UpdateSimulation(float deltaTime) = 0;
         virtual void Interpolate(float alpha) = 0;
         virtual void Render() = 0;

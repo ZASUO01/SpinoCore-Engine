@@ -25,6 +25,10 @@ target_sources(${PROJECT_NAME} PRIVATE
             "include/SpinoCore/Core/Scenes/Scene.h"
             "include/SpinoCore/Core/Scenes/ScenesManager.h"
             "include/SpinoCore/Core/Scenes/StartContext.h"
+        #Window
+            "include/SpinoCore/Core/Window/WindowManager.h"
+            "include/SpinoCore/Core/Window/WindowProps.h"
+            "include/SpinoCore/Core/Window/WindowSize.h"
     #Game
         "include/SpinoCore/Game/GameApplication.h"
         "include/SpinoCore/Game/GameInfo.h"
@@ -53,6 +57,10 @@ target_sources(${PROJECT_NAME} PRIVATE
             "src/Core/Scenes/EngineScenesManager.cpp"
             "src/Core/Scenes/EngineScenesManager.h"
             "src/Core/Scenes/Scene.cpp"
+        #Window
+            "src/Core/Window/EngineWindow.cpp"
+            "src/Core/Window/EngineWindow.h"
+            "src/Core/Window/WindowSizeHelpers.h"
     #Logs
         "src/Logs/ConsoleSink.h"
         "src/Logs/LogSystem.cpp"
@@ -61,8 +69,12 @@ target_sources(${PROJECT_NAME} PRIVATE
         "src/Runtime/FrameOperations.h"
         "src/Runtime/GameLooping.h"
     #SDL
+        #Helpers
+            "src/SDL/Helpers/Helpers.cpp"
+            "src/SDL/Helpers/Helpers.h"
         "src/SDL/Context.cpp"
         "src/SDL/Context.h"
+        "src/SDL/Structs.h"
     "src/Launch.cpp"
 )
 

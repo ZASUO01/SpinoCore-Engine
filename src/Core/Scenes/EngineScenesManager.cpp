@@ -16,12 +16,13 @@ namespace SpinoCore::Core::Scenes {
     }
 
     void EngineScenesManager::PopScene() {
-        Scene* lastScene = nullptr;
+        if (mSceneStack.empty()) return;
 
-        if (!mSceneStack.empty()) {
-            lastScene = mSceneStack.top().get();
-            mSceneStack.pop();
-        }
-        mCurrentScene = lastScene;
+        mSceneStack.pop();
+        mCurrentScene = mSceneStack.empty() ? nullptr : mSceneStack.top().get();
+    }
+
+    Scene* EngineScenesManager::GetCurrentScene() const noexcept {
+        return mCurrentScene;
     }
 }
