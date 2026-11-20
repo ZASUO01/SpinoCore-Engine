@@ -23,25 +23,32 @@ namespace SpinoCore::Core::Engine {
     }
 
     void Engine::Initialize(const LaunchOptions& launchOptions) {
-        // SDL context
         mSDLContext.emplace(launchOptions.gameInfo);
+        InitializeModules(launchOptions);
 
-        // Engine modules
+        const Game::InitializationContext gameInitializationContext {
+            .windowManager = *mEngineModules.window,
+            .scenesManager = *mEngineModules.scenesManager
+        };
+        mGame->Initialize(gameInitializationContext);
+    }
+
+    void Engine::InitializeModules(const LaunchOptions &launchOptions) {
         mEngineModules.window.emplace(launchOptions.windowProps);
 
         auto window = mEngineModules.window->GetSDLWindow();
-        auto windowSize = mEngineModules.window->GetSize();
-        mEngineModules.renderer.emplace(window, windowSize, mEngineModules.eventBus);
+        auto size = mEngineModules.window->GetSize();
+        mEngineModules.renderer.emplace(window, size, mEngineModules.eventBus);
 
-        constexpr Scenes::StartContext sceneStartContext{};
+        mEngineModules.camerasManager.emplace(size, *mEngineModules.renderer, mEngineModules.eventBus);
+
+        const Scenes::StartContext sceneStartContext{
+            .camerasManager = *mEngineModules.camerasManager
+        };
+
         Scenes::ScenesManagerInput scenesManagerInput {
             .startContext = sceneStartContext
         };
         mEngineModules.scenesManager.emplace(scenesManagerInput);
-
-        const Game::InitializationContext gameInitializationContext {
-            .scenesManager = *mEngineModules.scenesManager
-        };
-        mGame->Initialize(gameInitializationContext);
     }
 }

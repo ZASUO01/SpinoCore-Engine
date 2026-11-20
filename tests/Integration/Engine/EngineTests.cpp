@@ -46,6 +46,32 @@ namespace {
         std::vector<std::string>& mDestructions;
     };
 
+    // Records whether the scene could reach the engine's default camera when it started.
+    class CameraProbeScene final : public Scene {
+    public:
+        explicit CameraProbeScene(bool& sawDefaultCamera) : mSawDefaultCamera(sawDefaultCamera) {}
+
+    protected:
+        void OnStart(const StartContext& ctx) override {
+            mSawDefaultCamera = ctx.camerasManager.GetCamera("default") != nullptr;
+        }
+
+    private:
+        bool& mSawDefaultCamera;
+    };
+
+    class CameraProbeGame final : public GameApplication {
+    public:
+        explicit CameraProbeGame(bool& sawDefaultCamera) : mSawDefaultCamera(sawDefaultCamera) {}
+
+        void Initialize(const InitializationContext& ctx) override {
+            ctx.scenesManager.PushScene(std::make_unique<CameraProbeScene>(mSawDefaultCamera));
+        }
+
+    private:
+        bool& mSawDefaultCamera;
+    };
+
     class FailingGame final : public GameApplication {
     public:
         void Initialize(const InitializationContext& /*ctx*/) override {
@@ -77,6 +103,14 @@ namespace {
         engine.reset();
 
         EXPECT_EQ(destructions, (std::vector<std::string>{"scene", "game"}));
+    }
+
+    TEST_F(EngineTests, ScenesStartWithTheEngineCamerasManager) {
+        bool sawDefaultCamera = false;
+
+        { const Engine engine{std::make_unique<CameraProbeGame>(sawDefaultCamera), LaunchOptions{}}; }
+
+        EXPECT_TRUE(sawDefaultCamera);
     }
 
     TEST_F(EngineTests, FailingToInitializeShutsSDLDown) {

@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
-#include "Renderer.h"
 #include <SDL3/SDL.h>
 #include <glad/glad.h>
+#include "Renderer.h"
+#include "SpinoCore/Math/MatrixFactory.h"
 
 namespace SpinoCore::Core::Rendering {
     Renderer::Renderer(SDL_Window *window, const Utils::Size2D windowSize, Events::EventBus& bus)
@@ -24,6 +25,12 @@ namespace SpinoCore::Core::Rendering {
         mPresenter.Present();
     }
 
+    void Renderer::SetCamera(const Math::Matrix4f& view, const Math::Matrix4f& projection) {
+        mCamera.view = view;
+        mCamera.projection = projection;
+        mCamera.viewProjection = projection * view;
+    }
+
     void Renderer::OnResize(const Events::WindowResizeEvent& event) {
         Resize(event.size, event.pixelSize);
     }
@@ -32,6 +39,9 @@ namespace SpinoCore::Core::Rendering {
         if (size.width <= 0 || size.height <= 0 || pixelSize.width <= 0 || pixelSize.height <= 0) return;
 
         glViewport(0, 0, pixelSize.width, pixelSize.height);
+        mOrthoViewProjectionMatrix = Math::MatrixFactory::CreateOrtho(
+            0.0f, static_cast<float>(size.width), static_cast<float>(size.height), 0.0f,
+            ORTHO_NEAR_PLANE, ORTHO_FAR_PLANE);
     }
 }
 

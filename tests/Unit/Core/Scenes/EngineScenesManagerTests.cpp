@@ -2,14 +2,19 @@
 // Copyright (c) 2026 ZASUO01
 #include <memory>
 #include <optional>
+#include <string>
 #include <utility>
 #include <vector>
 #include <gtest/gtest.h>
 #include "Core/Scenes/EngineScenesManager.h"
+#include "SpinoCore/Core/Cameras/Camera.h"
+#include "SpinoCore/Core/Cameras/CamerasManager.h"
 #include "SpinoCore/Core/Scenes/Scene.h"
 #include "SpinoCore/Core/Scenes/StartContext.h"
 
 namespace {
+    using SpinoCore::Core::Cameras::Camera;
+    using SpinoCore::Core::Cameras::CamerasManager;
     using SpinoCore::Core::Scenes::EngineScenesManager;
     using SpinoCore::Core::Scenes::Scene;
     using SpinoCore::Core::Scenes::ScenesManagerInput;
@@ -18,6 +23,16 @@ namespace {
     struct SceneEvents final {
         int starts{0};
         std::vector<int> destroyedScenes{};
+        const CamerasManager* startedWith{nullptr};
+    };
+
+    // The scenes manager only hands this to the scenes; it never calls into it.
+    class NullCamerasManager final : public CamerasManager {
+    public:
+        void AddCamera(std::unique_ptr<Camera> /*camera*/, const std::string& /*name*/) override {}
+        [[nodiscard]] Camera* GetCamera(const std::string& /*name*/) override { return nullptr; }
+        void SetCurrentCamera(const std::string& /*name*/) override {}
+        void RemoveCamera(const std::string& /*name*/) override {}
     };
 
     class TrackedScene final : public Scene {
@@ -26,7 +41,10 @@ namespace {
         ~TrackedScene() override { mEvents.destroyedScenes.push_back(mId); }
 
     protected:
-        void OnStart(const StartContext& /*ctx*/) override { ++mEvents.starts; }
+        void OnStart(const StartContext& ctx) override {
+            ++mEvents.starts;
+            mEvents.startedWith = &ctx.camerasManager;
+        }
 
     private:
         SceneEvents& mEvents;
@@ -37,7 +55,8 @@ namespace {
     protected:
         // Declared before the manager so it outlives the scenes the manager destroys.
         SceneEvents events{};
-        StartContext startContext{};
+        NullCamerasManager camerasManager{};
+        StartContext startContext{.camerasManager = camerasManager};
         EngineScenesManager scenesManager{ScenesManagerInput{.startContext = startContext}};
     };
 
@@ -45,6 +64,12 @@ namespace {
         scenesManager.PushScene(std::make_unique<TrackedScene>(events));
 
         EXPECT_EQ(events.starts, 1);
+    }
+
+    TEST_F(EngineScenesManagerTests, StartedScenesReceiveTheCamerasManager) {
+        scenesManager.PushScene(std::make_unique<TrackedScene>(events));
+
+        EXPECT_EQ(events.startedWith, &camerasManager);
     }
 
     TEST_F(EngineScenesManagerTests, PushedSceneBecomesTheCurrentScene) {

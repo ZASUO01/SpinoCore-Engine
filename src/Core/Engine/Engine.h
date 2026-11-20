@@ -28,6 +28,7 @@ namespace SpinoCore::Core::Engine {
 
     private:
         void Initialize(const LaunchOptions& launchOptions);
+        void InitializeModules(const LaunchOptions& launchOptions);
 
         std::optional<SDL::Context> mSDLContext{};
         EngineModules mEngineModules{};

@@ -21,6 +21,9 @@ add_library(SpinoCore::Runtime ALIAS ${PROJECT_NAME})
 target_sources(${PROJECT_NAME} PRIVATE
 #include/SpinoCore
     #Core
+        #Cameras
+            "include/SpinoCore/Core/Cameras/Camera.h"
+            "include/SpinoCore/Core/Cameras/CamerasManager.h"
         #Scenes
             "include/SpinoCore/Core/Scenes/Scene.h"
             "include/SpinoCore/Core/Scenes/ScenesManager.h"
@@ -53,6 +56,10 @@ target_sources(${PROJECT_NAME} PRIVATE
     "include/SpinoCore/LaunchOptions.h"
 #src
     #Core
+        #Cameras
+            "src/Core/Cameras/DefaultCamera.h"
+            "src/Core/Cameras/EngineCamerasManager.cpp"
+            "src/Core/Cameras/EngineCamerasManager.h"
         #Engine
             "src/Core/Engine/Engine.cpp"
             "src/Core/Engine/Engine.h"

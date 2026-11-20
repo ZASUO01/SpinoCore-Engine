@@ -6,8 +6,15 @@
 #include "Core/Events/EventBus.h"
 #include "Core/Events/TypeEvents/WindowEvents.h"
 #include "Core/Rendering/Presenter/Presenter.h"
+#include "SpinoCore/Math/Matrix.h"
 
 namespace SpinoCore::Core::Rendering {
+    struct CameraMatrices final {
+        Math::Matrix4f view{Math::Matrix4f::Identity()};
+        Math::Matrix4f projection{Math::Matrix4f::Identity()};
+        Math::Matrix4f viewProjection{Math::Matrix4f::Identity()};
+    };
+
     class Renderer final {
     public:
         using Duration = Presenter::Duration;
@@ -23,11 +30,20 @@ namespace SpinoCore::Core::Rendering {
         void Draw();
         [[nodiscard]] Duration GetFramePeriod() const noexcept { return mPresenter.GetFramePeriod(); }
 
+        void SetCamera(const Math::Matrix4f& view, const Math::Matrix4f& projection);
+        [[nodiscard]] const CameraMatrices& GetCameraMatrices() const noexcept { return mCamera; }
+        [[nodiscard]] const Math::Matrix4f& GetOrthoViewProjection() const noexcept { return mOrthoViewProjectionMatrix; }
+
     private:
+        static constexpr float ORTHO_NEAR_PLANE = -1.0f;
+        static constexpr float ORTHO_FAR_PLANE = 1.0f;
+
         void OnResize(const Events::WindowResizeEvent& event);
         void Resize(Utils::Size2D size, Utils::Size2D pixelSize);
 
         Presenter mPresenter;
+        CameraMatrices mCamera{};
+        Math::Matrix4f mOrthoViewProjectionMatrix{Math::Matrix4f::Identity()};
         Events::EventBus::Subscription mResizeSubscription;
     };
 }
