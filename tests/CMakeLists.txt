@@ -18,10 +18,7 @@ include(GoogleTest)
 
 # ======================================
 # Helper to create a test executable
-# ======================================
-# spinocore_add_test(<target> LABEL <label>)
-# Collects every .cpp under the calling directory. If there is none yet,
-# the target is skipped so the suite folder can stay empty.
+# ======================================.
 function(spinocore_add_test target)
     cmake_parse_arguments(ARG "" "LABEL" "" ${ARGN})
 

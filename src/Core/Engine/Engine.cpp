@@ -15,7 +15,7 @@ namespace SpinoCore::Core::Engine {
     }
 
     void Engine::Run() {
-        // TODO
+        mGameLooping.Run(mEngineOperations);
     }
 
     void Engine::Initialize(const LaunchOptions& launchOptions) {

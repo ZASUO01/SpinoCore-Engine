@@ -6,6 +6,7 @@
 
 namespace SpinoCore::Core::Engine {
     struct EngineModules final {
+
         std::optional<Scenes::EngineScenesManager> scenesManager{};
     };
 }

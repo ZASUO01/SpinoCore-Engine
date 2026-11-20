@@ -5,6 +5,8 @@
 #include <optional>
 #include "SpinoCore/Game/GameApplication.h"
 #include "EngineModules.h"
+#include "EngineOperations.h"
+#include "Runtime/GameLooping.h"
 #include "SDL/Context.h"
 
 namespace SpinoCore {
@@ -29,6 +31,8 @@ namespace SpinoCore::Core::Engine {
 
         std::optional<SDL::Context> mSDLContext{};
         EngineModules mEngineModules{};
+        EngineOperations mEngineOperations{mEngineModules};
+        Runtime::GameLooping<> mGameLooping{};
         std::unique_ptr<Game::GameApplication> mGame{nullptr};
     };
 }
