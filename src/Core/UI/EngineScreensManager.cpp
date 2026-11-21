@@ -7,8 +7,13 @@ namespace SpinoCore::Core::UI {
     EngineScreensManager::EngineScreensManager() = default;
 
     EngineScreensManager::~EngineScreensManager() {
+        Clear();
+    }
+
+    void EngineScreensManager::Clear() noexcept {
         // A vector destroys its elements from the front; screens on top may depend on the ones
         // below them, so they are destroyed first.
+        mCurrentScreen = nullptr;
         while (!mScreens.empty()) mScreens.pop_back();
     }
 

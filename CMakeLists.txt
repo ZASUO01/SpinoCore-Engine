@@ -39,7 +39,7 @@ target_sources(${PROJECT_NAME} PRIVATE
             "include/SpinoCore/Core/Window/WindowProps.h"
             "include/SpinoCore/Core/Window/WindowSize.h"
     #Files
-        "include/SpinoCore/Files/FileLoader.h"
+        "include/SpinoCore/Files/FileManager.h"
     #Game
         "include/SpinoCore/Game/GameApplication.h"
         "include/SpinoCore/Game/GameInfo.h"
@@ -112,7 +112,10 @@ target_sources(${PROJECT_NAME} PRIVATE
             "src/Core/Window/EngineWindow.h"
             "src/Core/Window/WindowSizeHelpers.h"
     #Files
-
+        "src/Files/FileHelpers.cpp"
+        "src/Files/FileHelpers.h"
+        "src/Files/EngineFileManager.cpp"
+        "src/Files/EngineFileManager.h"
     #Graphics
         #Geometry
             "src/Graphics/Geometry/VertexArray.cpp"
@@ -142,6 +145,9 @@ target_sources(${PROJECT_NAME} PRIVATE
         "src/SDL/Context.h"
         "src/SDL/Structs.cpp"
         "src/SDL/Structs.h"
+    #Utils
+        "src/Utils/JSONHelpers.cpp"
+        "src/Utils/JSONHelpers.h"
     "src/Launch.cpp"
 )
 
@@ -156,7 +162,6 @@ target_include_directories(${PROJECT_NAME}
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
         PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/src"
-        "${CMAKE_CURRENT_SOURCE_DIR}/vendor"
 )
 
 # ======================================
@@ -216,7 +221,19 @@ FetchContent_MakeAvailable(SDL3 SDL3_image)
 # Link libraries
 # ======================================
 add_subdirectory(vendor/glad)
-target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3-static SDL3_image::SDL3_image-static SpinoCore::glad)
+
+
+add_library(SpinoCore-json INTERFACE)
+add_library(SpinoCore::json ALIAS SpinoCore-json)
+target_include_directories(SpinoCore-json SYSTEM INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/vendor")
+target_compile_features(SpinoCore-json INTERFACE cxx_std_11)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3-static SDL3_image::SDL3_image-static SpinoCore::glad SpinoCore::json)
+
+# ======================================
+# Game assets (spinocore_add_assets)
+# ======================================
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/SpinoCoreAssets.cmake")
 
 # ======================================
 # Tests

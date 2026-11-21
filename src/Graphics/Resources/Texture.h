@@ -9,7 +9,7 @@
 namespace SpinoCore::Graphics::Resources {
     class Texture final {
     public:
-        Texture() = default;
+        Texture();
         explicit Texture(const std::filesystem::path& imagePath);
         ~Texture();
 
@@ -22,10 +22,11 @@ namespace SpinoCore::Graphics::Resources {
         [[nodiscard]] std::uint32_t GetID() const noexcept { return mTextureID; }
         [[nodiscard]] Utils::Size2D GetSize() const noexcept { return mSize; }
 
-        [[nodiscard]] static std::unique_ptr<Texture> CreateBlankTexture();
-
         private:
+            void CreateBlank();
+            void CreateFromImage(const std::filesystem::path& imagePath);
             [[nodiscard]] bool Upload(const void* rgbaPixels, Utils::Size2D size, int pixelsPerLine);
+
 
             std::uint32_t mTextureID{0};
             Utils::Size2D mSize{0, 0};

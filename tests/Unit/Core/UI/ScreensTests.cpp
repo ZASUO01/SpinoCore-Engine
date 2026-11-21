@@ -135,6 +135,27 @@ namespace {
         EXPECT_EQ(log, (Log{"options:destroyed", "menu:destroyed"}));
     }
 
+    TEST_F(EngineScreensManagerTests, ClearDestroysTheTopScreenFirstWithoutExitCallbacks) {
+        Push("menu");
+        Push("options");
+        log.clear();
+
+        manager->Clear();
+
+        EXPECT_EQ(log, (Log{"options:destroyed", "menu:destroyed"}));
+    }
+
+    TEST_F(EngineScreensManagerTests, ScreensCanBePushedAgainAfterClear) {
+        Push("menu");
+        manager->Clear();
+        log.clear();
+
+        Push("hud");
+        manager->PopScreen();
+
+        EXPECT_EQ(log, (Log{"hud:enter", "hud:exit", "hud:destroyed"}));
+    }
+
     TEST_F(EngineScreensManagerTests, EachScreenDrawsOnItsOwnLayerFromBottomToTop) {
         (void)Push("menu").AddElement(std::make_unique<TestElement>(ElementInput{.drawOrder = 5}));
         (void)Push("options").AddElement(std::make_unique<TestElement>(ElementInput{.drawOrder = 3}));

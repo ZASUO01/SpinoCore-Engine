@@ -5,7 +5,8 @@
 #include <string>
 #include <vector>
 #include <gtest/gtest.h>
-#include <SDL3/SDL.h>
+#include <SDL3/SDL_hints.h>
+#include <SDL3/SDL_init.h>
 #include "Core/Engine/Engine.h"
 #include "SpinoCore/Core/Scenes/Scene.h"
 #include "SpinoCore/Core/Scenes/StartContext.h"
@@ -120,6 +121,21 @@ namespace {
         }
     };
 
+    // Fails after its scene was already pushed, so the engine has to clean the scene up while unwinding.
+    class FailingAfterPushingGame final : public GameApplication {
+    public:
+        explicit FailingAfterPushingGame(std::vector<std::string>& destructions) : mDestructions(destructions) {}
+        ~FailingAfterPushingGame() override { mDestructions.emplace_back("game"); }
+
+        void Initialize(const InitializationContext& ctx) override {
+            ctx.scenesManager.PushScene(std::make_unique<TrackedScene>(mDestructions));
+            throw std::runtime_error("game failed after pushing a scene");
+        }
+
+    private:
+        std::vector<std::string>& mDestructions;
+    };
+
     class EngineTests : public testing::Test {
     protected:
         void SetUp() override {
@@ -165,6 +181,15 @@ namespace {
     TEST_F(EngineTests, FailingToInitializeShutsSDLDown) {
         EXPECT_THROW(Engine(std::make_unique<FailingGame>(), LaunchOptions{}), std::runtime_error);
 
+        EXPECT_EQ(SDL_WasInit(0), 0u);
+    }
+
+    TEST_F(EngineTests, FailingToInitializeStillDestroysScenesBeforeTheGame) {
+        std::vector<std::string> destructions;
+
+        EXPECT_THROW(Engine(std::make_unique<FailingAfterPushingGame>(destructions), LaunchOptions{}), std::runtime_error);
+
+        EXPECT_EQ(destructions, (std::vector<std::string>{"scene", "game"}));
         EXPECT_EQ(SDL_WasInit(0), 0u);
     }
 }

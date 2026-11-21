@@ -36,7 +36,6 @@ function(spinocore_add_test target)
     target_include_directories(${target}
             PRIVATE
             "${PROJECT_SOURCE_DIR}/src"
-            "${PROJECT_SOURCE_DIR}/vendor"
     )
 
     target_compile_options(${target} PRIVATE
@@ -44,7 +43,11 @@ function(spinocore_add_test target)
             $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wall -Wextra -Wpedantic>
     )
 
-    target_link_libraries(${target} PRIVATE SpinoCore::Runtime GTest::gtest_main)
+    target_link_libraries(${target} PRIVATE SpinoCore::Runtime SpinoCore::json GTest::gtest_main)
+
+    # The engine refuses to start without an Assets folder next to it, so every test binary gets an empty one.
+    add_custom_command(TARGET ${target} POST_BUILD
+            COMMAND "${CMAKE_COMMAND}" -E make_directory "$<TARGET_FILE_DIR:${target}>/Assets")
 
     # Mesa software drivers (common in CI) report OpenGL 4.5 / GLSL 4.50, but the engine asks for 4.6
     # and its shaders use "#version 460". The overrides only affect Mesa and let the GL-dependent tests run there.
@@ -64,3 +67,11 @@ endfunction()
 add_subdirectory(Unit)
 add_subdirectory(Integration)
 add_subdirectory(E2E)
+
+# Build scripts, tested by running them with cmake -P.
+add_test(NAME CMake.SyncAssets
+        COMMAND "${CMAKE_COMMAND}"
+            "-DSYNC_SCRIPT=${PROJECT_SOURCE_DIR}/cmake/SyncAssets.cmake"
+            "-DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/SyncAssetsWork"
+            -P "${CMAKE_CURRENT_SOURCE_DIR}/CMake/SyncAssetsTests.cmake")
+set_tests_properties(CMake.SyncAssets PROPERTIES LABELS "CMake")

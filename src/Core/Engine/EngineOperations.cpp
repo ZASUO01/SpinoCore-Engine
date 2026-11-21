@@ -12,7 +12,8 @@ namespace SpinoCore::Core::Engine {
     }
 
     bool EngineOperations::PrepareSimulation() {
-        return true;
+        mModules.fileManager->ProcessRequests();
+        return mModules.fileManager->IsReady();
     }
 
     void EngineOperations::ProcessFrameInputs() {}

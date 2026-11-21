@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
+#include <cstdint>
+#include <filesystem>
 #include <memory>
 #include <optional>
 #include <string>
@@ -13,6 +15,7 @@
 #include "SpinoCore/Core/Scenes/StartContext.h"
 #include "SpinoCore/Core/UI/Screen.h"
 #include "SpinoCore/Core/UI/ScreensManager.h"
+#include "SpinoCore/Files/FileManager.h"
 
 namespace {
     using SpinoCore::Core::Cameras::Camera;
@@ -23,10 +26,12 @@ namespace {
     using SpinoCore::Core::Scenes::StartContext;
     using SpinoCore::Core::UI::Screen;
     using SpinoCore::Core::UI::ScreensManager;
+    using SpinoCore::Files::FileManager;
 
     struct SceneEvents final {
         int starts{0};
         std::vector<int> destroyedScenes{};
+        const FileManager* startedWithFiles{nullptr};
         const CamerasManager* startedWithCameras{nullptr};
         const ScreensManager* startedWithScreens{nullptr};
     };
@@ -38,6 +43,14 @@ namespace {
         [[nodiscard]] Camera* GetCamera(const std::string& /*name*/) override { return nullptr; }
         void SetCurrentCamera(const std::string& /*name*/) override {}
         void RemoveCamera(const std::string& /*name*/) override {}
+    };
+
+    class NullFileManager final : public FileManager {
+    public:
+        void LoadFromManifest(const std::filesystem::path& /*manifestPath*/) override {}
+        void LoadFromSinglePath(SpinoCore::Files::AssetType /*type*/, std::string /*id*/, const std::filesystem::path& /*path*/) override {}
+        void WriteToSinglePath(const std::filesystem::path& /*path*/, std::vector<std::uint8_t> /*data*/) override {}
+        [[nodiscard]] bool FileExists(const std::filesystem::path& /*path*/) const override { return false; }
     };
 
     class NullScreensManager final : public ScreensManager {
@@ -54,6 +67,7 @@ namespace {
     protected:
         void OnStart(const StartContext& ctx) override {
             ++mEvents.starts;
+            mEvents.startedWithFiles = &ctx.fileManager;
             mEvents.startedWithCameras = &ctx.camerasManager;
             mEvents.startedWithScreens = &ctx.screensManager;
         }
@@ -67,9 +81,10 @@ namespace {
     protected:
         // Declared before the manager so it outlives the scenes the manager destroys.
         SceneEvents events{};
+        NullFileManager fileManager{};
         NullCamerasManager camerasManager{};
         NullScreensManager screensManager{};
-        StartContext startContext{.camerasManager = camerasManager, .screensManager = screensManager};
+        StartContext startContext{.fileManager = fileManager, .camerasManager = camerasManager, .screensManager = screensManager};
         EngineScenesManager scenesManager{ScenesManagerInput{.startContext = startContext}};
     };
 
@@ -82,6 +97,7 @@ namespace {
     TEST_F(EngineScenesManagerTests, StartedScenesReceiveTheEngineManagers) {
         scenesManager.PushScene(std::make_unique<TrackedScene>(events));
 
+        EXPECT_EQ(events.startedWithFiles, &fileManager);
         EXPECT_EQ(events.startedWithCameras, &camerasManager);
         EXPECT_EQ(events.startedWithScreens, &screensManager);
     }

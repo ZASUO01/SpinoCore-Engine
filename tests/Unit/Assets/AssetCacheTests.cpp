@@ -160,6 +160,26 @@ TEST(AssetCacheTests, GetDefaultWithoutOneThrows) {
     EXPECT_THROW((void)cache.GetDefault(), std::logic_error);
 }
 
+TEST(AssetCacheTests, GetOrDefaultReturnsTheCachedAsset) {
+    AssetCache<FakeTexture> cache{Texture(1, 1)};
+    const FakeTexture& stored = cache.Add("hero", Texture(64, 32));
+
+    EXPECT_EQ(&cache.GetOrDefault("hero"), &stored);
+}
+
+TEST(AssetCacheTests, GetOrDefaultFallsBackToTheDefaultForMissingIds) {
+    AssetCache<FakeTexture> cache{Texture(1, 1)};
+    cache.Add("hero", Texture(64, 32));
+
+    EXPECT_EQ(&cache.GetOrDefault("missing"), &cache.GetDefault());
+}
+
+TEST(AssetCacheTests, GetOrDefaultWithoutADefaultThrows) {
+    const AssetCache<FakeTexture> cache;
+
+    EXPECT_THROW((void)cache.GetOrDefault("missing"), std::logic_error);
+}
+
 TEST(AssetCacheTests, SetDefaultReplacesAndDestroysThePreviousOne) {
     ASSERT_EQ(Tracked::alive, 0);
     {

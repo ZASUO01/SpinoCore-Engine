@@ -8,10 +8,12 @@
 #include "Core/Rendering/Renderer.h"
 #include "Core/Cameras/EngineCamerasManager.h"
 #include "Core/UI/EngineScreensManager.h"
+#include "Files/EngineFileManager.h"
 
 namespace SpinoCore::Core::Engine {
     struct EngineModules final {
         Events::EventBus eventBus{};
+        std::optional<Files::EngineFileManager> fileManager{};
         std::optional<Window::EngineWindow> window{};
         std::optional<Rendering::Renderer> renderer{};
         std::optional<Cameras::EngineCamerasManager> camerasManager{};

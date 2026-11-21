@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <fstream>
 #include <ios>
+#include <memory>
 #include <random>
 #include <stdexcept>
 #include <string>
@@ -314,10 +315,10 @@ TEST_F(TextureTests, FailedLoadLeavesNoGLErrorBehind) {
     EXPECT_EQ(glGetError(), static_cast<GLenum>(GL_NO_ERROR));
 }
 
-// ---------------------------------------------------------------- blank texture
+// ---------------------------------------------------------------- default constructor: blank texture
 
 TEST_F(TextureTests, BlankTextureIsOneOpaqueWhitePixel) {
-    const auto texture = Texture::CreateBlankTexture();
+    const auto texture = std::make_unique<Texture>();
 
     ASSERT_NE(texture, nullptr);
     EXPECT_NE(texture->GetID(), 0u);
@@ -332,7 +333,7 @@ TEST_F(TextureTests, BlankTextureIsOneOpaqueWhitePixel) {
 }
 
 TEST_F(TextureTests, BlankTextureUsesTheSameParametersAsLoadedOnes) {
-    const auto texture = Texture::CreateBlankTexture();
+    const auto texture = std::make_unique<Texture>();
 
     GLint internalFormat = 0;
     GLint minFilter = 0;
@@ -353,7 +354,7 @@ TEST_F(TextureTests, BlankTextureUsesTheSameParametersAsLoadedOnes) {
 }
 
 TEST_F(TextureTests, BlankTextureRestoresUnpackStateAndBinding) {
-    const auto texture = Texture::CreateBlankTexture();
+    const auto texture = std::make_unique<Texture>();
 
     EXPECT_EQ(GetInteger(GL_UNPACK_ROW_LENGTH), 0);
     EXPECT_EQ(GetInteger(GL_UNPACK_ALIGNMENT), 4);
@@ -361,10 +362,10 @@ TEST_F(TextureTests, BlankTextureRestoresUnpackStateAndBinding) {
 }
 
 TEST_F(TextureTests, EachBlankTextureIsIndependent) {
-    const auto first = Texture::CreateBlankTexture();
+    const auto first = std::make_unique<Texture>();
     GLuint firstId = first->GetID();
     {
-        const auto second = Texture::CreateBlankTexture();
+        const auto second = std::make_unique<Texture>();
         EXPECT_NE(second->GetID(), firstId);
     }
     EXPECT_TRUE(glIsTexture(firstId));
@@ -373,7 +374,7 @@ TEST_F(TextureTests, EachBlankTextureIsIndependent) {
 TEST_F(TextureTests, BlankTextureIsReleasedWithItsOwner) {
     GLuint id = 0;
     {
-        const auto texture = Texture::CreateBlankTexture();
+        const auto texture = std::make_unique<Texture>();
         id = texture->GetID();
         ASSERT_TRUE(glIsTexture(id));
     }

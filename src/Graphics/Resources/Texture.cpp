@@ -3,7 +3,6 @@
 #include "Texture.h"
 #include <array>
 #include <cstdint>
-#include <memory>
 #include <stdexcept>
 #include <SDL3/SDL_pixels.h>
 #include <SDL3/SDL_surface.h>
@@ -11,7 +10,35 @@
 #include "SDL/Helpers/Helpers.h"
 
 namespace SpinoCore::Graphics::Resources {
+    Texture::Texture() {
+        CreateBlank();
+    }
+
     Texture::Texture(const std::filesystem::path &imagePath) {
+        CreateFromImage(imagePath);
+    }
+
+    Texture::~Texture() {
+        if (mTextureID != 0) {
+            glDeleteTextures(1, &mTextureID);
+            mTextureID = 0;
+        }
+    }
+
+    void Texture::SetActive(const std::uint32_t slot) const {
+        glActiveTexture(GL_TEXTURE0 + slot);
+        glBindTexture(GL_TEXTURE_2D, mTextureID);
+    }
+
+    void Texture::CreateBlank() {
+        static constexpr std::array<std::uint8_t, 4> white{255, 255, 255, 255};
+
+        if (!Upload(white.data(), Utils::Size2D{1, 1}, 1)) {
+            throw std::runtime_error("[Texture] Failed to create the blank texture.");
+        }
+    }
+
+    void Texture::CreateFromImage(const std::filesystem::path &imagePath) {
         const auto surface = SDL::Helpers::CreateFromImage(imagePath);
         if (!surface) {
             throw std::runtime_error("[Texture] Failed to load image: " + imagePath.string());
@@ -55,27 +82,5 @@ namespace SpinoCore::Graphics::Resources {
 
         mSize = size;
         return true;
-    }
-
-    Texture::~Texture() {
-        if (mTextureID != 0) {
-            glDeleteTextures(1, &mTextureID);
-            mTextureID = 0;
-        }
-    }
-
-    void Texture::SetActive(const std::uint32_t slot) const {
-        glActiveTexture(GL_TEXTURE0 + slot);
-        glBindTexture(GL_TEXTURE_2D, mTextureID);
-    }
-
-    std::unique_ptr<Texture> Texture::CreateBlankTexture() {
-        static constexpr std::array<std::uint8_t, 4> white{255, 255, 255, 255};
-
-        auto texture = std::make_unique<Texture>();
-        if (!texture->Upload(white.data(), Utils::Size2D{1, 1}, 1)) {
-            throw std::runtime_error("[Texture] Failed to create the blank texture.");
-        }
-        return texture;
     }
 }

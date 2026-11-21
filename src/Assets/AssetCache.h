@@ -50,12 +50,13 @@ namespace SpinoCore::Assets {
         }
 
         [[nodiscard]] const T& Get(const std::string_view id) const { return *Find(id); }
-        [[nodiscard]] bool Contains(const std::string_view id) const { return mAssets.contains(id); }
-
-        [[nodiscard]] bool IsDefault(const std::string_view id) const {
+        // The asset under the id, or the default one when nothing was cached under it (e.g. a load that failed).
+        [[nodiscard]] const T& GetOrDefault(const std::string_view id) const {
             const auto it = mAssets.find(id);
-            return it != mAssets.end() && mDefault && it->second == mDefault;
+            return it != mAssets.end() ? *it->second : GetDefault();
         }
+
+        [[nodiscard]] bool Contains(const std::string_view id) const { return mAssets.contains(id); }
 
         bool Remove(const std::string_view id) {
             const auto it = mAssets.find(id);
