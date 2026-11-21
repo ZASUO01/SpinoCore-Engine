@@ -4,6 +4,7 @@
 #include <memory>
 
 struct SDL_Window;
+struct SDL_Surface;
 
 namespace SpinoCore::SDL {
     struct SDLWindowDeleter {
@@ -15,4 +16,9 @@ namespace SpinoCore::SDL {
         void operator()(void*) const;
     };
     using UniqueGLContext = std::unique_ptr<void, GLContextDeleter>;
+
+    struct SDLSurfaceDeleter {
+        void operator()(SDL_Surface* surface) const;
+    };
+    using UniqueSDLSurface = std::unique_ptr<SDL_Surface, SDLSurfaceDeleter>;
 }

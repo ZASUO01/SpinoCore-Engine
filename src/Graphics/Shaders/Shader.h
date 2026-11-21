@@ -9,7 +9,7 @@
 namespace SpinoCore::Graphics::Shaders {
     class Shader final  {
     public:
-        explicit Shader(const std::string& vertexSource, const std::string& fragmentSource);
+        Shader(const std::string& vertexSource, const std::string& fragmentSource);
         ~Shader();
 
         Shader(const Shader&) = delete;

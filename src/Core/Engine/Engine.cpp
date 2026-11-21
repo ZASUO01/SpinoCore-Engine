@@ -5,6 +5,7 @@
 #include "SpinoCore/Core/Scenes/StartContext.h"
 #include "SpinoCore/Game/InitializationContext.h"
 #include "Core/Scenes/EngineScenesManager.h"
+#include "Graphics/Resources/Texture.h"
 #include "SpinoCore/LaunchOptions.h"
 
 namespace SpinoCore::Core::Engine {
@@ -25,6 +26,7 @@ namespace SpinoCore::Core::Engine {
     void Engine::Initialize(const LaunchOptions& launchOptions) {
         mSDLContext.emplace(launchOptions.gameInfo);
         InitializeModules(launchOptions);
+        InitializeCache();
 
         const Game::InitializationContext gameInitializationContext {
             .windowManager = *mEngineModules.window,
@@ -51,5 +53,10 @@ namespace SpinoCore::Core::Engine {
             .startContext = sceneStartContext
         };
         mEngineModules.scenesManager.emplace(scenesManagerInput);
+    }
+
+    void Engine::InitializeCache() {
+        auto blankTexture = Graphics::Resources::Texture::CreateBlankTexture();
+        mEngineCache.textureCache.emplace(std::move(blankTexture));
     }
 }

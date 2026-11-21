@@ -1,22 +1,12 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
 #include "SDL/Helpers/Helpers.h"
+#include <string>
+#include <SDL3/SDL_pixels.h>
+#include <SDL3/SDL_surface.h>
 #include <SDL3/SDL_video.h>
+#include <SDL3_image/SDL_image.h>
 #include "SDL/Structs.h"
-
-namespace SpinoCore::SDL {
-    void SDLWindowDeleter::operator()(SDL_Window* window) const {
-        if (window) {
-            SDL_DestroyWindow(window);
-        }
-    }
-
-    void GLContextDeleter::operator()(void* context) const {
-        if (context) {
-            SDL_GL_DestroyContext(static_cast<SDL_GLContext>(context));
-        }
-    }
-}
 
 namespace SpinoCore::SDL::Helpers {
     UniqueSDLWindow CreateSDLWindow(const char *title, const int width, const int height) noexcept {
@@ -34,5 +24,20 @@ namespace SpinoCore::SDL::Helpers {
 
     UniqueGLContext CreateGLContext(SDL_Window* window) noexcept {
         return UniqueGLContext(SDL_GL_CreateContext(window));
+    }
+
+    UniqueSDLSurface CreateFromImage(const std::filesystem::path &path) noexcept {
+        const std::u8string utf8 = path.u8string();
+        const auto cpath = reinterpret_cast<const char*>(utf8.c_str());
+
+        UniqueSDLSurface loaded{IMG_Load(cpath)};
+        if (!loaded) return nullptr;
+
+        if (loaded->format == SDL_PIXELFORMAT_RGBA32) return loaded;
+
+        UniqueSDLSurface converted{SDL_ConvertSurface(loaded.get(), SDL_PIXELFORMAT_RGBA32)};
+        if (!converted) return nullptr;
+
+        return converted;
     }
 }

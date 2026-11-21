@@ -38,6 +38,8 @@ target_sources(${PROJECT_NAME} PRIVATE
             "include/SpinoCore/Core/Window/WindowManager.h"
             "include/SpinoCore/Core/Window/WindowProps.h"
             "include/SpinoCore/Core/Window/WindowSize.h"
+    #Files
+        "include/SpinoCore/Files/FileLoader.h"
     #Game
         "include/SpinoCore/Game/GameApplication.h"
         "include/SpinoCore/Game/GameInfo.h"
@@ -61,6 +63,8 @@ target_sources(${PROJECT_NAME} PRIVATE
     "include/SpinoCore/Launch.h"
     "include/SpinoCore/LaunchOptions.h"
 #src
+    #Assets
+        "src/Assets/AssetCache.h"
     #Core
         #Cameras
             "src/Core/Cameras/DefaultCamera.h"
@@ -69,6 +73,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         #Engine
             "src/Core/Engine/Engine.cpp"
             "src/Core/Engine/Engine.h"
+            "src/Core/Engine/EngineCache.h"
             "src/Core/Engine/EngineModules.h"
             "src/Core/Engine/EngineOperations.cpp"
             "src/Core/Engine/EngineOperations.h"
@@ -106,11 +111,16 @@ target_sources(${PROJECT_NAME} PRIVATE
             "src/Core/Window/EngineWindow.cpp"
             "src/Core/Window/EngineWindow.h"
             "src/Core/Window/WindowSizeHelpers.h"
+    #Files
+
     #Graphics
         #Geometry
             "src/Graphics/Geometry/VertexArray.cpp"
             "src/Graphics/Geometry/VertexArray.h"
-        #Shders
+        #Resources
+            "src/Graphics/Resources/Texture.cpp"
+            "src/Graphics/Resources/Texture.h"
+        #Shaders
             #Sources
                 "src/Graphics/Shaders/Sources/UIShader.h"
             "src/Graphics/Shaders/Shader.cpp"
@@ -130,6 +140,7 @@ target_sources(${PROJECT_NAME} PRIVATE
             "src/SDL/Helpers/Helpers.h"
         "src/SDL/Context.cpp"
         "src/SDL/Context.h"
+        "src/SDL/Structs.cpp"
         "src/SDL/Structs.h"
     "src/Launch.cpp"
 )
@@ -180,13 +191,32 @@ FetchContent_Declare(
         EXCLUDE_FROM_ALL
 )
 
-FetchContent_MakeAvailable(SDL3)
+set(SDLIMAGE_INSTALL OFF)
+set(SDLIMAGE_SAMPLES OFF)
+set(SDLIMAGE_TESTS OFF)
+set(SDLIMAGE_VENDORED OFF)
+set(SDLIMAGE_DEPS_SHARED OFF)
+set(SDLIMAGE_BACKEND_STB ON)
+set(SDLIMAGE_AVIF OFF)
+set(SDLIMAGE_JXL OFF)
+set(SDLIMAGE_TIF OFF)
+set(SDLIMAGE_WEBP OFF)
+set(BUILD_SHARED_LIBS OFF)
+FetchContent_Declare(
+        SDL3_image
+        GIT_REPOSITORY "https://github.com/libsdl-org/SDL_image.git"
+        GIT_TAG        "release-3.2.0"
+        GIT_SHALLOW    TRUE
+        EXCLUDE_FROM_ALL
+)
+
+FetchContent_MakeAvailable(SDL3 SDL3_image)
 
 # ======================================
 # Link libraries
 # ======================================
 add_subdirectory(vendor/glad)
-target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3-static SpinoCore::glad)
+target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3-static SDL3_image::SDL3_image-static SpinoCore::glad)
 
 # ======================================
 # Tests

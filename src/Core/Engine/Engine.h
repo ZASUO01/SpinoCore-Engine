@@ -3,6 +3,8 @@
 #pragma once
 #include <memory>
 #include <optional>
+
+#include "EngineCache.h"
 #include "SpinoCore/Game/GameApplication.h"
 #include "EngineModules.h"
 #include "EngineOperations.h"
@@ -29,9 +31,11 @@ namespace SpinoCore::Core::Engine {
     private:
         void Initialize(const LaunchOptions& launchOptions);
         void InitializeModules(const LaunchOptions& launchOptions);
+        void InitializeCache();
 
         std::optional<SDL::Context> mSDLContext{};
         EngineModules mEngineModules{};
+        EngineCache mEngineCache{};
         EngineOperations mEngineOperations{mEngineModules};
         Runtime::GameLooping<> mGameLooping{};
         std::unique_ptr<Game::GameApplication> mGame{nullptr};
