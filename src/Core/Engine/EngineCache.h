@@ -3,9 +3,11 @@
 #pragma once
 #include "Graphics/Resources/Texture.h"
 #include "Assets/AssetCache.h"
+#include "Graphics/Resources/Font.h"
 
 namespace SpinoCore::Core::Engine {
     struct EngineCache final {
         Assets::AssetCache<Graphics::Resources::Texture> textureCache{};
+        Assets::AssetCache<Graphics::Resources::Font> fontCache{};
     };
 }

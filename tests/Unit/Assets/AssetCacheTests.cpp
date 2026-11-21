@@ -265,3 +265,37 @@ TEST(AssetCacheTests, CachesOfDifferentTypesAreIndependent) {
     EXPECT_EQ(textures.Get("intro").width, 1);
     EXPECT_EQ(texts.Get("intro"), "Hello");
 }
+
+TEST(AssetCacheTests, VersionChangesWhenTheContentChanges) {
+    AssetCache<FakeTexture> cache;
+    auto version = cache.GetVersion();
+    const auto changed = [&] {
+        const bool result = cache.GetVersion() != version;
+        version = cache.GetVersion();
+        return result;
+    };
+
+    (void)cache.Add("hero", Texture(1, 1));
+    EXPECT_TRUE(changed());
+    cache.SetDefault(Texture(2, 2));
+    EXPECT_TRUE(changed());
+    EXPECT_TRUE(cache.Remove("hero"));
+    EXPECT_TRUE(changed());
+    (void)cache.Add("hero", Texture(1, 1));
+    (void)changed();
+    cache.Clear();
+    EXPECT_TRUE(changed());
+}
+
+TEST(AssetCacheTests, VersionStaysWhenNothingChanges) {
+    AssetCache<FakeTexture> cache;
+    (void)cache.Add("hero", Texture(1, 1));
+    const auto version = cache.GetVersion();
+
+    (void)cache.Get("hero");
+    (void)cache.Contains("hero");
+    EXPECT_FALSE(cache.Remove("missing"));
+    EXPECT_THROW((void)cache.Add("hero", Texture(1, 1)), std::invalid_argument);
+
+    EXPECT_EQ(cache.GetVersion(), version);
+}

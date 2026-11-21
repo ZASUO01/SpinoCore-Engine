@@ -31,6 +31,7 @@ namespace SpinoCore::Files {
 
         AssetType StringToAssetType(const std::string_view name) {
             if (name == "Texture") return AssetType::Texture;
+            if (name == "Font") return AssetType::Font;
             return AssetType::None;
         }
 
@@ -50,8 +51,9 @@ namespace SpinoCore::Files {
     }
 
     EngineFileManager::EngineFileManager(const FileManagerInput& input)
-    :mRootPath(FindRootPath()),
-    mTextureCache(input.textureCache)
+    :mRootPath(FindRootPath())
+    ,mTextureCache(input.textureCache)
+    ,mFontCache(input.fontCache)
     {
         if (!DirectoryExists(mRootPath)) throw std::runtime_error("[FILE MANAGER] Assets directory is missing: " + mRootPath.string());
     }
@@ -81,7 +83,6 @@ namespace SpinoCore::Files {
             throw std::runtime_error(std::format("[FILE MANAGER] \"assets\" in manifest {} must be an array.", manifestPath.string()));
         }
 
-        // Every entry is checked before any is queued, so a broken manifest loads nothing instead of half of it.
         std::vector<FileRequest> requests;
         requests.reserve(assets.size());
         for (std::size_t index = 0; index < assets.size(); ++index) {
@@ -152,7 +153,9 @@ namespace SpinoCore::Files {
             case Operation::Load:
                 switch (request.type) {
                     case AssetType::Texture: LoadTexture(request); break;
-                    case AssetType::None: break;
+                    case AssetType::Font: LoadFont(request); break;
+                    default:
+                        break;
                 }
                 break;
             case Operation::Write:
@@ -171,6 +174,19 @@ namespace SpinoCore::Files {
             mTextureCache.Add(request.id, std::make_unique<const Graphics::Resources::Texture>(mRootPath / request.path));
         } catch (const std::exception& e) {
             Logs::Logger::Error(R"([FILES] Failed to load texture "{}" from "{}": {})", request.id, request.path.string(), e.what());
+        }
+    }
+
+    void EngineFileManager::LoadFont(const FileRequest &request) const {
+        if (mFontCache.Contains(request.id)) {
+            Logs::Logger::Warn(R"([FILES] Font "{}" is already cached; "{}" was not loaded.)", request.id, request.path.string());
+            return;
+        }
+
+        try {
+            mFontCache.Add(request.id, std::make_unique<const Graphics::Resources::Font>(mRootPath / request.path));
+        }catch (const std::exception& e) {
+            Logs::Logger::Error(R"([FILES] Failed to load font "{}" from "{}": {})", request.id, request.path.string(), e.what());
         }
     }
 }

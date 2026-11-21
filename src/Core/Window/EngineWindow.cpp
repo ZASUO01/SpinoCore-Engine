@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <string_view>
 #include <SDL3/SDL_error.h>
+#include <SDL3/SDL_mouse.h>
 #include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_video.h>
 #include "SDL/Helpers/Helpers.h"
@@ -81,7 +82,9 @@ namespace SpinoCore::Core::Window {
         SDL_ShowWindow(mSDLWindow.get());
     }
 
-    EngineWindow::~EngineWindow() = default;
+    EngineWindow::~EngineWindow() {
+        if (!IsSystemCursorVisible()) SetSystemCursorVisible(true);
+    }
 
     WindowMode EngineWindow::GetMode() const noexcept {
         SDL_Window* const window = mSDLWindow.get();
@@ -165,5 +168,15 @@ namespace SpinoCore::Core::Window {
             mWindowedSize = size;
         }
         return true;
+    }
+
+    bool EngineWindow::IsSystemCursorVisible() noexcept {
+        return SDL_CursorVisible();
+    }
+
+    void EngineWindow::SetSystemCursorVisible(const bool visible) noexcept {
+        if (const bool changed = visible ? SDL_ShowCursor() : SDL_HideCursor(); !changed) {
+            Logs::Logger::Warn("Could not {} the system cursor: {}", visible ? "show" : "hide", SDL_GetError());
+        }
     }
 }

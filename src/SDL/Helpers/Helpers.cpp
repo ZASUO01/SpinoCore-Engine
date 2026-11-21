@@ -2,10 +2,12 @@
 // Copyright (c) 2026 ZASUO01
 #include "SDL/Helpers/Helpers.h"
 #include <string>
+#include <SDL3/SDL_iostream.h>
 #include <SDL3/SDL_pixels.h>
 #include <SDL3/SDL_surface.h>
 #include <SDL3/SDL_video.h>
 #include <SDL3_image/SDL_image.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include "SDL/Structs.h"
 
 namespace SpinoCore::SDL::Helpers {
@@ -39,5 +41,19 @@ namespace SpinoCore::SDL::Helpers {
         if (!converted) return nullptr;
 
         return converted;
+    }
+
+    UniqueTTFFont CreateTTFFont(const std::filesystem::path &path, const float pointSize) noexcept {
+        const std::u8string utf8 = path.u8string();
+        const auto cpath = reinterpret_cast<const char*>(utf8.c_str());
+
+        return UniqueTTFFont(TTF_OpenFont(cpath, pointSize));
+    }
+
+    UniqueTTFFont CreateTTFFont(const std::span<const unsigned char> fontFile, const float pointSize) noexcept {
+        SDL_IOStream* stream = SDL_IOFromConstMem(fontFile.data(), fontFile.size());
+        if (!stream) return nullptr;
+
+        return UniqueTTFFont(TTF_OpenFontIO(stream, true, pointSize));
     }
 }

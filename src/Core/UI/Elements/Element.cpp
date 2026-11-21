@@ -16,6 +16,7 @@ namespace SpinoCore::Core::UI::Elements {
     ,mAngleDegrees(input.angleDegrees)
     ,mAnchorAngleDegrees(input.anchorAngleDegrees)
     ,mIsVisible(input.visible)
+    ,mIsEnabled(input.enabled)
     ,mDrawOrder(input.drawOrder) {
     }
 
@@ -117,6 +118,13 @@ namespace SpinoCore::Core::UI::Elements {
         std::uint8_t height = 0;
         for (const auto& child : mChildren) height = std::max<std::uint8_t>(height, child->GetSubtreeHeight() + 1);
         return height;
+    }
+
+    void Element::ProcessInput(const Input::InputState &state) {
+        OnProcessInput(state);
+        for (const auto& child : mChildren) {
+            child->ProcessInput(state);
+        }
     }
 
     void Element::GetDrawCommand(Rendering::UIDrawList &drawList, const int drawLayer) {

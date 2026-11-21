@@ -15,5 +15,6 @@ namespace SpinoCore::Core::Window {
         std::string title{"SpinoCore Engine"};
         Size2D size{ WINDOW_SIZE_SMALL };
         WindowMode windowMode{ WindowMode::Windowed };
+        bool hideSystemCursor{false};
     };
 }

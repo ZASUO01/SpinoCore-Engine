@@ -3,14 +3,16 @@
 #pragma once
 #include <cstdint>
 #include <filesystem>
-#include <memory>
 #include "SpinoCore/Utils/Size2D.h"
+
+struct SDL_Surface;
 
 namespace SpinoCore::Graphics::Resources {
     class Texture final {
     public:
         Texture();
         explicit Texture(const std::filesystem::path& imagePath);
+        explicit Texture(SDL_Surface* surface);
         ~Texture();
 
         Texture(const Texture&) = delete;
@@ -25,6 +27,7 @@ namespace SpinoCore::Graphics::Resources {
         private:
             void CreateBlank();
             void CreateFromImage(const std::filesystem::path& imagePath);
+            void CreateFromSurface(SDL_Surface* surface);
             [[nodiscard]] bool Upload(const void* rgbaPixels, Utils::Size2D size, int pixelsPerLine);
 
 

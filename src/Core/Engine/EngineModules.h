@@ -3,6 +3,7 @@
 #pragma once
 #include <optional>
 #include "Core/Events/EventBus.h"
+#include "Core/Input/InputState.h"
 #include "Core/Window/EngineWindow.h"
 #include "Core/Scenes/EngineScenesManager.h"
 #include "Core/Rendering/Renderer.h"
@@ -13,6 +14,7 @@
 namespace SpinoCore::Core::Engine {
     struct EngineModules final {
         Events::EventBus eventBus{};
+        Input::InputState input{};
         std::optional<Files::EngineFileManager> fileManager{};
         std::optional<Window::EngineWindow> window{};
         std::optional<Rendering::Renderer> renderer{};

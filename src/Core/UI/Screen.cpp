@@ -25,6 +25,13 @@ namespace SpinoCore::Core::UI {
         return nullptr;
     }
 
+    void Screen::ProcessInputs(const Input::InputState &state) const {
+        for (const auto& element : mElements) {
+            if (!element->IsEnabled()) continue;
+            element->ProcessInput(state);
+        }
+    }
+
     void Screen::GetDrawCommands(ManagerKey, Rendering::UIDrawList &drawList, const int drawLayer) const {
         for (const auto& element : mElements) {
             if (!element->IsVisible()) continue;

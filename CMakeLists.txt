@@ -30,6 +30,7 @@ target_sources(${PROJECT_NAME} PRIVATE
             "include/SpinoCore/Core/Scenes/StartContext.h"
         #UI
             #Elements
+                "include/SpinoCore/Core/UI/Elements/Cursor.h"
                 "include/SpinoCore/Core/UI/Elements/Element.h"
                 "include/SpinoCore/Core/UI/Elements/Image.h"
                 "include/SpinoCore/Core/UI/Elements/Rect.h"
@@ -45,6 +46,9 @@ target_sources(${PROJECT_NAME} PRIVATE
         "include/SpinoCore/Game/GameApplication.h"
         "include/SpinoCore/Game/GameInfo.h"
         "include/SpinoCore/Game/InitializationContext.h"
+    #Graphics
+        #Resources
+            "include/SpinoCore/Graphics/Resources/FontSize.h"
     #Logs
         "include/SpinoCore/Logs/Logger.h"
         "include/SpinoCore/Logs/LogLevel.h"
@@ -85,6 +89,9 @@ target_sources(${PROJECT_NAME} PRIVATE
             "src/Core/Events/EventBus.h"
             "src/Core/Events/Handler.cpp"
             "src/Core/Events/Handler.h"
+        #Input
+            "src/Core/Input/InputState.cpp"
+            "src/Core/Input/InputState.h"
         #Rendering
             #Drawer
                 "src/Core/Rendering/Drawer/DrawCommands.h"
@@ -103,6 +110,7 @@ target_sources(${PROJECT_NAME} PRIVATE
             "src/Core/Scenes/Scene.cpp"
         #UI
             #Elements
+                "src/Core/UI/Elements/Cursor.cpp"
                 "src/Core/UI/Elements/Element.cpp"
                 "src/Core/UI/Elements/Image.cpp"
                 "src/Core/UI/Elements/Rect.cpp"
@@ -123,6 +131,9 @@ target_sources(${PROJECT_NAME} PRIVATE
             "src/Graphics/Geometry/VertexArray.cpp"
             "src/Graphics/Geometry/VertexArray.h"
         #Resources
+            "src/Graphics/Resources/EmbeddedFonts.h"
+            "src/Graphics/Resources/Font.cpp"
+            "src/Graphics/Resources/Font.h"
             "src/Graphics/Resources/Texture.cpp"
             "src/Graphics/Resources/Texture.h"
         #Shaders
@@ -214,10 +225,26 @@ FetchContent_Declare(
         GIT_REPOSITORY "https://github.com/libsdl-org/SDL_image.git"
         GIT_TAG        "release-3.2.0"
         GIT_SHALLOW    TRUE
+        GIT_SUBMODULES ""
         EXCLUDE_FROM_ALL
 )
 
-FetchContent_MakeAvailable(SDL3 SDL3_image)
+set(SDLTTF_INSTALL OFF)
+set(SDLTTF_SAMPLES OFF)
+set(SDLTTF_STRICT ON)
+set(SDLTTF_VENDORED ON)
+set(SDLTTF_HARFBUZZ OFF)
+set(SDLTTF_PLUTOSVG OFF)
+FetchContent_Declare(
+        SDL3_ttf
+        GIT_REPOSITORY "https://github.com/libsdl-org/SDL_ttf.git"
+        GIT_TAG        "release-3.2.2"
+        GIT_SHALLOW    TRUE
+        GIT_SUBMODULES "external/freetype"
+        EXCLUDE_FROM_ALL
+)
+
+FetchContent_MakeAvailable(SDL3 SDL3_image SDL3_ttf)
 
 # ======================================
 # Link libraries
@@ -230,7 +257,16 @@ add_library(SpinoCore::json ALIAS SpinoCore-json)
 target_include_directories(SpinoCore-json SYSTEM INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/vendor")
 target_compile_features(SpinoCore-json INTERFACE cxx_std_11)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3-static SDL3_image::SDL3_image-static SpinoCore::glad SpinoCore::json)
+target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3-static SDL3_image::SDL3_image-static SDL3_ttf::SDL3_ttf-static SpinoCore::glad SpinoCore::json)
+
+# ======================================
+# Resources compiled into the engine
+# ======================================
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/EmbedFile.cmake")
+spinocore_embed_file(${PROJECT_NAME}
+        INPUT "${CMAKE_CURRENT_SOURCE_DIR}/resources/fonts/Inter-Regular-Latin1.otf"
+        NAMESPACE SpinoCore::Graphics::Resources::Embedded
+        NAME DefaultFontData)
 
 # ======================================
 # Game assets (spinocore_add_assets)

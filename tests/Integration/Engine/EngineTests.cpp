@@ -7,8 +7,11 @@
 #include <gtest/gtest.h>
 #include <SDL3/SDL_hints.h>
 #include <SDL3/SDL_init.h>
+#include <SDL3/SDL_mouse.h>
 #include "Core/Engine/Engine.h"
+#include "SpinoCore/Core/Cameras/CamerasManager.h"
 #include "SpinoCore/Core/Scenes/Scene.h"
+#include "SpinoCore/Core/Scenes/ScenesManager.h"
 #include "SpinoCore/Core/Scenes/StartContext.h"
 #include "SpinoCore/Core/UI/Screen.h"
 #include "SpinoCore/Core/UI/ScreensManager.h"
@@ -191,5 +194,23 @@ namespace {
 
         EXPECT_EQ(destructions, (std::vector<std::string>{"scene", "game"}));
         EXPECT_EQ(SDL_WasInit(0), 0u);
+    }
+
+    TEST_F(EngineTests, KeepsTheSystemCursorVisibleByDefault) {
+        std::vector<std::string> destructions;
+
+        const Engine engine{std::make_unique<TrackedGame>(destructions), LaunchOptions{}};
+
+        EXPECT_TRUE(SDL_CursorVisible());
+    }
+
+    TEST_F(EngineTests, HidesTheSystemCursorWhenTheLaunchOptionsAskForIt) {
+        std::vector<std::string> destructions;
+        LaunchOptions launchOptions{};
+        launchOptions.windowProps.hideSystemCursor = true;
+
+        const Engine engine{std::make_unique<TrackedGame>(destructions), launchOptions};
+
+        EXPECT_FALSE(SDL_CursorVisible());
     }
 }

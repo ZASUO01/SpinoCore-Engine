@@ -2,8 +2,12 @@
 // Copyright (c) 2026 ZASUO01
 #include <optional>
 #include <stdexcept>
+#include <utility>
 #include <gtest/gtest.h>
-#include <SDL3/SDL.h>
+#include <SDL3/SDL_hints.h>
+#include <SDL3/SDL_mouse.h>
+#include <SDL3/SDL_rect.h>
+#include <SDL3/SDL_video.h>
 #include "Core/Window/EngineWindow.h"
 #include "Core/Window/WindowSizeHelpers.h"
 #include "SDL/Context.h"
@@ -73,5 +77,37 @@ namespace {
 
         EXPECT_FALSE(applied);
         EXPECT_EQ(window.GetSize(), WINDOW_SIZE_MIN);
+    }
+
+    TEST_F(EngineWindowTests, ShowsTheSystemCursorByDefault) {
+        const EngineWindow window{WindowProps{}};
+
+        EXPECT_TRUE(window.IsSystemCursorVisible());
+    }
+
+    TEST_F(EngineWindowTests, HidesTheSystemCursorWhenAsked) {
+        EngineWindow window{WindowProps{}};
+
+        window.SetSystemCursorVisible(false);
+
+        EXPECT_FALSE(window.IsSystemCursorVisible());
+    }
+
+    TEST_F(EngineWindowTests, ShowsTheSystemCursorAgainWhenAsked) {
+        EngineWindow window{WindowProps{}};
+        window.SetSystemCursorVisible(false);
+
+        window.SetSystemCursorVisible(true);
+
+        EXPECT_TRUE(window.IsSystemCursorVisible());
+    }
+
+    TEST_F(EngineWindowTests, ClosingTheWindowShowsTheSystemCursorAgain) {
+        std::optional<EngineWindow> window{std::in_place, WindowProps{}};
+        window->SetSystemCursorVisible(false);
+
+        window.reset();
+
+        EXPECT_TRUE(SDL_CursorVisible());
     }
 }

@@ -7,6 +7,10 @@
 #include "SpinoCore/Math/Matrix.h"
 #include "SpinoCore/Math/Vector.h"
 
+namespace SpinoCore::Core::Input {
+    class InputState;
+}
+
 namespace SpinoCore::Core::Rendering {
     struct UIDrawList;
 }
@@ -20,6 +24,7 @@ namespace SpinoCore::Core::UI::Elements {
         float angleDegrees{0.0f};
         float anchorAngleDegrees{0.0f};
         bool visible{true};
+        bool enabled{true};
         int drawOrder{100};
     };
 
@@ -57,6 +62,9 @@ namespace SpinoCore::Core::UI::Elements {
         void SetIsVisible(const bool visible) { mIsVisible = visible; }
         [[nodiscard]] bool IsVisible() const { return mIsVisible; }
 
+        void SetIsEnabled(const bool enabled) { mIsEnabled = enabled; }
+        [[nodiscard]] bool IsEnabled() const { return mIsEnabled; }
+
         void SetDrawOrder(const int drawOrder) { if (drawOrder > 0) mDrawOrder = drawOrder; }
         [[nodiscard]] int GetDrawOrder() const { return mDrawOrder; }
 
@@ -71,9 +79,11 @@ namespace SpinoCore::Core::UI::Elements {
         [[nodiscard]] const Math::Matrix4f& GetWorldFrame();
         [[nodiscard]] float GetWorldScale();
 
+        void ProcessInput(const Input::InputState& state);
         void GetDrawCommand(Rendering::UIDrawList& drawList, int drawLayer);
 
     protected:
+        virtual void OnProcessInput(const Input::InputState& state) = 0;
         virtual void SetDrawCommand(Rendering::UIDrawList& drawList, int drawLayer) = 0;
     private:
         void SetTransformDirty();
@@ -89,6 +99,7 @@ namespace SpinoCore::Core::UI::Elements {
         float mAngleDegrees;
         float mAnchorAngleDegrees;
         bool mIsVisible;
+        bool mIsEnabled;
         int mDrawOrder;
 
         Math::Matrix4f mTransform{Math::Matrix4f::Identity()};

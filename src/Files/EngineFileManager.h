@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include "Assets/AssetCache.h"
+#include "Graphics/Resources/Font.h"
 #include "SpinoCore/Files/FileManager.h"
 
 namespace SpinoCore::Graphics::Resources {
@@ -17,6 +18,7 @@ namespace SpinoCore::Graphics::Resources {
 namespace SpinoCore::Files {
     struct FileManagerInput final{
         Assets::AssetCache<Graphics::Resources::Texture>& textureCache;
+        Assets::AssetCache<Graphics::Resources::Font>& fontCache;
     };
 
     class EngineFileManager final : public FileManager{
@@ -57,6 +59,7 @@ namespace SpinoCore::Files {
         void Enqueue(FileRequest request);
         void Process(const FileRequest& request) const;
         void LoadTexture(const FileRequest& request) const;
+        void LoadFont(const FileRequest& request) const;
 
         std::queue<FileRequest> mRequestQueue;
 
@@ -65,5 +68,6 @@ namespace SpinoCore::Files {
         bool mIsReady{true};
 
         Assets::AssetCache<Graphics::Resources::Texture>& mTextureCache;
+        Assets::AssetCache<Graphics::Resources::Font>& mFontCache;
     };
 }

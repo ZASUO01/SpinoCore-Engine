@@ -3,9 +3,16 @@
 #pragma once
 #include <memory>
 #include <vector>
-#include "Core/Rendering/Drawer/DrawCommands.h"
 #include "SpinoCore/Core/UI/Screen.h"
 #include "SpinoCore/Core/UI/ScreensManager.h"
+
+namespace SpinoCore::Core::Input {
+    class InputState;
+}
+
+namespace SpinoCore::Core::Rendering {
+    struct UIDrawList;
+}
 
 namespace SpinoCore::Core::UI {
     class EngineScreensManager final : public ScreensManager {
@@ -22,6 +29,7 @@ namespace SpinoCore::Core::UI {
         void PopScreen() override;
         void Clear() noexcept;
 
+        void ProcessInputs(const Input::InputState& state) const;
         void GetDrawCommands(Rendering::UIDrawList& drawList) const;
     private:
         std::vector<std::unique_ptr<Screen>> mScreens;

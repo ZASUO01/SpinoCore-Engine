@@ -9,6 +9,7 @@
 namespace SpinoCore::Files {
     enum class AssetType {
         Texture,
+        Font,
         None
     };
 

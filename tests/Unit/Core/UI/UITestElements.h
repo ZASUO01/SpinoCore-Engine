@@ -28,6 +28,8 @@ namespace SpinoCore::Tests {
             if (mDrawn) mDrawn->push_back(mName);
         }
 
+        void OnProcessInput(const Core::Input::InputState& /*state*/) override {}
+
     private:
         std::string mName;
         std::vector<std::string>* mDrawn;

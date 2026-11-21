@@ -2,6 +2,7 @@
 // Copyright (c) 2026 ZASUO01
 #pragma once
 #include <cstddef>
+#include <cstdint>
 #include <format>
 #include <functional>
 #include <memory>
@@ -35,6 +36,7 @@ namespace SpinoCore::Assets {
         void SetDefault(Pointer defaultAsset) {
             if (!defaultAsset) throw std::invalid_argument("[ASSET CACHE] Default asset must not be null.");
             mDefault = std::move(defaultAsset);
+            ++mVersion;
         }
 
         [[nodiscard]] bool HasDefault() const noexcept { return mDefault != nullptr; }
@@ -62,13 +64,19 @@ namespace SpinoCore::Assets {
             const auto it = mAssets.find(id);
             if (it == mAssets.end()) return false;
             mAssets.erase(it);
+            ++mVersion;
             return true;
         }
 
-        void Clear() noexcept { mAssets.clear(); }
+        void Clear() noexcept {
+            mAssets.clear();
+            ++mVersion;
+        }
 
         [[nodiscard]] std::size_t Size() const noexcept { return mAssets.size(); }
         [[nodiscard]] bool IsEmpty() const noexcept { return mAssets.empty(); }
+        // Changes whenever an asset or the default is added, replaced or removed.
+        [[nodiscard]] std::uint64_t GetVersion() const noexcept { return mVersion; }
 
     private:
         const T& Insert(std::string id, Pointer asset) {
@@ -76,6 +84,7 @@ namespace SpinoCore::Assets {
 
             auto [it, inserted] = mAssets.try_emplace(std::move(id), std::move(asset));
             if (!inserted) throw std::invalid_argument(std::format("[ASSET CACHE] Asset \"{}\" is already cached.", it->first));
+            ++mVersion;
             return *it->second;
         }
 
@@ -87,5 +96,6 @@ namespace SpinoCore::Assets {
 
         std::unordered_map<std::string, Pointer, AssetIdHash, std::equal_to<>> mAssets{};
         Pointer mDefault{nullptr};
+        std::uint64_t mVersion{0};
     };
 }

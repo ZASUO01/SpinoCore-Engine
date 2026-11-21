@@ -2,10 +2,15 @@
 // Copyright (c) 2026 ZASUO01
 #pragma once
 #include <filesystem>
+#include <span>
 #include "SDL/Structs.h"
+
+struct SDL_Window;
 
 namespace SpinoCore::SDL::Helpers {
     [[nodiscard]] UniqueSDLWindow CreateSDLWindow(const char* title, int width, int height) noexcept;
     [[nodiscard]] UniqueGLContext CreateGLContext(SDL_Window* window) noexcept;
     [[nodiscard]] UniqueSDLSurface CreateFromImage(const std::filesystem::path& path) noexcept;
+    [[nodiscard]] UniqueTTFFont CreateTTFFont(const std::filesystem::path& path, float pointSize) noexcept;
+    [[nodiscard]] UniqueTTFFont CreateTTFFont(std::span<const unsigned char> fontFile, float pointSize) noexcept;
 }

@@ -11,8 +11,6 @@ namespace SpinoCore::Core::UI {
     }
 
     void EngineScreensManager::Clear() noexcept {
-        // A vector destroys its elements from the front; screens on top may depend on the ones
-        // below them, so they are destroyed first.
         mCurrentScreen = nullptr;
         while (!mScreens.empty()) mScreens.pop_back();
     }
@@ -35,6 +33,12 @@ namespace SpinoCore::Core::UI {
 
         mCurrentScreen = mScreens.empty() ? nullptr : mScreens.back().get();
         if (mCurrentScreen) mCurrentScreen->OnResume();
+    }
+
+    void EngineScreensManager::ProcessInputs(const Input::InputState &state) const {
+        if (mCurrentScreen) {
+            mCurrentScreen->ProcessInputs(state);
+        }
     }
 
     void EngineScreensManager::GetDrawCommands(Rendering::UIDrawList &drawList) const {

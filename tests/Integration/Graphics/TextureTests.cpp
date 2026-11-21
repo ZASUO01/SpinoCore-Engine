@@ -380,3 +380,32 @@ TEST_F(TextureTests, BlankTextureIsReleasedWithItsOwner) {
     }
     EXPECT_FALSE(glIsTexture(id));
 }
+
+// ---------------------------------------------------------------- from a surface
+
+TEST_F(TextureTests, CopiesAnRgbaSurfaceWithExactPixelsAndSize) {
+    const auto image = MakeImage(3, 2, true);
+    SDL_Surface* surface = ToSurface(image, SDL_PIXELFORMAT_RGBA32);
+    ASSERT_NE(surface, nullptr) << SDL_GetError();
+
+    const Texture texture{surface};
+    SDL_DestroySurface(surface);
+
+    ExpectSameContent(texture, image, false);
+}
+
+// SDL_ttf renders ARGB8888, so surfaces in other layouts must come out the same as RGBA ones.
+TEST_F(TextureTests, ConvertsSurfacesInOtherPixelFormats) {
+    const auto image = MakeImage(3, 2, true);
+    SDL_Surface* surface = ToSurface(image, SDL_PIXELFORMAT_ARGB8888);
+    ASSERT_NE(surface, nullptr) << SDL_GetError();
+
+    const Texture texture{surface};
+    SDL_DestroySurface(surface);
+
+    ExpectSameContent(texture, image, false);
+}
+
+TEST_F(TextureTests, NullSurfaceThrows) {
+    EXPECT_THROW({ const Texture texture{static_cast<SDL_Surface*>(nullptr)}; }, std::invalid_argument);
+}

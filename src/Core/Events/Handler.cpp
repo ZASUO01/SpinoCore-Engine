@@ -2,8 +2,11 @@
 // Copyright (c) 2026 ZASUO01
 #include "Handler.h"
 #include <SDL3/SDL_events.h>
+#include <SDL3/SDL_video.h>
 #include "EventBus.h"
 #include "TypeEvents/WindowEvents.h"
+#include "Core/Input/InputState.h"
+#include "SpinoCore/Utils/Size2D.h"
 
 namespace SpinoCore::Core::Events {
     namespace {
@@ -24,12 +27,15 @@ namespace SpinoCore::Core::Events {
         }
     }
 
-    bool Handler::PollEvents(EventBus& bus) {
+    bool Handler::PollEvents(EventBus& bus, Input::InputState& input) {
         bool keepRunning = true;
         SDL_WindowID resizedWindow = 0;
 
+        input.BeginFrame();
+
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
+            input.Apply(event);
             switch (event.type) {
                 case SDL_EVENT_QUIT:
                 case SDL_EVENT_TERMINATING:

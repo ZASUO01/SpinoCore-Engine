@@ -11,8 +11,6 @@
 #include "TypeEvents/TypeEvent.h"
 
 namespace SpinoCore::Core::Events {
-    // Single-threaded. Every Subscription must be destroyed before the EventBus it came from:
-    // a Subscription keeps a raw pointer to its bus (checked by an assert in debug builds).
     class EventBus final {
     public:
         template <std::derived_from<TypeEvent> TEvent>
@@ -95,9 +93,6 @@ namespace SpinoCore::Core::Events {
             const auto uniqueEventID = TypeEvent::ID<TEvent>();
             if (uniqueEventID >= mListeners.size()) return;
 
-            // Listeners may subscribe during dispatch, which can reallocate mListeners, so it is
-            // indexed again on every iteration instead of holding a reference. Listeners added
-            // during this dispatch are not called until the next one.
             const std::size_t count = mListeners[uniqueEventID].size();
 
             ++mDispatchDepth;

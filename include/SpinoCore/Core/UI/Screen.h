@@ -9,6 +9,10 @@ namespace SpinoCore::Core::Rendering {
     struct UIDrawList;
 }
 
+namespace SpinoCore::Core::Input {
+    class InputState;
+}
+
 namespace SpinoCore::Core::UI {
     class Screen {
     public:
@@ -33,6 +37,7 @@ namespace SpinoCore::Core::UI {
         virtual void OnExit() = 0;
 
         class ManagerKey{ friend class EngineScreensManager; ManagerKey() = default; };
+        void ProcessInputs(const Input::InputState& state) const;
         void GetDrawCommands(ManagerKey, Rendering::UIDrawList& drawList, int drawLayer) const;
 
     private:

@@ -4,7 +4,9 @@
 #include <stdexcept>
 #include <string>
 #include <gtest/gtest.h>
-#include <SDL3/SDL.h>
+#include <SDL3/SDL_hints.h>
+#include <SDL3/SDL_init.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include "SDL/Context.h"
 #include "SpinoCore/Game/GameInfo.h"
 
@@ -25,6 +27,22 @@ namespace {
         const Context context{gameInfo};
 
         EXPECT_EQ(SDL_WasInit(SDL_INIT_VIDEO | SDL_INIT_AUDIO), SDL_INIT_VIDEO | SDL_INIT_AUDIO);
+    }
+
+    TEST_F(SDLContextTests, CreatingAContextInitializesSDLttf) {
+        const GameInfo gameInfo{};
+        const Context context{gameInfo};
+
+        EXPECT_GT(TTF_WasInit(), 0);
+    }
+
+    TEST_F(SDLContextTests, DestroyingAContextShutsSDLttfDown) {
+        const GameInfo gameInfo{};
+        auto context = std::make_optional<Context>(gameInfo);
+
+        context.reset();
+
+        EXPECT_EQ(TTF_WasInit(), 0);
     }
 
     TEST_F(SDLContextTests, CreatingAContextSetsAppMetadata) {

@@ -26,6 +26,7 @@ namespace SpinoCore::Core::UI::Elements {
         [[nodiscard]] float GetBorderRadius() const { return mBorderRadius; }
 
     protected:
+        void OnProcessInput(const Input::InputState& /*state*/) override {}
         void SetDrawCommand(Rendering::UIDrawList &drawList, int drawLayer) override;
 
     private:

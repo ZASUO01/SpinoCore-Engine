@@ -4,10 +4,12 @@
 #include <array>
 #include <cstdint>
 #include <stdexcept>
+#include <string>
 #include <SDL3/SDL_pixels.h>
 #include <SDL3/SDL_surface.h>
 #include <glad/glad.h>
 #include "SDL/Helpers/Helpers.h"
+#include "SDL/Structs.h"
 
 namespace SpinoCore::Graphics::Resources {
     Texture::Texture() {
@@ -16,6 +18,10 @@ namespace SpinoCore::Graphics::Resources {
 
     Texture::Texture(const std::filesystem::path &imagePath) {
         CreateFromImage(imagePath);
+    }
+
+    Texture::Texture(SDL_Surface *surface) {
+        CreateFromSurface(surface);
     }
 
     Texture::~Texture() {
@@ -47,6 +53,22 @@ namespace SpinoCore::Graphics::Resources {
         if (const int pixelsPerLine = surface->pitch / SDL_BYTESPERPIXEL(surface->format);
             !Upload(surface->pixels, Utils::Size2D{surface->w, surface->h}, pixelsPerLine)) {
             throw std::runtime_error("[Texture] Failed to load image: " + imagePath.string());
+        }
+    }
+
+    void Texture::CreateFromSurface(SDL_Surface *surface) {
+        if (!surface) throw std::invalid_argument("[Texture] Cannot create a texture from a null surface.");
+
+        SDL::UniqueSDLSurface converted{};
+        if (surface->format != SDL_PIXELFORMAT_RGBA32) {
+            converted.reset(SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32));
+            if (!converted) throw std::runtime_error("[Texture] Failed to convert the surface to RGBA32.");
+            surface = converted.get();
+        }
+
+        if (const int pixelsPerLine = surface->pitch / SDL_BYTESPERPIXEL(surface->format);
+            !Upload(surface->pixels, Utils::Size2D{surface->w, surface->h}, pixelsPerLine)) {
+            throw std::runtime_error("[Texture] Failed to upload the surface.");
         }
     }
 

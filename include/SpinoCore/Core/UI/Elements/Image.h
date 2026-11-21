@@ -1,9 +1,14 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
 #pragma once
+#include <cstdint>
 #include <string>
 #include <utility>
 #include "Rect.h"
+
+namespace SpinoCore::Core::Rendering {
+    struct UIDrawList;
+}
 
 namespace SpinoCore::Core::UI::Elements {
     struct ImageInput final : RectInput {
@@ -14,7 +19,7 @@ namespace SpinoCore::Core::UI::Elements {
     public:
         explicit Image(const ImageInput& input) : Rect(input), mTextureName(input.name) {}
 
-        void SetTexture(std::string name) { mTextureName = std::move(name); mWarnedMissingTexture = false; }
+        void SetTexture(std::string name) { mTextureName = std::move(name); mIsCachedTexture = false; mWarnedMissingTexture = false; }
         [[nodiscard]] const std::string& GetTexture() const { return mTextureName; }
 
     protected:
@@ -22,6 +27,10 @@ namespace SpinoCore::Core::UI::Elements {
 
     private:
         std::string mTextureName;
+        const void* mCachedFrom{nullptr};
+        std::uint64_t mCachedVersion{0};
+        std::uint32_t mCachedTextureId{0};
+        bool mIsCachedTexture{false};
         bool mWarnedMissingTexture{false};
     };
 }

@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
-#include <array>
 #include <filesystem>
 #include <memory>
 #include <optional>
@@ -12,8 +11,10 @@
 #include <SDL3/SDL_pixels.h>
 #include <SDL3/SDL_surface.h>
 #include <SDL3_image/SDL_image.h>
+#include <glad/glad.h>
 #include "../../Graphics/GLTestContext.h"
 #include "Assets/AssetCache.h"
+#include "Core/Rendering/Drawer/DrawCommands.h"
 #include "Core/Rendering/Drawer/Drawer.h"
 #include "Graphics/Resources/Texture.h"
 #include "SpinoCore/Core/UI/Elements/Image.h"
@@ -171,6 +172,35 @@ namespace {
         Image image{FullScreen("red")};
 
         image.SetTexture("blue");
+        Draw(image);
+
+        EXPECT_EQ(UIPixel(8, 8), Blue);
+    }
+
+    TEST_F(ImageDrawTests, SetTextureAfterADrawSwitchesTheTextureDrawn) {
+        AddTexture("red", 1, 1, [](int, int) { return Red; });
+        AddTexture("blue", 1, 1, [](int, int) { return Blue; });
+        Image image{FullScreen("red")};
+        Draw(image);
+        ASSERT_EQ(UIPixel(8, 8), Red);
+
+        image.SetTexture("blue");
+        ClearTarget();
+        Draw(image);
+
+        EXPECT_EQ(UIPixel(8, 8), Blue);
+    }
+
+    // The demo's case: the manifest loads one texture per frame, so an image whose texture comes second
+    // is drawn once with the default while another image already has its own.
+    TEST_F(ImageDrawTests, AnImageWaitingForItsTextureGetsItWhenItLoadsAfterAnother) {
+        AddTexture("hero", 1, 1, [](int, int) { return Red; });
+        Image image{FullScreen("image")};
+        Draw(image);
+        ASSERT_EQ(UIPixel(8, 8), White);
+
+        AddTexture("image", 1, 1, [](int, int) { return Blue; });
+        ClearTarget();
         Draw(image);
 
         EXPECT_EQ(UIPixel(8, 8), Blue);

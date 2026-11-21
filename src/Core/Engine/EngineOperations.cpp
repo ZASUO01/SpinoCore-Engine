@@ -1,14 +1,19 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
 #include "EngineOperations.h"
+#include <optional>
 #include "EngineModules.h"
+#include "Core/Cameras/EngineCamerasManager.h"
 #include "Core/Events/Handler.h"
+#include "Core/Rendering/Renderer.h"
+#include "Core/UI/EngineScreensManager.h"
+#include "Files/EngineFileManager.h"
 
 namespace SpinoCore::Core::Engine {
     EngineOperations::EngineOperations(EngineModules &modules) :mModules(modules){}
 
     bool EngineOperations::ProcessEvents() {
-        return Events::Handler::PollEvents(mModules.eventBus);
+        return Events::Handler::PollEvents(mModules.eventBus, mModules.input);
     }
 
     bool EngineOperations::PrepareSimulation() {
@@ -16,7 +21,9 @@ namespace SpinoCore::Core::Engine {
         return mModules.fileManager->IsReady();
     }
 
-    void EngineOperations::ProcessFrameInputs() {}
+    void EngineOperations::ProcessFrameInputs() {
+        mModules.screensManager.ProcessInputs(mModules.input);
+    }
 
     void EngineOperations::ProcessSimulationInputs() {}
 
