@@ -7,6 +7,7 @@
 #include "SpinoCore/Game/InitializationContext.h"
 #include "Core/Scenes/EngineScenesManager.h"
 #include "Files/EngineFileManager.h"
+#include "Core/Rendering/Drawer/DrawCommands.h"
 #include "Graphics/Resources/Texture.h"
 #include "SpinoCore/LaunchOptions.h"
 
@@ -34,6 +35,8 @@ namespace SpinoCore::Core::Engine {
         mSDLContext.emplace(launchOptions.gameInfo);
         InitializeModules(launchOptions);
         SetCacheDefaults();
+        // UI elements resolve texture names through the draw list (see Image).
+        mEngineModules.renderer->GetUIDrawList().textures = &mEngineCache.textureCache;
 
         const Game::InitializationContext gameInitializationContext {
             .windowManager = *mEngineModules.window,
@@ -70,6 +73,8 @@ namespace SpinoCore::Core::Engine {
         mEngineModules.scenesManager.reset();
         mEngineModules.screensManager.Clear();
         mEngineModules.fileManager.reset();
+        // The renderer outlives the cache, so it must not keep pointing at it.
+        if (mEngineModules.renderer) mEngineModules.renderer->GetUIDrawList().textures = nullptr;
     }
 
     void Engine::SetCacheDefaults() {

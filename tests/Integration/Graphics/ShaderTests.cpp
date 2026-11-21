@@ -256,6 +256,7 @@ namespace {
             shader.SetUniform(UI::UIShaderLocation::Color, Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
             shader.SetUniform(UI::UIShaderLocation::Size, Vector2f{size, size});
             shader.SetUniform(UI::UIShaderLocation::Radius, radius);
+            shader.SetUniform(UI::UIShaderLocation::Opacity, 1.0f);
             shader.SetActive();
             unitQuad->Draw();
             glUseProgram(0);

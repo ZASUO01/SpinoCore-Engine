@@ -20,7 +20,6 @@ namespace SpinoCore::Core::UI {
 
         void PushScreen(std::unique_ptr<Screen> screen) override;
         void PopScreen() override;
-        // Destroys every screen, top first, without the exit callbacks; used when the engine shuts down.
         void Clear() noexcept;
 
         void GetDrawCommands(Rendering::UIDrawList& drawList) const;

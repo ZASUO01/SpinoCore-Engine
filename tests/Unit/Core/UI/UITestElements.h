@@ -19,7 +19,7 @@ namespace SpinoCore::Tests {
             : Element(input), mName(std::move(name)), mDrawn(drawn) {}
 
         [[nodiscard]] static std::uint64_t KeyFor(const int layer, const int drawOrder) {
-            return (static_cast<std::uint64_t>(layer) << 32U) | static_cast<std::uint32_t>(drawOrder);
+            return Core::Rendering::MakeUIDrawKey(layer, drawOrder, 0);
         }
 
     protected:

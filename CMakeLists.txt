@@ -31,6 +31,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         #UI
             #Elements
                 "include/SpinoCore/Core/UI/Elements/Element.h"
+                "include/SpinoCore/Core/UI/Elements/Image.h"
                 "include/SpinoCore/Core/UI/Elements/Rect.h"
             "include/SpinoCore/Core/UI/Screen.h"
             "include/SpinoCore/Core/UI/ScreensManager.h"
@@ -103,6 +104,7 @@ target_sources(${PROJECT_NAME} PRIVATE
         #UI
             #Elements
                 "src/Core/UI/Elements/Element.cpp"
+                "src/Core/UI/Elements/Image.cpp"
                 "src/Core/UI/Elements/Rect.cpp"
             "src/Core/UI/EngineScreensManager.cpp"
             "src/Core/UI/EngineScreensManager.h"

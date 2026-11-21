@@ -9,8 +9,7 @@ namespace SpinoCore::Core::UI::Elements {
         Math::Vector4f color = mBackgroundColor;
         color.w *= mOpacity;
 
-        const std::uint64_t key = static_cast<std::uint64_t>(drawLayer) << 32U |
-                                  static_cast<std::uint32_t>(GetDrawOrder());
+        const std::uint64_t key = Rendering::MakeUIDrawKey(drawLayer, GetDrawOrder(), 0);
 
         const float worldScale = GetWorldScale();
         const Math::Vector2f size = GetSize();

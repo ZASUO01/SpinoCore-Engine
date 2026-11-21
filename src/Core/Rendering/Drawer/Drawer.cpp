@@ -30,6 +30,7 @@ namespace SpinoCore::Core::Rendering {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         mUIShader->SetActive();
+        std::uint32_t boundTexture = 0;
         for (auto& command : mUIDrawList.commands) {
             const Math::Matrix4f MVP = ortho * command.transform;
 
@@ -38,12 +39,22 @@ namespace SpinoCore::Core::Rendering {
             mUIShader->SetUniform(UIShaderLocation::Color, command.color);
             mUIShader->SetUniform(UIShaderLocation::Size, command.size);
             mUIShader->SetUniform(UIShaderLocation::Radius, command.borderRadius);
+            mUIShader->SetUniform(UIShaderLocation::Opacity, command.opacity);
+
+            const bool textured = command.textureId != 0 && command.textureMix > 0.0f;
+            mUIShader->SetUniform(UIShaderLocation::TextureMix, textured ? command.textureMix : 0.0f);
+           
+            if (textured && command.textureId != boundTexture) {
+                glBindTextureUnit(0, command.textureId);
+                boundTexture = command.textureId;
+            }
 
             mUIQuadVertices->Draw();
         }
 
         mUIDrawList.commands.clear();
 
+        glBindTextureUnit(0, 0);
         glEnable(GL_DEPTH_TEST);
         glDisable(GL_BLEND);
     }
