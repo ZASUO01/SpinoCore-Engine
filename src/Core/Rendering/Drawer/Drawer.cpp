@@ -4,7 +4,9 @@
 #include <algorithm>
 #include <cstdint>
 #include <span>
+#include <vector>
 #include <glad/glad.h>
+#include "Core/Rendering/Drawer/DrawCommands.h"
 #include "Graphics/Shaders/Sources/UIShader.h"
 
 namespace SpinoCore::Core::Rendering {
@@ -43,6 +45,7 @@ namespace SpinoCore::Core::Rendering {
 
             const bool textured = command.textureId != 0 && command.textureMix > 0.0f;
             mUIShader->SetUniform(UIShaderLocation::TextureMix, textured ? command.textureMix : 0.0f);
+            mUIShader->SetUniform(UIShaderLocation::TintTexture, textured && command.tintTexture ? 1 : 0);
            
             if (textured && command.textureId != boundTexture) {
                 glBindTextureUnit(0, command.textureId);

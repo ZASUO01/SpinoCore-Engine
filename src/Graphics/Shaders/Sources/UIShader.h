@@ -12,6 +12,7 @@ namespace SpinoCore::Graphics::Shaders::Sources {
         inline constexpr std::int32_t Size = 4;
         inline constexpr std::int32_t Radius = 5;
         inline constexpr std::int32_t Opacity = 6;
+        inline constexpr std::int32_t TintTexture = 7;
 
     }
 
@@ -46,6 +47,7 @@ namespace SpinoCore::Graphics::Shaders::Sources {
         layout (location = 4) uniform vec2 uSize;
         layout (location = 5) uniform float uRadius;
         layout (location = 6) uniform float uOpacity;
+        layout (location = 7) uniform int uTintTexture;
 
         out vec4 outColor;
 
@@ -57,8 +59,12 @@ namespace SpinoCore::Graphics::Shaders::Sources {
         void main() {
             vec4 baseColor = uColor;
 
+            if (uTextureMix > 0.0 && uTintTexture != 0) {
+                float coverage = texture(uTexture, fragTextureCoord).a * uTextureMix;
+                baseColor = vec4(uColor.rgb, uColor.a * coverage);
+            }
             // The texture is laid over the color ("over" compositing): where it is transparent the color shows through.
-            if (uTextureMix > 0.0) {
+            else if (uTextureMix > 0.0) {
                 vec4 texColor = texture(uTexture, fragTextureCoord);
                 float textureAlpha = texColor.a * uTextureMix;
                 float alpha = textureAlpha + uColor.a * (1.0 - textureAlpha);

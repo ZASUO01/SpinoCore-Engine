@@ -13,6 +13,7 @@
 #include "Files/EngineFileManager.h"
 #include "Core/Rendering/Renderer.h"
 #include "Core/Rendering/Drawer/DrawCommands.h"
+#include "Graphics/Resources/Font.h"
 #include "Graphics/Resources/Texture.h"
 #include "SpinoCore/Core/Window/WindowProps.h"
 #include "SpinoCore/LaunchOptions.h"
@@ -43,6 +44,7 @@ namespace SpinoCore::Core::Engine {
         SetCacheDefaults();
 
         mEngineModules.renderer->GetUIDrawList().textures = &mEngineCache.textureCache;
+        mEngineModules.renderer->GetUIDrawList().fonts = &mEngineCache.fontCache;
 
         const Game::InitializationContext gameInitializationContext {
             .windowManager = *mEngineModules.window,
@@ -84,7 +86,10 @@ namespace SpinoCore::Core::Engine {
         mEngineModules.screensManager.Clear();
         mEngineModules.fileManager.reset();
 
-        if (mEngineModules.renderer) mEngineModules.renderer->GetUIDrawList().textures = nullptr;
+        if (mEngineModules.renderer) {
+            mEngineModules.renderer->GetUIDrawList().textures = nullptr;
+            mEngineModules.renderer->GetUIDrawList().fonts = nullptr;
+        }
     }
 
     void Engine::SetCacheDefaults() {

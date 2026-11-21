@@ -14,6 +14,7 @@
 #include <gtest/gtest.h>
 #include "Assets/AssetCache.h"
 #include "Files/EngineFileManager.h"
+#include "Graphics/Resources/Font.h"
 #include "Graphics/Resources/Texture.h"
 #include "SpinoCore/Files/FileManager.h"
 
@@ -23,6 +24,7 @@ namespace {
     using SpinoCore::Files::AssetType;
     using SpinoCore::Files::EngineFileManager;
     using SpinoCore::Files::FileManagerInput;
+    using SpinoCore::Graphics::Resources::Font;
     using SpinoCore::Graphics::Resources::Texture;
     using Bytes = std::vector<std::uint8_t>;
 
@@ -52,7 +54,8 @@ namespace {
         }
 
         AssetCache<Texture> textureCache{};
-        EngineFileManager fileManager{FileManagerInput{.textureCache = textureCache}};
+        AssetCache<Font> fontCache{};
+        EngineFileManager fileManager{FileManagerInput{.textureCache = textureCache, .fontCache = fontCache}};
         fs::path folder;
     };
 
@@ -272,7 +275,8 @@ namespace {
         fs::current_path(elsewhere);
 
         AssetCache<Texture> textureCache{};
-        EXPECT_NO_THROW(EngineFileManager{FileManagerInput{.textureCache = textureCache}});
+        AssetCache<Font> fontCache{};
+        EXPECT_NO_THROW((EngineFileManager{FileManagerInput{.textureCache = textureCache, .fontCache = fontCache}}));
 
         fs::current_path(previous);
         fs::remove_all(elsewhere);

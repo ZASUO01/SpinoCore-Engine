@@ -9,11 +9,11 @@
 #include "SpinoCore/Math/Vector.h"
 
 namespace SpinoCore::Graphics::Resources {
+    class Font;
     class Texture;
 }
 
 namespace SpinoCore::Core::Rendering {
-    // Sort key, most significant first: [layer:16][drawOrder:32][texture:16].
     inline constexpr std::uint32_t UIKeyTextureBits = 16U;
     inline constexpr std::uint32_t UIKeyDrawOrderBits = 32U;
     inline constexpr std::uint32_t UIKeyLayerShift = UIKeyDrawOrderBits + UIKeyTextureBits;
@@ -37,10 +37,12 @@ namespace SpinoCore::Core::Rendering {
         std::uint32_t textureId{0};
         float textureMix{0.0f};
         float opacity{1.0f};
+        bool tintTexture{false};
     };
 
     struct UIDrawList {
         std::vector<UIDrawCommand> commands;
         const Assets::AssetCache<Graphics::Resources::Texture>* textures{nullptr};
+        const Assets::AssetCache<Graphics::Resources::Font>* fonts{nullptr};
     };
 }
