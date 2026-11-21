@@ -49,6 +49,13 @@ namespace {
         return event;
     }
 
+    SDL_Event TextEvent(const char* text) {
+        SDL_Event event{};
+        event.type = SDL_EVENT_TEXT_INPUT;
+        event.text.text = text;
+        return event;
+    }
+
     SDL_Event WindowEvent(const SDL_EventType type) {
         SDL_Event event{};
         event.type = type;
@@ -318,5 +325,57 @@ namespace {
         input.Apply(WindowEvent(SDL_EVENT_WINDOW_FOCUS_LOST));
 
         EXPECT_FALSE(input.IsMouseButtonDown(MouseButton::Left));
+    }
+
+    // Typing
+
+    TEST(InputStateTests, TextTypedThisFrameIsReported) {
+        InputState input{};
+        input.BeginFrame();
+
+        input.Apply(TextEvent("a"));
+        input.Apply(TextEvent("ç"));
+
+        EXPECT_EQ(input.GetTypedText(), "aç");
+    }
+
+    TEST(InputStateTests, TypedTextStartsOverOnTheNextFrame) {
+        InputState input{};
+        input.BeginFrame();
+        input.Apply(TextEvent("a"));
+
+        input.BeginFrame();
+
+        EXPECT_TRUE(input.GetTypedText().empty());
+    }
+
+    TEST(InputStateTests, AKeyPressedThisFrameIsReportedAsTyped) {
+        InputState input{};
+        input.BeginFrame();
+
+        input.Apply(KeyEvent(SDL_SCANCODE_BACKSPACE, true));
+
+        EXPECT_TRUE(input.WasKeyTyped(SDL_SCANCODE_BACKSPACE));
+    }
+
+    TEST(InputStateTests, KeyRepeatsFromHoldingAKeyAreReportedAsTyped) {
+        InputState input{};
+        input.BeginFrame();
+        input.Apply(KeyEvent(SDL_SCANCODE_BACKSPACE, true));
+        input.BeginFrame();
+
+        input.Apply(KeyEvent(SDL_SCANCODE_BACKSPACE, true, true));
+
+        EXPECT_TRUE(input.WasKeyTyped(SDL_SCANCODE_BACKSPACE));
+    }
+
+    TEST(InputStateTests, AKeyHeldWithoutRepeatingIsNotTypedAgain) {
+        InputState input{};
+        input.BeginFrame();
+        input.Apply(KeyEvent(SDL_SCANCODE_BACKSPACE, true));
+
+        input.BeginFrame();
+
+        EXPECT_FALSE(input.WasKeyTyped(SDL_SCANCODE_BACKSPACE));
     }
 }

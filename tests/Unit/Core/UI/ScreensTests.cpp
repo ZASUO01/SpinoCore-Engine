@@ -8,16 +8,29 @@
 #include <utility>
 #include <vector>
 #include <gtest/gtest.h>
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_mouse.h>
 #include "UITestElements.h"
+#include "Core/Input/InputState.h"
 #include "Core/Rendering/Drawer/DrawCommands.h"
 #include "Core/UI/EngineScreensManager.h"
+#include "SpinoCore/Core/UI/Elements/Cursor.h"
 #include "SpinoCore/Core/UI/Elements/Element.h"
+#include "SpinoCore/Core/UI/Elements/InputField.h"
+#include "SpinoCore/Core/UI/Elements/Rect.h"
+#include "SpinoCore/Math/Vector.h"
 
 namespace {
+    using SpinoCore::Core::Input::InputState;
     using SpinoCore::Core::Rendering::UIDrawList;
     using SpinoCore::Core::UI::EngineScreensManager;
+    using SpinoCore::Core::UI::Elements::Cursor;
     using SpinoCore::Core::UI::Elements::Element;
     using SpinoCore::Core::UI::Elements::ElementInput;
+    using SpinoCore::Core::UI::Elements::InputField;
+    using SpinoCore::Core::UI::Elements::InputFieldInput;
+    using SpinoCore::Core::UI::Elements::RectInput;
+    using SpinoCore::Math::Vector2f;
     using SpinoCore::Tests::TestElement;
     using SpinoCore::Tests::TestScreen;
 
@@ -67,6 +80,99 @@ namespace {
         TestElement stranger;
 
         EXPECT_EQ(screen.RemoveElement(&stranger), nullptr);
+    }
+
+    // A 100x40 input field centered on the given point.
+    [[nodiscard]] std::unique_ptr<InputField> FieldAt(const Vector2f center) {
+        InputFieldInput input{};
+        input.anchor = center;
+        input.size = {100.0f, 40.0f};
+        return std::make_unique<InputField>(input);
+    }
+
+    [[nodiscard]] InputState ClickAt(const float x, const float y) {
+        SDL_Event event{};
+        event.type = SDL_EVENT_MOUSE_BUTTON_DOWN;
+        event.button.button = SDL_BUTTON_LEFT;
+        event.button.down = true;
+        event.button.x = x;
+        event.button.y = y;
+        InputState state{};
+        state.BeginFrame();
+        state.Apply(event);
+        return state;
+    }
+
+    // Cursor
+
+    TEST(ScreenTests, AScreenRefusesASecondCursor) {
+        Log log;
+        TestScreen screen{"menu", log};
+        (void)screen.AddElement(std::make_unique<Cursor>(RectInput{}));
+
+        EXPECT_THROW((void)screen.AddElement(std::make_unique<Cursor>(RectInput{})), std::invalid_argument);
+        EXPECT_EQ(screen.GetElements().size(), 1u);
+    }
+
+    TEST(ScreenTests, ACursorCanBeAddedAfterThePreviousOneIsRemoved) {
+        Log log;
+        TestScreen screen{"menu", log};
+        Element& first = screen.AddElement(std::make_unique<Cursor>(RectInput{}));
+        (void)screen.RemoveElement(&first);
+
+        EXPECT_NO_THROW((void)screen.AddElement(std::make_unique<Cursor>(RectInput{})));
+    }
+
+    TEST(ScreenTests, TheCursorFollowsTheMouseWhileAFieldIsFocused) {
+        Log log;
+        TestScreen screen{"menu", log};
+        (void)screen.AddElement(FieldAt({100.0f, 100.0f}));
+        Element& cursor = screen.AddElement(std::make_unique<Cursor>(RectInput{}));
+        screen.ProcessInputs(ClickAt(100.0f, 100.0f));
+
+        screen.ProcessInputs(ClickAt(300.0f, 250.0f));
+
+        EXPECT_FLOAT_EQ(cursor.GetOffset().x, 300.0f);
+        EXPECT_FLOAT_EQ(cursor.GetOffset().y, 250.0f);
+    }
+
+    // Focus
+
+    TEST(ScreenTests, WhileAFieldIsFocusedOtherElementsIgnoreClicks) {
+        Log log;
+        TestScreen screen{"menu", log};
+        (void)screen.AddElement(FieldAt({100.0f, 100.0f}));
+        auto& second = dynamic_cast<InputField&>(screen.AddElement(FieldAt({300.0f, 100.0f})));
+        screen.ProcessInputs(ClickAt(100.0f, 100.0f));
+
+        screen.ProcessInputs(ClickAt(300.0f, 100.0f));
+
+        EXPECT_FALSE(second.IsFocused());
+    }
+
+    TEST(ScreenTests, AfterTheFocusIsReleasedOtherElementsGetClicksAgain) {
+        Log log;
+        TestScreen screen{"menu", log};
+        (void)screen.AddElement(FieldAt({100.0f, 100.0f}));
+        auto& second = dynamic_cast<InputField&>(screen.AddElement(FieldAt({300.0f, 100.0f})));
+        screen.ProcessInputs(ClickAt(100.0f, 100.0f));
+        screen.ProcessInputs(ClickAt(300.0f, 100.0f));
+
+        screen.ProcessInputs(ClickAt(300.0f, 100.0f));
+
+        EXPECT_TRUE(second.IsFocused());
+    }
+
+    TEST(ScreenTests, TheClickThatFocusesAFieldIsNotSeenByTheElementsAfterIt) {
+        Log log;
+        TestScreen screen{"menu", log};
+        auto& below = dynamic_cast<InputField&>(screen.AddElement(FieldAt({100.0f, 100.0f})));
+        auto& above = dynamic_cast<InputField&>(screen.AddElement(FieldAt({100.0f, 100.0f})));
+
+        screen.ProcessInputs(ClickAt(100.0f, 100.0f));
+
+        EXPECT_TRUE(below.IsFocused());
+        EXPECT_FALSE(above.IsFocused());
     }
 
     class EngineScreensManagerTests : public testing::Test {

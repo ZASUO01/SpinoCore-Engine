@@ -24,15 +24,22 @@ namespace SpinoCore::Core::UI::Elements {
         Right,
     };
 
+    enum class TextOverflow : std::uint8_t {
+        Visible,     // glyphs may be drawn outside the box
+        Hidden,      // glyphs that leave the box are not drawn
+        ScrollToEnd, // like Hidden, but a line wider than the box shows its end (as in a text field)
+    };
+
     struct TextInput final : RectInput {
         std::string text{};
         std::string font{};
         Graphics::Resources::FontSize fontSize{Graphics::Resources::FontSize::Size16};
         Math::Vector4f color{0.0f, 0.0f, 0.0f, 1.0f};
         TextAlignment alignment{TextAlignment::Center};
+        TextOverflow overflow{TextOverflow::Visible};
     };
 
-    class Text final : public Rect {
+    class Text : public Rect {
     public:
         explicit Text(const TextInput& input);
 
@@ -50,6 +57,9 @@ namespace SpinoCore::Core::UI::Elements {
 
         void SetAlignment(const TextAlignment alignment) { mAlignment = alignment; mIsLayoutDirty = true; }
         [[nodiscard]] TextAlignment GetAlignment() const { return mAlignment; }
+
+        void SetOverflow(const TextOverflow overflow) { mOverflow = overflow; mIsLayoutDirty = true; }
+        [[nodiscard]] TextOverflow GetOverflow() const { return mOverflow; }
 
         [[nodiscard]] Rect& GetBackground() const { return *mBackground; }
 
@@ -72,6 +82,7 @@ namespace SpinoCore::Core::UI::Elements {
         Graphics::Resources::FontSize mFontSize;
         Math::Vector4f mColor;
         TextAlignment mAlignment;
+        TextOverflow mOverflow;
         Rect* mBackground{nullptr};
 
         const void* mCachedFrom{nullptr};

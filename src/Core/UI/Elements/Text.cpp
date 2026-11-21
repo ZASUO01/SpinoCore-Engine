@@ -5,7 +5,6 @@
 #include <cstddef>
 #include <memory>
 #include <string_view>
-#include <unordered_map>
 #include "Assets/AssetCache.h"
 #include "Core/Rendering/Drawer/DrawCommands.h"
 #include "Graphics/Resources/Font.h"
@@ -61,6 +60,11 @@ namespace SpinoCore::Core::UI::Elements {
             return a.x == b.x && a.y == b.y;
         }
 
+        [[nodiscard]] bool FitsInside(const Math::Vector2f& topLeft, const Math::Vector2f& size, const Math::Vector2f& box) {
+            return topLeft.x >= -box.x * 0.5f && topLeft.x + size.x <= box.x * 0.5f
+                && topLeft.y >= -box.y * 0.5f && topLeft.y + size.y <= box.y * 0.5f;
+        }
+
         [[nodiscard]] float LineWidth(const Graphics::Resources::FontAtlas& atlas, const std::u32string& line) {
             float width = 0.0f;
             for (const char32_t codepoint : line) {
@@ -76,7 +80,8 @@ namespace SpinoCore::Core::UI::Elements {
     , mFontName(input.font)
     , mFontSize(input.fontSize)
     , mColor(input.color)
-    , mAlignment(input.alignment) {
+    , mAlignment(input.alignment)
+    , mOverflow(input.overflow) {
         RectInput backgroundInput{};
         backgroundInput.size = input.size;
         backgroundInput.backgroundColor = input.backgroundColor;
@@ -128,19 +133,21 @@ namespace SpinoCore::Core::UI::Elements {
             float penX = -mLayoutSize.x * 0.5f;
             if (mAlignment == TextAlignment::Center) penX = -width * 0.5f;
             else if (mAlignment == TextAlignment::Right) penX = mLayoutSize.x * 0.5f - width;
+            if (mOverflow == TextOverflow::ScrollToEnd && width > mLayoutSize.x) penX = mLayoutSize.x * 0.5f - width;
             penX = std::round(penX);
 
             for (const char32_t codepoint : line) {
                 const auto* glyph = FindGlyph(atlas, codepoint);
                 if (!glyph) continue;
 
-                if (glyph->width > 0 && glyph->height > 0) {
-                    mGlyphs.push_back(PlacedGlyph{
-                        .topLeft = {penX + static_cast<float>(glyph->bearingX), lineTop + static_cast<float>(glyph->bearingY)},
-                        .size = {static_cast<float>(glyph->width), static_cast<float>(glyph->height)},
-                        .textureRect = {glyph->uMin, glyph->vMin, glyph->uMax - glyph->uMin, glyph->vMax - glyph->vMin},
-                    });
-                }
+                const PlacedGlyph placed{
+                    .topLeft = {penX + static_cast<float>(glyph->bearingX), lineTop + static_cast<float>(glyph->bearingY)},
+                    .size = {static_cast<float>(glyph->width), static_cast<float>(glyph->height)},
+                    .textureRect = {glyph->uMin, glyph->vMin, glyph->uMax - glyph->uMin, glyph->vMax - glyph->vMin},
+                };
+                const bool hasPixels = glyph->width > 0 && glyph->height > 0;
+                const bool isClipped = mOverflow != TextOverflow::Visible && !FitsInside(placed.topLeft, placed.size, mLayoutSize);
+                if (hasPixels && !isClipped) mGlyphs.push_back(placed);
                 penX += static_cast<float>(glyph->advance);
             }
             lineTop += lineHeight;

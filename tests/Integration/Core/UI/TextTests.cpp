@@ -26,6 +26,7 @@ namespace {
     using SpinoCore::Core::UI::Elements::Text;
     using SpinoCore::Core::UI::Elements::TextAlignment;
     using SpinoCore::Core::UI::Elements::TextInput;
+    using SpinoCore::Core::UI::Elements::TextOverflow;
     using SpinoCore::Graphics::Resources::Font;
     using SpinoCore::Graphics::Resources::FontAtlas;
     using SpinoCore::Graphics::Resources::FontSize;
@@ -190,6 +191,54 @@ namespace {
 
         EXPECT_FLOAT_EQ(background.size.x, 200.0f);
         EXPECT_FLOAT_EQ(background.size.y, 60.0f);
+    }
+
+    // ---------------------------------------------------------------- overflow
+
+    TEST_F(TextTests, HiddenOverflowDrawsOnlyTheGlyphsInsideTheBox) {
+        auto input = MakeInput(std::string(40, 'a'));
+        input.overflow = TextOverflow::Hidden;
+        Text text{input};
+
+        const auto glyphs = Glyphs(Commands(text));
+
+        // The box is 120 wide centered at x = 100.
+        EXPECT_TRUE(std::ranges::all_of(glyphs, [](const auto& g) { return Left(g) >= 40.0f && Left(g) + Width(g) <= 160.0f; }));
+    }
+
+    TEST_F(TextTests, HiddenOverflowDropsTheGlyphsThatDoNotFit) {
+        auto input = MakeInput(std::string(40, 'a'));
+        input.overflow = TextOverflow::Hidden;
+        Text text{input};
+
+        const auto glyphs = Glyphs(Commands(text));
+
+        EXPECT_LT(glyphs.size(), 40u);
+    }
+
+    TEST_F(TextTests, ScrollToEndShowsTheLastCharacterOfALongLine) {
+        auto input = MakeInput(std::string(40, 'a') + "b");
+        input.alignment = TextAlignment::Left;
+        input.overflow = TextOverflow::ScrollToEnd;
+        Text text{input};
+
+        const auto last = Glyphs(Commands(text)).back();
+
+        EXPECT_FLOAT_EQ(last.textureRect.x, DefaultAtlas().glyphs.at(U'b').uMin);
+    }
+
+    TEST_F(TextTests, ScrollToEndKeepsTheAlignmentOfALineThatFits) {
+        auto plainInput = MakeInput("ab");
+        plainInput.alignment = TextAlignment::Left;
+        auto scrolledInput = plainInput;
+        scrolledInput.overflow = TextOverflow::ScrollToEnd;
+        Text plain{plainInput};
+        Text scrolled{scrolledInput};
+
+        const auto plainGlyph = Glyphs(Commands(plain)).at(0);
+        const auto scrolledGlyph = Glyphs(Commands(scrolled)).at(0);
+
+        EXPECT_FLOAT_EQ(Left(scrolledGlyph), Left(plainGlyph));
     }
 
     // ---------------------------------------------------------------- layout

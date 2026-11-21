@@ -13,6 +13,10 @@ namespace SpinoCore::Core::Input {
     class InputState;
 }
 
+namespace SpinoCore::Core::UI::Elements {
+    class Cursor;
+}
+
 namespace SpinoCore::Core::UI {
     class Screen {
     public:
@@ -24,6 +28,7 @@ namespace SpinoCore::Core::UI {
         Screen(Screen&&) = delete;
         Screen& operator=(Screen&&) = delete;
 
+        // Throws std::invalid_argument for a null element or for a second Cursor: a screen has at most one.
         [[nodiscard]] Elements::Element& AddElement(std::unique_ptr<Elements::Element> element);
         [[nodiscard]] std::unique_ptr<Elements::Element> RemoveElement(Elements::Element* element);
         [[nodiscard]] const std::vector<std::unique_ptr<Elements::Element>>& GetElements() const { return mElements; }
@@ -37,11 +42,14 @@ namespace SpinoCore::Core::UI {
         virtual void OnExit() = 0;
 
         class ManagerKey{ friend class EngineScreensManager; ManagerKey() = default; };
+        // The cursor always gets the input. A focused element (e.g. an InputField being typed in) gets it alone;
+        // otherwise every enabled element does, in order, until one of them takes the focus.
         void ProcessInputs(const Input::InputState& state) const;
         void GetDrawCommands(ManagerKey, Rendering::UIDrawList& drawList, int drawLayer) const;
 
     private:
         std::vector<std::unique_ptr<Elements::Element>> mElements;
+        Elements::Cursor* mCursor{nullptr};
         bool mIsVisible{true};
     };
 }

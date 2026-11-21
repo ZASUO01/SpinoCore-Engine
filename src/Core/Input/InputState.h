@@ -4,6 +4,7 @@
 #include <bitset>
 #include <cstddef>
 #include <cstdint>
+#include <string>
 #include <SDL3/SDL_scancode.h>
 #include "SpinoCore/Math/Vector.h"
 
@@ -21,6 +22,11 @@ namespace SpinoCore::Core::Input {
         [[nodiscard]] bool IsKeyDown(SDL_Scancode key) const noexcept;
         [[nodiscard]] bool WasKeyPressed(SDL_Scancode key) const noexcept;
         [[nodiscard]] bool WasKeyReleased(SDL_Scancode key) const noexcept;
+        // Pressed this frame or repeated by the OS while held (e.g. holding backspace keeps deleting).
+        [[nodiscard]] bool WasKeyTyped(SDL_Scancode key) const noexcept;
+
+        // UTF-8 text typed this frame (SDL_EVENT_TEXT_INPUT), already shaped by the keyboard layout.
+        [[nodiscard]] const std::string& GetTypedText() const noexcept { return mTypedText; }
 
         [[nodiscard]] bool IsMouseButtonDown(MouseButton button) const noexcept;
         [[nodiscard]] bool WasMouseButtonPressed(MouseButton button) const noexcept;
@@ -41,6 +47,8 @@ namespace SpinoCore::Core::Input {
         std::bitset<KEY_COUNT> mKeysDown{};
         std::bitset<KEY_COUNT> mKeysPressed{};
         std::bitset<KEY_COUNT> mKeysReleased{};
+        std::bitset<KEY_COUNT> mKeysTyped{};
+        std::string mTypedText{};
 
         std::bitset<MOUSE_BUTTON_COUNT> mMouseButtonsDown{};
         std::bitset<MOUSE_BUTTON_COUNT> mMouseButtonsPressed{};

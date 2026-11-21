@@ -14,6 +14,8 @@ namespace SpinoCore::Core::Input {
     void InputState::BeginFrame() noexcept {
         mKeysPressed.reset();
         mKeysReleased.reset();
+        mKeysTyped.reset();
+        mTypedText.clear();
         mMouseButtonsPressed.reset();
         mMouseButtonsReleased.reset();
         mMouseDelta = Math::Vector2f::Zero();
@@ -25,6 +27,9 @@ namespace SpinoCore::Core::Input {
             case SDL_EVENT_KEY_DOWN:
             case SDL_EVENT_KEY_UP:
                 SetKey(event.key.scancode, event.key.down, event.key.repeat);
+                break;
+            case SDL_EVENT_TEXT_INPUT:
+                if (event.text.text) mTypedText += event.text.text;
                 break;
             case SDL_EVENT_MOUSE_MOTION:
                 mMousePosition = {event.motion.x, event.motion.y};
@@ -74,6 +79,10 @@ namespace SpinoCore::Core::Input {
         return key < KEY_COUNT && mKeysReleased.test(key);
     }
 
+    bool InputState::WasKeyTyped(const SDL_Scancode key) const noexcept {
+        return key < KEY_COUNT && mKeysTyped.test(key);
+    }
+
     bool InputState::IsMouseButtonDown(const MouseButton button) const noexcept {
         return ToIndex(button) < MOUSE_BUTTON_COUNT && mMouseButtonsDown.test(ToIndex(button));
     }
@@ -87,7 +96,9 @@ namespace SpinoCore::Core::Input {
     }
 
     void InputState::SetKey(const SDL_Scancode key, const bool down, const bool repeat) noexcept {
-        if (key >= KEY_COUNT || repeat) return;
+        if (key >= KEY_COUNT) return;
+        if (down) mKeysTyped.set(key);
+        if (repeat) return;
 
         if (down && !mKeysDown.test(key)) mKeysPressed.set(key);
         if (!down && mKeysDown.test(key)) mKeysReleased.set(key);

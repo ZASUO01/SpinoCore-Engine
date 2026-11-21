@@ -2,6 +2,7 @@
 // Copyright (c) 2026 ZASUO01
 #include "SpinoCore/Core/UI/Elements/Element.h"
 #include <algorithm>
+#include <cmath>
 #include <stdexcept>
 #include <utility>
 #include "SpinoCore/Math/Math.h"
@@ -118,6 +119,26 @@ namespace SpinoCore::Core::UI::Elements {
         std::uint8_t height = 0;
         for (const auto& child : mChildren) height = std::max<std::uint8_t>(height, child->GetSubtreeHeight() + 1);
         return height;
+    }
+
+    bool Element::HasFocus() const {
+        return IsFocused() || std::ranges::any_of(mChildren, [](const auto& child) { return child->HasFocus(); });
+    }
+
+    // Brings the point into the element's own space (undoing translation, rotation and scale) and tests it there.
+    bool Element::Contains(const Math::Vector2f &point) {
+        const Math::Matrix4f& frame = GetWorldFrame();
+        const float cosScaled = frame(0, 0);
+        const float sinScaled = frame(1, 0);
+        const float scaleSquared = cosScaled * cosScaled + sinScaled * sinScaled;
+        if (scaleSquared <= 0.0f) return false;
+
+        const float dx = point.x - frame(0, 3);
+        const float dy = point.y - frame(1, 3);
+        const float localX = (cosScaled * dx + sinScaled * dy) / scaleSquared;
+        const float localY = (cosScaled * dy - sinScaled * dx) / scaleSquared;
+
+        return std::abs(localX) <= mSize.x * 0.5f && std::abs(localY) <= mSize.y * 0.5f;
     }
 
     void Element::ProcessInput(const Input::InputState &state) {

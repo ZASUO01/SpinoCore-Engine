@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <string_view>
 #include <SDL3/SDL_error.h>
+#include <SDL3/SDL_keyboard.h>
 #include <SDL3/SDL_mouse.h>
 #include <SDL3/SDL_rect.h>
 #include <SDL3/SDL_video.h>
@@ -80,6 +81,11 @@ namespace SpinoCore::Core::Window {
         }
 
         SDL_ShowWindow(mSDLWindow.get());
+
+        // Typed text (SDL_EVENT_TEXT_INPUT, used by InputField) only arrives while text input is active.
+        if (!SDL_StartTextInput(mSDLWindow.get())) {
+            Logs::Logger::Warn("[WINDOW] Could not start text input: {}", SDL_GetError());
+        }
     }
 
     EngineWindow::~EngineWindow() {
