@@ -18,6 +18,10 @@ namespace SpinoCore::Graphics {
     class PostProcessManager;
 }
 
+namespace SpinoCore::Sound::Synth {
+    class SynthManager;
+}
+
 namespace SpinoCore::Files {
     class FileManager;
 }
@@ -47,6 +51,7 @@ namespace SpinoCore::Core::Scenes {
         Actors::ActorsManager& actorsManager;
         Lighting::GlobalLight& globalLight;
         Graphics::PostProcessManager& postProcessManager;
+        Sound::Synth::SynthManager& synthManager;
         const Input::InputState& simulationInput;
     };
 }

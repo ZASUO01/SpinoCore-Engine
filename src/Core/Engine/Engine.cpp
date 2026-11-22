@@ -18,6 +18,7 @@
 #include "Core/Rendering/Drawer/DrawCommands.h"
 #include "Graphics/Resources/Font.h"
 #include "Graphics/PostProcess/EnginePostProcessManager.h"
+#include "Sound/Synth/EngineSynthManager.h"
 #include "Graphics/Resources/Model.h"
 #include "Graphics/Resources/Texture.h"
 #include "SpinoCore/Core/Lighting/GlobalLight.h"
@@ -82,6 +83,8 @@ namespace SpinoCore::Core::Engine {
 
         mEngineModules.camerasManager.emplace(size, *mEngineModules.renderer, mEngineModules.eventBus);
 
+        mEngineModules.synthManager.emplace(Sound::Synth::AudioOutput::Device);
+
         const Scenes::StartContext sceneStartContext{
             .fileManager = *mEngineModules.fileManager
         };
@@ -94,6 +97,7 @@ namespace SpinoCore::Core::Engine {
             .actorsManager = mEngineModules.actorsManager,
             .globalLight = mEngineModules.renderer->GetGlobalLight(),
             .postProcessManager = mEngineModules.postProcessManager,
+            .synthManager = *mEngineModules.synthManager,
             .simulationInput = mEngineModules.simulationInput.GetState()
         };
 

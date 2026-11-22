@@ -89,6 +89,11 @@ target_sources(${PROJECT_NAME} PRIVATE
         "include/SpinoCore/Math/Quaternion.h"
     #Runtime
         "include/SpinoCore/Runtime/LoopingManager.h"
+    #Sound
+        "include/SpinoCore/Sound/Synth/Synthesizer.h"
+        "include/SpinoCore/Sound/Synth/SynthManager.h"
+        "include/SpinoCore/Sound/Synth/SynthUtils.h"
+        "include/SpinoCore/Sound/Synth/Timbre.h"
     #Utils
         "include/SpinoCore/Utils/Random.h"
         "include/SpinoCore/Utils/Size2D.h"
@@ -231,6 +236,12 @@ target_sources(${PROJECT_NAME} PRIVATE
         "src/SDL/Context.h"
         "src/SDL/Structs.cpp"
         "src/SDL/Structs.h"
+    #Sound
+        "src/Sound/Synth/CommandQueue.h"
+        "src/Sound/Synth/EngineSynthManager.cpp"
+        "src/Sound/Synth/EngineSynthManager.h"
+        "src/Sound/Synth/Synthesizer.cpp"
+        "src/Sound/Synth/Timbre.cpp"
     #Utils
         "src/Utils/JSONHelpers.cpp"
         "src/Utils/JSONHelpers.h"

@@ -8,6 +8,7 @@
 #include "SpinoCore/Core/UI/ScreensManager.h"
 #include "SpinoCore/Files/FileManager.h"
 #include "SpinoCore/Graphics/PostProcessManager.h"
+#include "SpinoCore/Sound/Synth/SynthManager.h"
 
 namespace SpinoCore::Core::Scenes {
     EngineScenesManager::EngineScenesManager(const ScenesManagerInput &input)
@@ -70,5 +71,6 @@ namespace SpinoCore::Core::Scenes {
         mControlContext.camerasManager.CleanUp();
         mControlContext.actorsManager.CleanUp();
         mControlContext.postProcessManager.CleanUp();
+        mControlContext.synthManager.CleanUp();
     }
 }

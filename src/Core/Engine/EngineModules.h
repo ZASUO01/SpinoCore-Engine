@@ -14,6 +14,7 @@
 #include "Files/EngineFileManager.h"
 #include "Graphics/PostProcess/EnginePostProcessManager.h"
 #include "Physics/CollisionProcessor.h"
+#include "Sound/Synth/EngineSynthManager.h"
 
 namespace SpinoCore::Core::Engine {
     struct EngineModules final {
@@ -28,6 +29,7 @@ namespace SpinoCore::Core::Engine {
         UI::EngineScreensManager screensManager{};
         Physics::CollisionProcessor collisionProcessor{};
         Actors::EngineActorsManager actorsManager{&collisionProcessor};
+        std::optional<Sound::Synth::EngineSynthManager> synthManager{};
         std::optional<Scenes::EngineScenesManager> scenesManager{};
     };
 }
