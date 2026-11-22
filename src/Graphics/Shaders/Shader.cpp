@@ -40,6 +40,11 @@ namespace SpinoCore::Graphics::Shaders {
         glProgramUniformMatrix4fv(mProgram, location, 1, GL_FALSE, matrix.Data());
     }
 
+    void Shader::SetUniform(const std::int32_t location, const std::span<const Math::Matrix4f> matrices) const noexcept {
+        if (matrices.empty()) return;
+        glProgramUniformMatrix4fv(mProgram, location, static_cast<GLsizei>(matrices.size()), GL_FALSE, matrices.front().Data());
+    }
+
     void Shader::SetUniform(const std::int32_t location, const float value) const noexcept {
         glProgramUniform1f(mProgram, location, value);
     }

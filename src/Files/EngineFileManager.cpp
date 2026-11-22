@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
 #include "EngineFileManager.h"
+#include <algorithm>
 #include <cstddef>
 #include <exception>
 #include <format>
@@ -14,9 +15,14 @@
 #include <nlohmann/json.hpp>
 #include "FileHelpers.h"
 #include "Graphics/Resources/Font.h"
+#include "Graphics/Resources/Model.h"
+#include "Graphics/Resources/ModelData.h"
 #include "Graphics/Resources/Texture.h"
+#include "SDL/Helpers/Helpers.h"
+#include "SpinoCore/Math/Vector.h"
 #include "SpinoCore/Logs/Logger.h"
 #include "Utils/JSONHelpers.h"
+#include "Utils/ModelHelpers.h"
 
 namespace SpinoCore::Files {
     namespace {
@@ -33,6 +39,7 @@ namespace SpinoCore::Files {
         AssetType StringToAssetType(const std::string_view name) {
             if (name == "Texture") return AssetType::Texture;
             if (name == "Font") return AssetType::Font;
+            if (name == "Model") return AssetType::Model;
             return AssetType::None;
         }
 
@@ -49,12 +56,55 @@ namespace SpinoCore::Files {
             }
             return it->get_ref<const std::string&>();
         }
+
+        std::filesystem::path OptionalPath(const Utils::JSON& asset, const std::string_view key, const std::string& id,
+                                           const std::filesystem::path& manifestPath) {
+            const auto it = asset.find(key);
+            if (it == asset.end()) return {};
+            if (!it->is_string() || it->get_ref<const std::string&>().empty()) {
+                throw std::runtime_error(std::format(R"([FILE MANAGER] "{}" of asset "{}" in manifest {} must be a non-empty string.)",
+                                                     key, id, manifestPath.string()));
+            }
+
+            std::filesystem::path path = PathFromUTF8(it->get_ref<const std::string&>());
+            if (path.is_absolute()) {
+                throw std::runtime_error(std::format(R"([FILE MANAGER] "{}" of asset "{}" in manifest {} must be relative to the Assets folder.)",
+                                                     key, id, manifestPath.string()));
+            }
+            return path;
+        }
+
+        struct MaterialOverride final {
+            std::optional<Math::Vector4f> baseColor{};
+            std::filesystem::path texturePath{};
+        };
+
+        MaterialOverride ReadMaterialFile(const std::filesystem::path& rootPath, const std::filesystem::path& materialPath) {
+            const auto file = ReadFile(rootPath / materialPath);
+            if (!file.has_value()) throw std::runtime_error(std::format("could not read the material file {}", materialPath.string()));
+
+            const auto json = Utils::ParseJSON(file.value(), {"version"});
+            if (!json.has_value() || !json->is_object() || json->at("version") != "1.0") {
+                throw std::runtime_error(std::format(R"(material file {} must be a JSON object with "version": "1.0")", materialPath.string()));
+            }
+
+            MaterialOverride material{};
+            if (const auto color = json->find("baseColor"); color != json->end()) {
+                if (!color->is_array() || color->size() != 4 || !std::ranges::all_of(*color, [](const auto& value) { return value.is_number(); })) {
+                    throw std::runtime_error(std::format(R"("baseColor" in material file {} must be an array of 4 numbers)", materialPath.string()));
+                }
+                material.baseColor = Math::Vector4f{(*color)[0].get<float>(), (*color)[1].get<float>(), (*color)[2].get<float>(), (*color)[3].get<float>()};
+            }
+            material.texturePath = OptionalPath(*json, "texture", materialPath.string(), materialPath);
+            return material;
+        }
     }
 
     EngineFileManager::EngineFileManager(const FileManagerInput& input)
     :mRootPath(FindRootPath())
     ,mTextureCache(input.textureCache)
     ,mFontCache(input.fontCache)
+    ,mModelCache(input.modelCache)
     {
         if (!DirectoryExists(mRootPath)) throw std::runtime_error("[FILE MANAGER] Assets directory is missing: " + mRootPath.string());
     }
@@ -106,7 +156,12 @@ namespace SpinoCore::Files {
                                                      id, manifestPath.string()));
             }
 
-            requests.push_back(FileRequest{.operation = Operation::Load, .type = assetType, .id = id, .path = path});
+            FileRequest request{.operation = Operation::Load, .type = assetType, .id = id, .path = path};
+            if (assetType == AssetType::Model) {
+                request.texturePath = OptionalPath(asset, "texture", id, manifestPath);
+                request.materialPath = OptionalPath(asset, "material", id, manifestPath);
+            }
+            requests.push_back(std::move(request));
         }
 
         for (auto& request : requests) Enqueue(std::move(request));
@@ -156,6 +211,7 @@ namespace SpinoCore::Files {
                 switch (request.type) {
                     case AssetType::Texture: LoadTexture(request); break;
                     case AssetType::Font: LoadFont(request); break;
+                    case AssetType::Model: LoadModel(request); break;
                     default:
                         break;
                 }
@@ -192,5 +248,55 @@ namespace SpinoCore::Files {
             Logs::Logger::Error(R"([FILES] Failed to load font "{}" from "{}": {})", request.id, request.path.string(), e.what());
             mFailedLoads.push_back(request.id);
         }
+    }
+
+    void EngineFileManager::LoadModel(const FileRequest& request) {
+        if (mModelCache.Contains(request.id)) {
+            Logs::Logger::Warn(R"([FILES] Model "{}" is already cached; "{}" was not loaded.)", request.id, request.path.string());
+            return;
+        }
+
+        try {
+            const auto file = ReadFile(mRootPath / request.path);
+            if (!file.has_value()) throw std::runtime_error("could not read the file");
+
+            const Graphics::Resources::ModelData data = Utils::ParseModel(file.value(), mRootPath / request.path);
+            const MaterialOverride material = request.materialPath.empty() ? MaterialOverride{} : ReadMaterialFile(mRootPath, request.materialPath);
+            const std::filesystem::path& sharedTexture = request.texturePath.empty() ? material.texturePath : request.texturePath;
+
+            std::vector<Graphics::Resources::Model::Material> materials;
+            materials.reserve(data.materials.size());
+            for (std::size_t index = 0; index < data.materials.size(); ++index) {
+                const auto& source = data.materials[index];
+                Graphics::Resources::Model::Material resolved{.baseColor = material.baseColor.value_or(source.baseColor), .textureId = {}};
+
+                if (!sharedTexture.empty()) {
+                    resolved.textureId = LoadTextureFile(sharedTexture);
+                } else if (source.texturePath.has_value()) {
+                    resolved.textureId = LoadTextureFile(request.path.parent_path() / source.texturePath.value());
+                } else if (!source.embeddedTexture.empty()) {
+                    resolved.textureId = std::format("{}#{}", request.id, index);
+                    if (!mTextureCache.Contains(resolved.textureId)) {
+                        const auto surface = SDL::Helpers::CreateFromImage(source.embeddedTexture);
+                        if (!surface) throw std::runtime_error(std::format("could not decode the texture of material {}", index));
+                        mTextureCache.Add(resolved.textureId, std::make_unique<const Graphics::Resources::Texture>(surface.get()));
+                    }
+                }
+                materials.push_back(std::move(resolved));
+            }
+
+            mModelCache.Add(request.id, std::make_unique<const Graphics::Resources::Model>(data, std::move(materials)));
+        } catch (const std::exception& e) {
+            Logs::Logger::Error(R"([FILES] Failed to load model "{}" from "{}": {})", request.id, request.path.string(), e.what());
+            mFailedLoads.push_back(request.id);
+        }
+    }
+
+    std::string EngineFileManager::LoadTextureFile(const std::filesystem::path& path) {
+        std::string id = path.lexically_normal().generic_string();
+        if (!mTextureCache.Contains(id)) {
+            mTextureCache.Add(id, std::make_unique<const Graphics::Resources::Texture>(mRootPath / path));
+        }
+        return id;
     }
 }

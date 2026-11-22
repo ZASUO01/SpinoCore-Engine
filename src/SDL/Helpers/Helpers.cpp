@@ -28,6 +28,19 @@ namespace SpinoCore::SDL::Helpers {
         return UniqueGLContext(SDL_GL_CreateContext(window));
     }
 
+    UniqueSDLSurface CreateFromImage(const std::span<const std::uint8_t> encodedImage) noexcept {
+        if (encodedImage.empty()) return nullptr;
+
+        SDL_IOStream* stream = SDL_IOFromConstMem(encodedImage.data(), encodedImage.size());
+        if (!stream) return nullptr;
+
+        UniqueSDLSurface loaded{IMG_Load_IO(stream, true)};
+        if (!loaded) return nullptr;
+
+        if (loaded->format == SDL_PIXELFORMAT_RGBA32) return loaded;
+        return UniqueSDLSurface{SDL_ConvertSurface(loaded.get(), SDL_PIXELFORMAT_RGBA32)};
+    }
+
     UniqueSDLSurface CreateFromImage(const std::filesystem::path &path) noexcept {
         const std::u8string utf8 = path.u8string();
         const auto cpath = reinterpret_cast<const char*>(utf8.c_str());

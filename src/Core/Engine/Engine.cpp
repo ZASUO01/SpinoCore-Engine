@@ -2,6 +2,7 @@
 // Copyright (c) 2026 ZASUO01
 #include "Engine.h"
 #include <memory>
+#include <string>
 #include <utility>
 #include "SpinoCore/Core/Scenes/Contexts.h"
 #include "SpinoCore/Game/InitializationContext.h"
@@ -16,7 +17,10 @@
 #include "Core/Rendering/Renderer.h"
 #include "Core/Rendering/Drawer/DrawCommands.h"
 #include "Graphics/Resources/Font.h"
+#include "Graphics/Resources/Model.h"
 #include "Graphics/Resources/Texture.h"
+#include "SpinoCore/Core/Lighting/GlobalLight.h"
+#include "SpinoCore/Core/Rendering/BuiltinModels.h"
 #include "SpinoCore/Core/Window/WindowProps.h"
 #include "SpinoCore/LaunchOptions.h"
 
@@ -47,6 +51,8 @@ namespace SpinoCore::Core::Engine {
 
         mEngineModules.renderer->GetUIDrawList().textures = &mEngineCache.textureCache;
         mEngineModules.renderer->GetUIDrawList().fonts = &mEngineCache.fontCache;
+        mEngineModules.renderer->GetModelDrawList().textures = &mEngineCache.textureCache;
+        mEngineModules.renderer->GetModelDrawList().models = &mEngineCache.modelCache;
 
         const Game::InitializationContext gameInitializationContext {
             .windowManager = *mEngineModules.window,
@@ -58,7 +64,8 @@ namespace SpinoCore::Core::Engine {
     void Engine::InitializeModules(const LaunchOptions &launchOptions) {
         Files::FileManagerInput fileManagerInput {
             .textureCache = mEngineCache.textureCache,
-            .fontCache = mEngineCache.fontCache
+            .fontCache = mEngineCache.fontCache,
+            .modelCache = mEngineCache.modelCache
         };
         mEngineModules.fileManager.emplace(fileManagerInput);
 
@@ -67,7 +74,8 @@ namespace SpinoCore::Core::Engine {
 
         auto window = mEngineModules.window->GetSDLWindow();
         auto size = mEngineModules.window->GetSize();
-        mEngineModules.renderer.emplace(window, size, mEngineModules.eventBus);
+        mEngineModules.renderer.emplace(window, size, mEngineModules.eventBus,
+                                        Lighting::GlobalLight{launchOptions.enableGlobalLight, launchOptions.globalLight});
 
         mEngineModules.camerasManager.emplace(size, *mEngineModules.renderer, mEngineModules.eventBus);
 
@@ -81,6 +89,7 @@ namespace SpinoCore::Core::Engine {
             .screensManager = mEngineModules.screensManager,
             .windowManager = *mEngineModules.window,
             .actorsManager = mEngineModules.actorsManager,
+            .globalLight = mEngineModules.renderer->GetGlobalLight(),
             .simulationInput = mEngineModules.simulationInput.GetState()
         };
 
@@ -99,11 +108,15 @@ namespace SpinoCore::Core::Engine {
         if (mEngineModules.renderer) {
             mEngineModules.renderer->GetUIDrawList().textures = nullptr;
             mEngineModules.renderer->GetUIDrawList().fonts = nullptr;
+            mEngineModules.renderer->GetModelDrawList().textures = nullptr;
+            mEngineModules.renderer->GetModelDrawList().models = nullptr;
         }
     }
 
     void Engine::SetCacheDefaults() {
         mEngineCache.textureCache.SetDefault(std::make_unique<Graphics::Resources::Texture>());
         mEngineCache.fontCache.SetDefault(std::make_unique<Graphics::Resources::Font>());
+        mEngineCache.modelCache.SetDefault(std::make_unique<Graphics::Resources::Model>());
+        mEngineCache.modelCache.Add(std::string(Rendering::CubeModelId), std::make_unique<Graphics::Resources::Model>());
     }
 }

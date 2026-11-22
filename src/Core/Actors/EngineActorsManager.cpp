@@ -9,15 +9,14 @@ namespace SpinoCore::Core::Actors {
     Actor* EngineActorsManager::AddActor(std::unique_ptr<Actor> actor) {
         if (!actor) return nullptr;
 
-        Actor* added = actor.get();
         if (mIsUpdatingActors) {
             mPendingActors.emplace_back(std::move(actor));
-            return added;
+            return mPendingActors.back().get();
         }
 
         mActors.emplace_back(std::move(actor));
         SortByUpdateOrder();
-        return added;
+        return mActors.back().get();
     }
 
     void EngineActorsManager::CleanUp() {

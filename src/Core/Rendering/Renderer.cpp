@@ -3,12 +3,19 @@
 #include <SDL3/SDL.h>
 #include <glad/glad.h>
 #include "Renderer.h"
+#include "Graphics/Resources/Texture.h"
 #include "SpinoCore/Math/MatrixFactory.h"
 
 namespace SpinoCore::Core::Rendering {
-    Renderer::Renderer(SDL_Window *window, const Utils::Size2D windowSize, Events::EventBus& bus)
+    Renderer::Renderer(SDL_Window *window, const Utils::Size2D windowSize, Events::EventBus& bus, const Lighting::GlobalLight& globalLight)
      :mPresenter(window, bus)
+     ,mGlobalLight(globalLight)
     {
+        if (mGlobalLight.IsEnabled()) {
+            mShadowMap.emplace(Graphics::FrameBufferSpecification{
+                .width = SHADOW_MAP_SIZE, .height = SHADOW_MAP_SIZE, .format = Graphics::FrameBufferFormat::DepthOnlyTexture});
+        }
+
         Utils::Size2D pixelSize{};
         SDL_GetWindowSizeInPixels(window, &pixelSize.width, &pixelSize.height);
         Resize(windowSize, pixelSize);
@@ -22,8 +29,22 @@ namespace SpinoCore::Core::Rendering {
 
     void Renderer::Draw() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        if (mShadowMap) {
+            DrawShadowMap();
+            const ModelLighting lighting{.light = mGlobalLight, .shadowMap = mShadowMap->GetTexture()->GetID()};
+            mDrawer.DrawModels(mCamera.viewProjection, &lighting);
+        } else {
+            mDrawer.DrawModels(mCamera.viewProjection);
+        }
         mDrawer.DrawUI(mOrthoViewProjectionMatrix);
         mPresenter.Present();
+    }
+
+    void Renderer::DrawShadowMap() {
+        mShadowMap->Bind();
+        glClear(GL_DEPTH_BUFFER_BIT);
+        mDrawer.DrawShadows(mGlobalLight.GetViewProjection());
+        mShadowMap->Unbind();
     }
 
     void Renderer::SetCamera(const Math::Matrix4f& view, const Math::Matrix4f& projection) {

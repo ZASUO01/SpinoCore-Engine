@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
 #pragma once
+#include <optional>
 #include "SpinoCore/Utils/Size2D.h"
 #include "SDL/Structs.h"
 #include "Core/Events/EventBus.h"
@@ -9,6 +10,8 @@
 #include "Drawer/DrawCommands.h"
 #include "Drawer/Drawer.h"
 #include "SpinoCore/Math/Matrix.h"
+#include "Graphics/FrameBuffer.h"
+#include "SpinoCore/Core/Lighting/GlobalLight.h"
 
 namespace SpinoCore::Core::Rendering {
     struct CameraMatrices final {
@@ -21,7 +24,8 @@ namespace SpinoCore::Core::Rendering {
     public:
         using Duration = Presenter::Duration;
 
-        explicit Renderer(SDL_Window* window, Utils::Size2D windowSize, Events::EventBus& bus);
+        Renderer(SDL_Window* window, Utils::Size2D windowSize, Events::EventBus& bus,
+                 const Lighting::GlobalLight& globalLight = Lighting::GlobalLight{});
         ~Renderer();
 
         Renderer(const Renderer&) = delete;
@@ -39,15 +43,23 @@ namespace SpinoCore::Core::Rendering {
         [[nodiscard]] UIDrawList& GetUIDrawList() { return mDrawer.GetUIDrawList(); }
         [[nodiscard]] ModelDrawList& GetModelDrawList() { return mDrawer.GetModelDrawList(); }
 
+        [[nodiscard]] Lighting::GlobalLight& GetGlobalLight() noexcept { return mGlobalLight; }
+        [[nodiscard]] const Graphics::FrameBuffer* GetShadowMap() const noexcept { return mShadowMap ? &*mShadowMap : nullptr; }
+
     private:
         static constexpr float ORTHO_NEAR_PLANE = -1.0f;
         static constexpr float ORTHO_FAR_PLANE = 1.0f;
+        static constexpr int SHADOW_MAP_SIZE = 2048;
+
+        void DrawShadowMap();
 
         void OnResize(const Events::WindowResizeEvent& event);
         void Resize(Utils::Size2D size, Utils::Size2D pixelSize);
 
         Presenter mPresenter;
         Drawer mDrawer;
+        Lighting::GlobalLight mGlobalLight;
+        std::optional<Graphics::FrameBuffer> mShadowMap{};
         CameraMatrices mCamera{};
         Math::Matrix4f mOrthoViewProjectionMatrix{Math::Matrix4f::Identity()};
         Events::EventBus::Subscription mResizeSubscription;

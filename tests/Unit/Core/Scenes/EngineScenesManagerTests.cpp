@@ -16,6 +16,7 @@
 #include "SpinoCore/Core/Cameras/CamerasManager.h"
 #include "SpinoCore/Core/Scenes/Contexts.h"
 #include "SpinoCore/Core/Input/InputState.h"
+#include "SpinoCore/Core/Lighting/GlobalLight.h"
 #include "SpinoCore/Core/Scenes/Scene.h"
 #include "SpinoCore/Core/UI/Screen.h"
 #include "SpinoCore/Core/Window/WindowManager.h"
@@ -29,6 +30,7 @@ namespace {
     using SpinoCore::Core::Actors::EngineActorsManager;
     using SpinoCore::Core::Cameras::Camera;
     using SpinoCore::Core::Input::InputState;
+    using SpinoCore::Core::Lighting::GlobalLight;
     using SpinoCore::Core::Cameras::CamerasManager;
     using SpinoCore::Core::Scenes::ControlContext;
     using SpinoCore::Core::Scenes::EngineScenesManager;
@@ -128,6 +130,7 @@ namespace {
         EngineScreensManager screensManager{};
         FixedWindowManager windowManager{};
         EngineActorsManager actorsManager{};
+        GlobalLight globalLight{};
         InputState simulationInput{};
         StartContext startContext{.fileManager = fileManager};
         ControlContext controlContext{
@@ -136,6 +139,7 @@ namespace {
             .screensManager = screensManager,
             .windowManager = windowManager,
             .actorsManager = actorsManager,
+            .globalLight = globalLight,
             .simulationInput = simulationInput
         };
         std::optional<EngineScenesManager> scenesManager{ScenesManagerInput{.startContext = startContext, .controlContext = controlContext}};

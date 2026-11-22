@@ -3,6 +3,7 @@
 #include <memory>
 #include <gtest/gtest.h>
 #include "SpinoCore/Core/Actors/Actor.h"
+#include "SpinoCore/Core/Actors/Components/Component.h"
 #include "SpinoCore/Math/Math.h"
 #include "SpinoCore/Math/Quaternion.h"
 #include "SpinoCore/Math/Vector.h"
@@ -22,6 +23,32 @@ namespace {
     protected:
         void OnUpdate(float) override {}
         void OnProcessInput(const SpinoCore::Core::Input::InputState&) override {}
+    };
+
+    class CountingComponent final : public SpinoCore::Core::Actors::Components::Component {
+    public:
+        CountingComponent(Actor& actor, int& updates) : Component(actor), mUpdates(updates) {}
+
+        void Update(float) override { ++mUpdates; }
+        void GetDrawCommand(SpinoCore::Core::Rendering::ModelDrawList&) override {}
+
+    private:
+        int& mUpdates;
+    };
+
+    class SpawningActor final : public Actor {
+    public:
+        explicit SpawningActor(int& spawnedUpdates) : mSpawnedUpdates(spawnedUpdates) {}
+
+    protected:
+        void OnUpdate(float) override {
+            if (GetComponents().empty()) AddComponent(std::make_unique<CountingComponent>(*this, mSpawnedUpdates));
+        }
+
+        void OnProcessInput(const SpinoCore::Core::Input::InputState&) override {}
+
+    private:
+        int& mSpawnedUpdates;
     };
 
     [[nodiscard]] Vector3f WorldPointOf(Actor& actor, const Vector3f& localPoint) {
@@ -225,5 +252,34 @@ namespace {
         child.reset();
 
         EXPECT_TRUE(parent.GetChildren().empty());
+    }
+
+    TEST(ActorTests, AComponentAddedDuringAnUpdateJoinsTheActorAfterThatUpdate) {
+        int spawnedUpdates = 0;
+        SpawningActor actor{spawnedUpdates};
+
+        actor.Update(0.016f);
+
+        EXPECT_EQ(actor.GetComponents().size(), 1u);
+    }
+
+    TEST(ActorTests, AComponentAddedDuringAnUpdateStartsUpdatingOnTheNextUpdate) {
+        int spawnedUpdates = 0;
+        SpawningActor actor{spawnedUpdates};
+        actor.Update(0.016f);
+
+        actor.Update(0.016f);
+
+        EXPECT_EQ(spawnedUpdates, 1);
+    }
+
+    TEST(ActorTests, ComponentsCanReachTheirActor) {
+        int updates = 0;
+        StillActor actor;
+        auto component = std::make_unique<CountingComponent>(actor, updates);
+
+        Actor* owner = component->GetActor();
+
+        EXPECT_EQ(owner, &actor);
     }
 }

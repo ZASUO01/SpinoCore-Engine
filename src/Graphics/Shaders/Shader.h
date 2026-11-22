@@ -2,6 +2,7 @@
 // Copyright (c) 2026 ZASUO01
 #pragma once
 #include <cstdint>
+#include <span>
 #include <string>
 #include "SpinoCore/Math/Matrix.h"
 #include "SpinoCore/Math/Vector.h"
@@ -24,6 +25,7 @@ namespace SpinoCore::Graphics::Shaders {
         void SetUniform(std::int32_t location, const Math::Vector3f& vector) const noexcept;
         void SetUniform(std::int32_t location, const Math::Vector4f& vector) const noexcept;
         void SetUniform(std::int32_t location, const Math::Matrix4f& matrix) const noexcept;
+        void SetUniform(std::int32_t location, std::span<const Math::Matrix4f> matrices) const noexcept;
         void SetUniform(std::int32_t location, float value) const noexcept;
         void SetUniform(std::int32_t location, int value) const noexcept;
         void SetUniform(std::int32_t location, std::uint32_t value) const noexcept;

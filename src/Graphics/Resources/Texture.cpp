@@ -16,6 +16,13 @@ namespace SpinoCore::Graphics::Resources {
         CreateBlank();
     }
 
+    Texture::Texture(const int width, const int height, const CreationType type) {
+        if (width <= 0 || height <= 0) throw std::invalid_argument("[Texture] Width and height must be positive.");
+        if (!Allocate(nullptr, Utils::Size2D{width, height}, 0, type)) {
+            throw std::runtime_error("[Texture] Failed to create the texture.");
+        }
+    }
+
     Texture::Texture(const std::filesystem::path &imagePath) {
         CreateFromImage(imagePath);
     }
@@ -39,7 +46,7 @@ namespace SpinoCore::Graphics::Resources {
     void Texture::CreateBlank() {
         static constexpr std::array<std::uint8_t, 4> white{255, 255, 255, 255};
 
-        if (!Upload(white.data(), Utils::Size2D{1, 1}, 1)) {
+        if (!Allocate(white.data(), Utils::Size2D{1, 1}, 1, CreationType::Empty)) {
             throw std::runtime_error("[Texture] Failed to create the blank texture.");
         }
     }
@@ -51,7 +58,7 @@ namespace SpinoCore::Graphics::Resources {
         }
 
         if (const int pixelsPerLine = surface->pitch / SDL_BYTESPERPIXEL(surface->format);
-            !Upload(surface->pixels, Utils::Size2D{surface->w, surface->h}, pixelsPerLine)) {
+            !Allocate(surface->pixels, Utils::Size2D{surface->w, surface->h}, pixelsPerLine, CreationType::Empty)) {
             throw std::runtime_error("[Texture] Failed to load image: " + imagePath.string());
         }
     }
@@ -67,12 +74,12 @@ namespace SpinoCore::Graphics::Resources {
         }
 
         if (const int pixelsPerLine = surface->pitch / SDL_BYTESPERPIXEL(surface->format);
-            !Upload(surface->pixels, Utils::Size2D{surface->w, surface->h}, pixelsPerLine)) {
+            !Allocate(surface->pixels, Utils::Size2D{surface->w, surface->h}, pixelsPerLine, CreationType::Empty)) {
             throw std::runtime_error("[Texture] Failed to upload the surface.");
         }
     }
 
-    bool Texture::Upload(const void* rgbaPixels, const Utils::Size2D size, const int pixelsPerLine) {
+    bool Texture::Allocate(const void* pixels, const Utils::Size2D size, const int pixelsPerLine, const CreationType type) {
         while (glGetError() != GL_NO_ERROR) {}
 
         glGenTextures(1, &mTextureID);
@@ -81,22 +88,29 @@ namespace SpinoCore::Graphics::Resources {
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         glPixelStorei(GL_UNPACK_ROW_LENGTH, pixelsPerLine);
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size.width, size.height,
-                0, GL_RGBA, GL_UNSIGNED_BYTE, rgbaPixels);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        if (type == CreationType::Depth) {
+            static constexpr std::array<float, 4> border{1.0f, 1.0f, 1.0f, 1.0f};
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, size.width, size.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, pixels);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+            glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border.data());
+        } else {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size.width, size.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        }
 
         glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 
-        const bool uploaded = glGetError() == GL_NO_ERROR;
+        const bool allocated = glGetError() == GL_NO_ERROR;
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        if (!uploaded) {
+        if (!allocated) {
             glDeleteTextures(1, &mTextureID);
             mTextureID = 0;
             return false;

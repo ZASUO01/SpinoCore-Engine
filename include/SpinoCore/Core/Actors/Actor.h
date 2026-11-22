@@ -94,9 +94,12 @@ namespace SpinoCore::Core::Actors {
 
     private:
         void SetTransformDirty();
+        void SortComponents();
         [[nodiscard]] bool IsAncestorOf(const Actor* actor) const;
 
         std::vector<std::unique_ptr<Components::Component>> mComponents;
+        std::vector<std::unique_ptr<Components::Component>> mPendingComponents;
+        bool mIsUpdatingComponents{false};
 
         State mState{State::Active};
 

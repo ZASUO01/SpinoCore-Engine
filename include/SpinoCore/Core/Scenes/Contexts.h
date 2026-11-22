@@ -6,6 +6,10 @@ namespace SpinoCore::Core::Actors {
     class ActorsManager;
 }
 
+namespace SpinoCore::Core::Lighting {
+    class GlobalLight;
+}
+
 namespace SpinoCore::Core::Input {
     class InputState;
 }
@@ -37,6 +41,7 @@ namespace SpinoCore::Core::Scenes {
         UI::ScreensManager& screensManager;
         Window::WindowManager& windowManager;
         Actors::ActorsManager& actorsManager;
+        Lighting::GlobalLight& globalLight;
         const Input::InputState& simulationInput;
     };
 }

@@ -8,9 +8,15 @@
 struct SDL_Surface;
 
 namespace SpinoCore::Graphics::Resources {
+    enum class CreationType {
+        Empty,
+        Depth
+    };
+
     class Texture final {
     public:
         Texture();
+        Texture(int width, int height, CreationType type);
         explicit Texture(const std::filesystem::path& imagePath);
         explicit Texture(SDL_Surface* surface);
         ~Texture();
@@ -28,7 +34,7 @@ namespace SpinoCore::Graphics::Resources {
             void CreateBlank();
             void CreateFromImage(const std::filesystem::path& imagePath);
             void CreateFromSurface(SDL_Surface* surface);
-            [[nodiscard]] bool Upload(const void* rgbaPixels, Utils::Size2D size, int pixelsPerLine);
+            [[nodiscard]] bool Allocate(const void* pixels, Utils::Size2D size, int pixelsPerLine, CreationType type);
 
 
             std::uint32_t mTextureID{0};

@@ -3,6 +3,7 @@
 #pragma once
 #include <algorithm>
 #include <cstdint>
+#include <span>
 #include <vector>
 #include "Assets/AssetCache.h"
 #include "SpinoCore/Math/Matrix.h"
@@ -10,6 +11,7 @@
 
 namespace SpinoCore::Graphics::Resources {
     class Font;
+    class Model;
     class Texture;
 }
 
@@ -48,11 +50,16 @@ namespace SpinoCore::Core::Rendering {
         const Assets::AssetCache<Graphics::Resources::Font>* fonts{nullptr};
     };
 
-    struct ModelDrawCommand{
-        uint64_t key{0};
+    struct ModelDrawCommand {
+        std::uint64_t key{0};
+        const Graphics::Resources::Model* model{nullptr};
+        Math::Matrix4f world{Math::Matrix4f::Identity()};
+        std::span<const Math::Matrix4f> bones{};
     };
 
     struct ModelDrawList {
         std::vector<ModelDrawCommand> commands;
+        const Assets::AssetCache<Graphics::Resources::Texture>* textures{nullptr};
+        const Assets::AssetCache<Graphics::Resources::Model>* models{nullptr};
     };
 }

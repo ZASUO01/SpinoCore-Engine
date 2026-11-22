@@ -17,6 +17,7 @@
 #include "Files/EngineFileManager.h"
 #include "../Graphics/GLTestContext.h"
 #include "Graphics/Resources/Font.h"
+#include "Graphics/Resources/Model.h"
 #include "Graphics/Resources/Texture.h"
 #include "SpinoCore/Files/FileManager.h"
 
@@ -27,6 +28,7 @@ namespace {
     using SpinoCore::Files::EngineFileManager;
     using SpinoCore::Files::FileManagerInput;
     using SpinoCore::Graphics::Resources::Font;
+    using SpinoCore::Graphics::Resources::Model;
     using SpinoCore::Graphics::Resources::Texture;
 
     // Loads real images from the Assets folder next to the test binary into a cache, with a live GL context.
@@ -36,7 +38,8 @@ namespace {
             GLTestContext::SetUp();
             if (HasFatalFailure()) return;
             textureCache.emplace(std::make_unique<const Texture>());
-            fileManager.emplace(FileManagerInput{.textureCache = *textureCache, .fontCache = fontCache});
+            modelCache.emplace();
+            fileManager.emplace(FileManagerInput{.textureCache = *textureCache, .fontCache = fontCache, .modelCache = *modelCache});
             folder = fs::path("EngineFileManagerTextureTests") / testing::UnitTest::GetInstance()->current_test_info()->name();
             fs::create_directories(fileManager->GetRootPath() / folder);
         }
@@ -48,6 +51,7 @@ namespace {
             }
             // Textures go before the GL context the fixture owns.
             fileManager.reset();
+            modelCache.reset();
             textureCache.reset();
             GLTestContext::TearDown();
         }
@@ -69,6 +73,7 @@ namespace {
 
         std::optional<AssetCache<Texture>> textureCache{};
         AssetCache<Font> fontCache{};
+        std::optional<AssetCache<Model>> modelCache{};
         std::optional<EngineFileManager> fileManager{};
         fs::path folder;
     };

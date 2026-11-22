@@ -4,16 +4,107 @@
 #include <algorithm>
 #include <cstdint>
 #include <span>
+#include <string>
 #include <glad/glad.h>
+#include "Graphics/Geometry/VertexArray.h"
+#include "Graphics/Resources/Model.h"
+#include "Graphics/Shaders/Sources/ModelShader.h"
 #include "Graphics/Shaders/Sources/UIShader.h"
+#include "SpinoCore/Core/Lighting/GlobalLight.h"
+#include "SpinoCore/Math/Vector.h"
 
 namespace SpinoCore::Core::Rendering {
+    namespace {
+        constexpr Math::Vector3f LightDirection{-0.4f, -1.0f, -0.3f};
+    }
+
     Drawer::Drawer() {
         using namespace Graphics::Shaders;
 
         mUIShader.emplace(Sources::UIVertexShaderSource, Sources::UIFragmentShaderSource);
+        mModelShader.emplace(std::string(Sources::ModelSkinningPreludeSource) + Sources::ModelVertexShaderBody, Sources::ModelFragmentShaderSource);
+        mShadowShader.emplace(std::string(Sources::ModelSkinningPreludeSource) + Sources::ShadowVertexShaderBody, Sources::ShadowFragmentShaderSource);
+        mWhiteTexture.emplace();
 
         BuildUIQuadVertices();
+    }
+
+    void Drawer::DrawShadows(const Math::Matrix4f& lightViewProjection) {
+        using namespace Graphics::Shaders::Sources;
+
+        if (mModelDrawList.commands.empty()) return;
+
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+        glDisable(GL_BLEND);
+
+        mShadowShader->SetActive();
+        mShadowShader->SetUniform(ModelShaderLocation::ViewProjection, lightViewProjection);
+        for (const auto& command : mModelDrawList.commands) DrawModelMeshes(*mShadowShader, command, false);
+    }
+
+    void Drawer::DrawModels(const Math::Matrix4f& viewProjection, const ModelLighting* lighting) {
+        using namespace Graphics::Shaders::Sources;
+
+        if (mModelDrawList.commands.empty()) return;
+
+        std::ranges::stable_sort(mModelDrawList.commands, [](const auto& a, const auto& b) {
+            return a.key < b.key;
+        });
+
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+        glDisable(GL_BLEND);
+
+        mModelShader->SetActive();
+        mModelShader->SetUniform(ModelShaderLocation::ViewProjection, viewProjection);
+        if (lighting) {
+            const auto& settings = lighting->light.GetSettings();
+            mModelShader->SetUniform(ModelShaderLocation::GlobalLight, 1);
+            mModelShader->SetUniform(ModelShaderLocation::LightDirection, lighting->light.GetDirection());
+            mModelShader->SetUniform(ModelShaderLocation::LightColor, settings.color * settings.intensity);
+            mModelShader->SetUniform(ModelShaderLocation::AmbientColor, settings.ambientColor);
+            mModelShader->SetUniform(ModelShaderLocation::LightViewProjection, lighting->light.GetViewProjection());
+            glBindTextureUnit(ModelShaderTextureUnit::ShadowMap, lighting->shadowMap);
+        } else {
+            mModelShader->SetUniform(ModelShaderLocation::GlobalLight, 0);
+            mModelShader->SetUniform(ModelShaderLocation::LightDirection, LightDirection);
+        }
+
+        for (const auto& command : mModelDrawList.commands) DrawModelMeshes(*mModelShader, command, true);
+
+        mModelDrawList.commands.clear();
+        glBindTextureUnit(ModelShaderTextureUnit::Albedo, 0);
+        glBindTextureUnit(ModelShaderTextureUnit::ShadowMap, 0);
+    }
+
+    void Drawer::DrawModelMeshes(const Graphics::Shaders::Shader& shader, const ModelDrawCommand& command, const bool withMaterials) const {
+        using namespace Graphics::Shaders::Sources;
+
+        if (!command.model) return;
+
+        const bool posed = !command.bones.empty() && command.bones.size() == command.model->GetSkeleton().bones.size();
+        shader.SetUniform(ModelShaderLocation::Model, command.world);
+        if (posed) shader.SetUniform(ModelShaderLocation::Bones, command.bones);
+
+        for (const auto&[vertices, materialIdx, skinned] : command.model->GetMeshes()) {
+            shader.SetUniform(ModelShaderLocation::Skinned, skinned && posed ? 1 : 0);
+            if (withMaterials) {
+                const auto&[baseColor, textureId] = command.model->GetMaterials()[materialIdx];
+                shader.SetUniform(ModelShaderLocation::BaseColor, baseColor);
+                BindModelTexture(textureId);
+            }
+            vertices->Draw();
+        }
+    }
+
+    void Drawer::BindModelTexture(const std::string& textureId) const {
+        const auto* textures = mModelDrawList.textures;
+        if (textureId.empty() || !textures || !textures->Contains(textureId)) {
+            glBindTextureUnit(Graphics::Shaders::Sources::ModelShaderTextureUnit::Albedo, mWhiteTexture->GetID());
+            return;
+        }
+        glBindTextureUnit(Graphics::Shaders::Sources::ModelShaderTextureUnit::Albedo, textures->Get(textureId).GetID());
     }
 
     void Drawer::DrawUI(const Math::Matrix4f& ortho) {

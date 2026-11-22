@@ -2,6 +2,7 @@
 // Copyright (c) 2026 ZASUO01
 #include "SpinoCore/Core/Actors/Actor.h"
 #include <algorithm>
+#include <iterator>
 #include <utility>
 #include "SpinoCore/Core/Actors/Components/Component.h"
 #include "SpinoCore/Math/MatrixFactory.h"
@@ -23,12 +24,20 @@ namespace SpinoCore::Core::Actors {
     }
 
     void Actor::Update(const float deltaTime) {
+        mIsUpdatingComponents = true;
         OnUpdate(deltaTime);
 
         for (const auto& component : mComponents) {
             if (component->IsEnabled()) {
                 component->Update(deltaTime);
             }
+        }
+        mIsUpdatingComponents = false;
+
+        if (!mPendingComponents.empty()) {
+            std::ranges::move(mPendingComponents, std::back_inserter(mComponents));
+            mPendingComponents.clear();
+            SortComponents();
         }
     }
 
@@ -69,8 +78,18 @@ namespace SpinoCore::Core::Actors {
     }
 
     void Actor::AddComponent(std::unique_ptr<Components::Component> component) {
-        mComponents.emplace_back(std::move(component));
+        if (!component) return;
 
+        if (mIsUpdatingComponents) {
+            mPendingComponents.emplace_back(std::move(component));
+            return;
+        }
+
+        mComponents.emplace_back(std::move(component));
+        SortComponents();
+    }
+
+    void Actor::SortComponents() {
         std::ranges::stable_sort(mComponents, [](const auto& a, const auto& b) {
             return a->GetUpdateOrder() < b->GetUpdateOrder();
         });

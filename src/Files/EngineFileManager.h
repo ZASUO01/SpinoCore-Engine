@@ -12,6 +12,7 @@
 
 namespace SpinoCore::Graphics::Resources {
     class Font;
+    class Model;
     class Texture;
 }
 
@@ -19,6 +20,7 @@ namespace SpinoCore::Files {
     struct FileManagerInput final{
         Assets::AssetCache<Graphics::Resources::Texture>& textureCache;
         Assets::AssetCache<Graphics::Resources::Font>& fontCache;
+        Assets::AssetCache<Graphics::Resources::Model>& modelCache;
     };
 
     class EngineFileManager final : public FileManager{
@@ -56,12 +58,16 @@ namespace SpinoCore::Files {
             std::string id;
             std::filesystem::path path;
             std::vector<std::uint8_t> data{};
+            std::filesystem::path texturePath{};
+            std::filesystem::path materialPath{};
         };
 
         void Enqueue(FileRequest request);
         void Process(const FileRequest& request);
         void LoadTexture(const FileRequest& request);
         void LoadFont(const FileRequest& request);
+        void LoadModel(const FileRequest& request);
+        [[nodiscard]] std::string LoadTextureFile(const std::filesystem::path& path);
 
         std::queue<FileRequest> mRequestQueue;
         std::vector<std::string> mFailedLoads;
@@ -72,5 +78,6 @@ namespace SpinoCore::Files {
 
         Assets::AssetCache<Graphics::Resources::Texture>& mTextureCache;
         Assets::AssetCache<Graphics::Resources::Font>& mFontCache;
+        Assets::AssetCache<Graphics::Resources::Model>& mModelCache;
     };
 }

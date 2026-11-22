@@ -23,7 +23,10 @@ target_sources(${PROJECT_NAME} PRIVATE
     #Core
         #Actors
             #Components
+                "include/SpinoCore/Core/Actors/Components/AnimatorComponent.h"
                 "include/SpinoCore/Core/Actors/Components/Component.h"
+                "include/SpinoCore/Core/Actors/Components/ModelComponent.h"
+                "include/SpinoCore/Core/Actors/Components/RigidBodyComponent.h"
             "include/SpinoCore/Core/Actors/Actor.h"
             "include/SpinoCore/Core/Actors/ActorsManager.h"
         #Cameras
@@ -31,6 +34,10 @@ target_sources(${PROJECT_NAME} PRIVATE
             "include/SpinoCore/Core/Cameras/CamerasManager.h"
         #Input
             "include/SpinoCore/Core/Input/InputState.h"
+        #Lighting
+            "include/SpinoCore/Core/Lighting/GlobalLight.h"
+        #Rendering
+            "include/SpinoCore/Core/Rendering/BuiltinModels.h"
         #Scenes
             "include/SpinoCore/Core/Scenes/Scene.h"
             "include/SpinoCore/Core/Scenes/ScenesManager.h"
@@ -84,7 +91,9 @@ target_sources(${PROJECT_NAME} PRIVATE
     #Core
         #Actors
             #Components
+                "src/Core/Actors/Components/AnimatorComponent.cpp"
                 "src/Core/Actors/Components/Component.cpp"
+                "src/Core/Actors/Components/ModelComponent.cpp"
             "src/Core/Actors/Actor.cpp"
             "src/Core/Actors/EngineActorsManager.cpp"
             "src/Core/Actors/EngineActorsManager.h"
@@ -106,6 +115,8 @@ target_sources(${PROJECT_NAME} PRIVATE
             "src/Core/Events/EventBus.h"
             "src/Core/Events/Handler.cpp"
             "src/Core/Events/Handler.h"
+        #Lighting
+            "src/Core/Lighting/GlobalLight.cpp"
         #Input
             "src/Core/Input/InputState.cpp"
             "src/Core/Input/SimulationInput.cpp"
@@ -148,6 +159,9 @@ target_sources(${PROJECT_NAME} PRIVATE
         "src/Files/EngineFileManager.cpp"
         "src/Files/EngineFileManager.h"
     #Graphics
+        #Animation
+            "src/Graphics/Animation/Pose.cpp"
+            "src/Graphics/Animation/Pose.h"
         #Geometry
             "src/Graphics/Geometry/VertexArray.cpp"
             "src/Graphics/Geometry/VertexArray.h"
@@ -155,15 +169,21 @@ target_sources(${PROJECT_NAME} PRIVATE
             "src/Graphics/Resources/EmbeddedFonts.h"
             "src/Graphics/Resources/Font.cpp"
             "src/Graphics/Resources/Font.h"
+            "src/Graphics/Resources/Model.cpp"
+            "src/Graphics/Resources/Model.h"
+            "src/Graphics/Resources/ModelData.h"
             "src/Graphics/Resources/Texture.cpp"
             "src/Graphics/Resources/Texture.h"
         #Shaders
             #Sources
+                "src/Graphics/Shaders/Sources/ModelShader.h"
                 "src/Graphics/Shaders/Sources/UIShader.h"
             "src/Graphics/Shaders/Shader.cpp"
             "src/Graphics/Shaders/Shader.h"
             "src/Graphics/Shaders/ShaderHelpers.cpp"
             "src/Graphics/Shaders/ShaderHelpers.h"
+        "src/Graphics/FrameBuffer.h"
+        "src/Graphics/FrameBuffer.cpp"
     #Logs
         "src/Logs/ConsoleSink.h"
         "src/Logs/LogSystem.cpp"
@@ -182,6 +202,8 @@ target_sources(${PROJECT_NAME} PRIVATE
     #Utils
         "src/Utils/JSONHelpers.cpp"
         "src/Utils/JSONHelpers.h"
+        "src/Utils/ModelHelpers.cpp"
+        "src/Utils/ModelHelpers.h"
     "src/Launch.cpp"
 )
 
