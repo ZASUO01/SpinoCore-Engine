@@ -8,6 +8,8 @@ namespace SpinoCore::Core::Actors {
 
 namespace SpinoCore::Core::Rendering {
     struct ModelDrawList;
+    struct DebugDrawList;
+    struct ParticleDrawList;
 }
 
 namespace SpinoCore::Core::Actors::Components {
@@ -22,8 +24,10 @@ namespace SpinoCore::Core::Actors::Components {
         explicit Component(Actor &actor, const ComponentInput& input = {});
         virtual ~Component() = default;
 
-        virtual void Update(float deltaTime) = 0;
-        virtual void GetDrawCommand(Rendering::ModelDrawList& drawList) = 0;
+        virtual void Update(float) {}
+        virtual void GetDrawCommand(Rendering::ModelDrawList&) {}
+        virtual void GetDebugDrawCommand(Rendering::DebugDrawList&) {}
+        virtual void GetParticleDrawCommand(Rendering::ParticleDrawList&) {}
 
         [[nodiscard]] int GetUpdateOrder() const { return mUpdateOrder; }
         void SetUpdateOrder(const int updateOrder) { mUpdateOrder = updateOrder; }

@@ -4,10 +4,22 @@
 #include <algorithm>
 #include <iterator>
 #include <utility>
+#include "Physics/CollisionProcessor.h"
+#include "SpinoCore/Core/Actors/Components/ColliderComponent.h"
 
 namespace SpinoCore::Core::Actors {
+    EngineActorsManager::EngineActorsManager(Physics::CollisionProcessor* collisionProcessor)
+    :mCollisionProcessor(collisionProcessor)
+    {}
+
+    EngineActorsManager::~EngineActorsManager() {
+        CleanUp();
+    }
+
     Actor* EngineActorsManager::AddActor(std::unique_ptr<Actor> actor) {
         if (!actor) return nullptr;
+
+        actor->SetComponentListener(Actor::ManagerKey{}, this);
 
         if (mIsUpdatingActors) {
             mPendingActors.emplace_back(std::move(actor));
@@ -62,5 +74,31 @@ namespace SpinoCore::Core::Actors {
         std::ranges::stable_sort(mActors, [](const auto& a, const auto& b) {
             return a->GetUpdateOrder() < b->GetUpdateOrder();
         });
+    }
+
+    void EngineActorsManager::GetDebugDrawCommands(Rendering::DebugDrawList& drawList) const {
+        for (const auto& actor: mActors) {
+            if (actor->GetState() != Actor::State::Destroy) {
+                actor->GetDebugDrawCommands(drawList);
+            }
+        }
+    }
+
+    void EngineActorsManager::GetParticleDrawCommands(Rendering::ParticleDrawList& drawList) const {
+        for (const auto& actor: mActors) {
+            if (actor->GetState() != Actor::State::Destroy) {
+                actor->GetParticleDrawCommands(drawList);
+            }
+        }
+    }
+
+    void EngineActorsManager::OnComponentAttached(Components::Component& component) {
+        if (!mCollisionProcessor) return;
+        if (auto* collider = dynamic_cast<Components::ColliderComponent*>(&component)) mCollisionProcessor->RegisterCollider(collider);
+    }
+
+    void EngineActorsManager::OnComponentDetached(Components::Component& component) {
+        if (!mCollisionProcessor) return;
+        if (auto* collider = dynamic_cast<Components::ColliderComponent*>(&component)) mCollisionProcessor->UnregisterCollider(collider);
     }
 }

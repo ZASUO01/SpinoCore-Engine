@@ -9,9 +9,11 @@
 #include "SpinoCore/Math/MatrixFactory.h"
 
 namespace SpinoCore::Core::Rendering {
-    Renderer::Renderer(SDL_Window *window, const Utils::Size2D windowSize, Events::EventBus& bus, const Lighting::GlobalLight& globalLight)
+    Renderer::Renderer(SDL_Window *window, const Utils::Size2D windowSize, Events::EventBus& bus, const Lighting::GlobalLight& globalLight,
+                       const bool debugColliders)
      :mPresenter(window, bus)
      ,mGlobalLight(globalLight)
+     ,mDebugColliders(debugColliders)
     {
         if (mGlobalLight.IsEnabled()) {
             mShadowMap.emplace(Graphics::FrameBufferSpecification{
@@ -48,6 +50,8 @@ namespace SpinoCore::Core::Rendering {
         } else {
             mDrawer.DrawModels(mCamera.viewProjection);
         }
+        mDrawer.DrawParticles(mCamera.view, mCamera.viewProjection);
+        if (mDebugColliders) mDrawer.DrawDebug(mCamera.viewProjection);
         mDrawer.DrawUI(mOrthoViewProjectionMatrix);
     }
 

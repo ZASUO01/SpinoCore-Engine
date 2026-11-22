@@ -2,8 +2,8 @@
 // Copyright (c) 2026 ZASUO01
 #include "SpinoCore/Core/Actors/Actor.h"
 #include <algorithm>
-#include <iterator>
 #include <utility>
+#include "Core/Actors/ComponentListener.h"
 #include "SpinoCore/Core/Actors/Components/Component.h"
 #include "SpinoCore/Math/MatrixFactory.h"
 
@@ -16,6 +16,9 @@ namespace SpinoCore::Core::Actors {
     {}
 
     Actor::~Actor() {
+        if (mComponentListener) {
+            for (const auto& component : mComponents) mComponentListener->OnComponentDetached(*component);
+        }
         SetParent(nullptr);
         for (Actor* child : mChildren) {
             child->mParent = nullptr;
@@ -33,12 +36,22 @@ namespace SpinoCore::Core::Actors {
             }
         }
         mIsUpdatingComponents = false;
+        FlushPendingComponents();
+    }
 
-        if (!mPendingComponents.empty()) {
-            std::ranges::move(mPendingComponents, std::back_inserter(mComponents));
-            mPendingComponents.clear();
-            SortComponents();
+    void Actor::FlushPendingComponents() {
+        for (const Components::Component* component : mPendingRemovals) Detach(component);
+        mPendingRemovals.clear();
+
+        if (mPendingComponents.empty()) return;
+
+        std::vector<std::unique_ptr<Components::Component>> added = std::move(mPendingComponents);
+        mPendingComponents.clear();
+        for (auto& component : added) {
+            Attach(*component);
+            mComponents.emplace_back(std::move(component));
         }
+        SortComponents();
     }
 
     void Actor::ProcessInput(const Input::InputState &inputState) {
@@ -51,6 +64,32 @@ namespace SpinoCore::Core::Actors {
                 component->GetDrawCommand(drawList);
             }
         }
+    }
+
+    void Actor::GetDebugDrawCommands(Rendering::DebugDrawList &drawList) const {
+        for (const auto& component : mComponents) {
+            if (component->IsEnabled()) {
+                component->GetDebugDrawCommand(drawList);
+            }
+        }
+    }
+
+    void Actor::GetParticleDrawCommands(Rendering::ParticleDrawList &drawList) const {
+        for (const auto& component : mComponents) {
+            if (component->IsEnabled()) {
+                component->GetParticleDrawCommand(drawList);
+            }
+        }
+    }
+
+    void Actor::SetComponentListener(ManagerKey, ComponentListener* listener) {
+        if (listener == mComponentListener) return;
+
+        if (mComponentListener) {
+            for (const auto& component : mComponents) mComponentListener->OnComponentDetached(*component);
+        }
+        mComponentListener = listener;
+        for (const auto& component : mComponents) Attach(*component);
     }
 
     Math::Vector3f Actor::GetForward() {
@@ -85,8 +124,33 @@ namespace SpinoCore::Core::Actors {
             return;
         }
 
+        Attach(*component);
         mComponents.emplace_back(std::move(component));
         SortComponents();
+    }
+
+    void Actor::RemoveComponent(const Components::Component* component) {
+        if (!component) return;
+
+        if (std::erase_if(mPendingComponents, [component](const auto& pending) { return pending.get() == component; }) > 0) return;
+
+        if (mIsUpdatingComponents) {
+            mPendingRemovals.push_back(component);
+            return;
+        }
+        Detach(component);
+    }
+
+    void Actor::Attach(Components::Component& component) {
+        if (mComponentListener) mComponentListener->OnComponentAttached(component);
+    }
+
+    void Actor::Detach(const Components::Component* component) {
+        const auto it = std::ranges::find_if(mComponents, [component](const auto& owned) { return owned.get() == component; });
+        if (it == mComponents.end()) return;
+
+        if (mComponentListener) mComponentListener->OnComponentDetached(**it);
+        mComponents.erase(it);
     }
 
     void Actor::SortComponents() {

@@ -21,6 +21,10 @@ namespace SpinoCore::Core::Actors::Components {
 
         void Update(float deltaTime) override;
         void ApplyForce(const Math::Vector3f &force);
+        void ApplyImpulse(const Math::Vector3f &impulse);
+
+        void SetVelocity(const Math::Vector3f &velocity) { mVelocity = velocity; }
+        [[nodiscard]] float GetInverseMass() const { return mMass > 0.0f ? 1.0f / mMass : 0.0f; }
 
         [[nodiscard]] const Math::Vector3f& GetVelocity() const { return mVelocity; }
         [[nodiscard]] const Math::Vector3f& GetMaxVelocity() const { return mMaxVelocity; }

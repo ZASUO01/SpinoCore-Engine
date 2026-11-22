@@ -10,7 +10,9 @@
 #include <glad/glad.h>
 #include "Graphics/Geometry/VertexArray.h"
 #include "Graphics/Resources/Model.h"
+#include "Graphics/Shaders/Sources/DebugShader.h"
 #include "Graphics/Shaders/Sources/ModelShader.h"
+#include "Graphics/Shaders/Sources/ParticleShader.h"
 #include "Graphics/Shaders/Sources/UIShader.h"
 #include "SpinoCore/Core/Lighting/GlobalLight.h"
 #include "SpinoCore/Graphics/PostProcess.h"
@@ -30,11 +32,20 @@ namespace SpinoCore::Core::Rendering {
         mWhiteTexture.emplace();
 
         BuildUIQuadVertices();
+        mDebugShader.emplace(Sources::DebugVertexShaderSource, Sources::DebugFragmentShaderSource);
+        BuildDebugLineBuffers();
+        mParticleShader.emplace(Sources::ParticleVertexShaderSource, Sources::ParticleFragmentShaderSource);
+        BuildParticleBuffers();
         glCreateVertexArrays(1, &mFullScreenVertexArray);
     }
 
     Drawer::~Drawer() {
         if (mFullScreenVertexArray != 0) glDeleteVertexArrays(1, &mFullScreenVertexArray);
+        if (mDebugVertexArray != 0) glDeleteVertexArrays(1, &mDebugVertexArray);
+        if (mDebugVertexBuffer != 0) glDeleteBuffers(1, &mDebugVertexBuffer);
+        if (mParticleVertexArray != 0) glDeleteVertexArrays(1, &mParticleVertexArray);
+        if (mParticleCornerBuffer != 0) glDeleteBuffers(1, &mParticleCornerBuffer);
+        if (mParticleInstanceBuffer != 0) glDeleteBuffers(1, &mParticleInstanceBuffer);
     }
 
     void Drawer::DrawPostProcess(const Graphics::Shaders::Shader& shader, const std::uint32_t sceneTexture, const Math::Vector2f& resolution,
@@ -134,6 +145,100 @@ namespace SpinoCore::Core::Rendering {
             return;
         }
         glBindTextureUnit(Graphics::Shaders::Sources::ModelShaderTextureUnit::Albedo, textures->Get(textureId).GetID());
+    }
+
+    void Drawer::DrawParticles(const Math::Matrix4f& view, const Math::Matrix4f& viewProjection) {
+        using namespace Graphics::Shaders::Sources;
+
+        auto& [instances, batches] = mParticleDrawList;
+        if (instances.empty()) return;
+
+        glNamedBufferData(mParticleInstanceBuffer, static_cast<GLsizeiptr>(instances.size() * sizeof(ParticleInstance)), instances.data(), GL_STREAM_DRAW);
+
+        glEnable(GL_DEPTH_TEST);
+        glDepthMask(GL_FALSE);
+        glEnable(GL_BLEND);
+
+        mParticleShader->SetActive();
+        mParticleShader->SetUniform(ParticleShaderLocation::ViewProjection, viewProjection);
+        mParticleShader->SetUniform(ParticleShaderLocation::CameraRight, Math::Vector3f{view(0, 0), view(0, 1), view(0, 2)});
+        mParticleShader->SetUniform(ParticleShaderLocation::CameraUp, Math::Vector3f{view(1, 0), view(1, 1), view(1, 2)});
+
+        glBindVertexArray(mParticleVertexArray);
+        for (const auto& [first, count, additive] : batches) {
+            glBlendFunc(GL_SRC_ALPHA, additive ? GL_ONE : GL_ONE_MINUS_SRC_ALPHA);
+            glDrawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, 4, static_cast<GLsizei>(count), static_cast<GLuint>(first));
+        }
+        glBindVertexArray(0);
+
+        glDepthMask(GL_TRUE);
+        glDisable(GL_BLEND);
+        instances.clear();
+        batches.clear();
+    }
+
+    void Drawer::BuildParticleBuffers() {
+        static constexpr float corners[] = {
+            -0.5f, -0.5f,
+             0.5f, -0.5f,
+            -0.5f,  0.5f,
+             0.5f,  0.5f,
+        };
+
+        glCreateBuffers(1, &mParticleCornerBuffer);
+        glNamedBufferStorage(mParticleCornerBuffer, sizeof(corners), corners, 0);
+        glCreateBuffers(1, &mParticleInstanceBuffer);
+
+        glCreateVertexArrays(1, &mParticleVertexArray);
+        glVertexArrayVertexBuffer(mParticleVertexArray, 0, mParticleCornerBuffer, 0, static_cast<GLsizei>(2 * sizeof(float)));
+        glVertexArrayVertexBuffer(mParticleVertexArray, 1, mParticleInstanceBuffer, 0, static_cast<GLsizei>(sizeof(ParticleInstance)));
+        glVertexArrayBindingDivisor(mParticleVertexArray, 1, 1);
+
+        const auto attribute = [this](const GLuint location, const GLuint binding, const GLint components, const std::size_t offset) {
+            glEnableVertexArrayAttrib(mParticleVertexArray, location);
+            glVertexArrayAttribFormat(mParticleVertexArray, location, components, GL_FLOAT, GL_FALSE, static_cast<GLuint>(offset));
+            glVertexArrayAttribBinding(mParticleVertexArray, location, binding);
+        };
+        attribute(0, 0, 2, 0);
+        attribute(1, 1, 3, offsetof(ParticleInstance, position));
+        attribute(2, 1, 1, offsetof(ParticleInstance, size));
+        attribute(3, 1, 4, offsetof(ParticleInstance, color));
+        attribute(4, 1, 1, offsetof(ParticleInstance, rotation));
+    }
+
+    void Drawer::DrawDebug(const Math::Matrix4f& viewProjection) {
+        using namespace Graphics::Shaders::Sources;
+
+        if (mDebugDrawList.lines.empty()) return;
+
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_BLEND);
+
+        const auto& lines = mDebugDrawList.lines;
+        glNamedBufferData(mDebugVertexBuffer, static_cast<GLsizeiptr>(lines.size() * sizeof(DebugVertex)), lines.data(), GL_STREAM_DRAW);
+
+        mDebugShader->SetActive();
+        mDebugShader->SetUniform(DebugShaderLocation::ViewProjection, viewProjection);
+        glBindVertexArray(mDebugVertexArray);
+        glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(lines.size()));
+        glBindVertexArray(0);
+
+        mDebugDrawList.lines.clear();
+        glEnable(GL_DEPTH_TEST);
+    }
+
+    void Drawer::BuildDebugLineBuffers() {
+        glCreateBuffers(1, &mDebugVertexBuffer);
+        glCreateVertexArrays(1, &mDebugVertexArray);
+        glVertexArrayVertexBuffer(mDebugVertexArray, 0, mDebugVertexBuffer, 0, static_cast<GLsizei>(sizeof(DebugVertex)));
+
+        glEnableVertexArrayAttrib(mDebugVertexArray, 0);
+        glVertexArrayAttribFormat(mDebugVertexArray, 0, 3, GL_FLOAT, GL_FALSE, static_cast<GLuint>(offsetof(DebugVertex, position)));
+        glVertexArrayAttribBinding(mDebugVertexArray, 0, 0);
+
+        glEnableVertexArrayAttrib(mDebugVertexArray, 1);
+        glVertexArrayAttribFormat(mDebugVertexArray, 1, 4, GL_FLOAT, GL_FALSE, static_cast<GLuint>(offsetof(DebugVertex, color)));
+        glVertexArrayAttribBinding(mDebugVertexArray, 1, 0);
     }
 
     void Drawer::DrawUI(const Math::Matrix4f& ortho) {

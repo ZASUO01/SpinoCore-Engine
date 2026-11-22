@@ -11,5 +11,6 @@ namespace SpinoCore {
         Core::Window::WindowProps windowProps{};
         bool enableGlobalLight{false};
         Core::Lighting::GlobalLightSettings globalLight{};
+        bool debugColliders{false};
     };
 }

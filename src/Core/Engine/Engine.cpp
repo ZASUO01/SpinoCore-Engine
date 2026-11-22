@@ -76,7 +76,8 @@ namespace SpinoCore::Core::Engine {
         auto window = mEngineModules.window->GetSDLWindow();
         auto size = mEngineModules.window->GetSize();
         mEngineModules.renderer.emplace(window, size, mEngineModules.eventBus,
-                                        Lighting::GlobalLight{launchOptions.enableGlobalLight, launchOptions.globalLight});
+                                        Lighting::GlobalLight{launchOptions.enableGlobalLight, launchOptions.globalLight},
+                                        launchOptions.debugColliders);
         mEngineModules.renderer->SetPostProcessManager(&mEngineModules.postProcessManager);
 
         mEngineModules.camerasManager.emplace(size, *mEngineModules.renderer, mEngineModules.eventBus);

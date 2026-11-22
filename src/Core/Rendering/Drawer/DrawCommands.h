@@ -2,6 +2,7 @@
 // Copyright (c) 2026 ZASUO01
 #pragma once
 #include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <span>
 #include <vector>
@@ -55,6 +56,33 @@ namespace SpinoCore::Core::Rendering {
         const Graphics::Resources::Model* model{nullptr};
         Math::Matrix4f world{Math::Matrix4f::Identity()};
         std::span<const Math::Matrix4f> bones{};
+    };
+
+    struct DebugVertex {
+        Math::Vector3f position{Math::Vector3f::Zero()};
+        Math::Vector4f color{Math::Vector4f::One()};
+    };
+
+    struct DebugDrawList {
+        std::vector<DebugVertex> lines;
+    };
+
+    struct ParticleInstance {
+        Math::Vector3f position{Math::Vector3f::Zero()};
+        float size{0.1f};
+        Math::Vector4f color{Math::Vector4f::One()};
+        float rotation{0.0f};
+    };
+
+    struct ParticleBatch {
+        std::size_t first{0};
+        std::size_t count{0};
+        bool additive{true};
+    };
+
+    struct ParticleDrawList {
+        std::vector<ParticleInstance> instances;
+        std::vector<ParticleBatch> batches;
     };
 
     struct ModelDrawList {

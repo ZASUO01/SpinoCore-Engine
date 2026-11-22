@@ -43,12 +43,15 @@ namespace SpinoCore::Core::Engine {
         mModules.scenesManager->UpdateCurrentScene();
         mModules.camerasManager->Update(deltaTime);
         mModules.actorsManager.UpdateActors(deltaTime);
+        mModules.collisionProcessor.Update();
     }
 
     void EngineOperations::Interpolate(float /*alpha*/) {}
 
     void EngineOperations::Render() {
         mModules.actorsManager.GetDrawCommands(mModules.renderer->GetModelDrawList());
+        mModules.actorsManager.GetParticleDrawCommands(mModules.renderer->GetParticleDrawList());
+        if (mModules.renderer->IsDebugDrawEnabled()) mModules.actorsManager.GetDebugDrawCommands(mModules.renderer->GetDebugDrawList());
         mModules.screensManager.GetDrawCommands(mModules.renderer->GetUIDrawList());
         mModules.renderer->Draw();
     }

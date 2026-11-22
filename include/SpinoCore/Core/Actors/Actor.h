@@ -12,13 +12,18 @@ namespace SpinoCore::Core::Input {
 }
 
 namespace SpinoCore::Core::Rendering {
+    struct DebugDrawList;
     struct ModelDrawList;
+    struct ParticleDrawList;
 }
 
 namespace SpinoCore::Core::Actors {
     namespace Components {
         class Component;
     }
+
+    class ComponentListener;
+    class EngineActorsManager;
 
     struct ActorInput {
         Math::Vector3f anchor{Math::Vector3f::Zero()};
@@ -46,6 +51,11 @@ namespace SpinoCore::Core::Actors {
         void Update(float deltaTime);
         void ProcessInput(const Input::InputState& inputState);
         void GetDrawCommands(Rendering::ModelDrawList& drawList) const;
+        void GetDebugDrawCommands(Rendering::DebugDrawList& drawList) const;
+        void GetParticleDrawCommands(Rendering::ParticleDrawList& drawList) const;
+
+        class ManagerKey { friend class EngineActorsManager; ManagerKey() = default; };
+        void SetComponentListener(ManagerKey, ComponentListener* listener);
 
         [[nodiscard]] const Math::Vector3f& GetAnchor() const { return mAnchor; }
         void SetAnchor(const Math::Vector3f& anchor) { mAnchor = anchor; SetTransformDirty(); }
@@ -87,6 +97,7 @@ namespace SpinoCore::Core::Actors {
         }
 
         void AddComponent(std::unique_ptr<Components::Component> component);
+        void RemoveComponent(const Components::Component* component);
 
     protected:
         virtual void OnUpdate(float deltaTime) = 0;
@@ -95,11 +106,16 @@ namespace SpinoCore::Core::Actors {
     private:
         void SetTransformDirty();
         void SortComponents();
+        void Attach(Components::Component& component);
+        void Detach(const Components::Component* component);
+        void FlushPendingComponents();
         [[nodiscard]] bool IsAncestorOf(const Actor* actor) const;
 
         std::vector<std::unique_ptr<Components::Component>> mComponents;
         std::vector<std::unique_ptr<Components::Component>> mPendingComponents;
+        std::vector<const Components::Component*> mPendingRemovals;
         bool mIsUpdatingComponents{false};
+        ComponentListener* mComponentListener{nullptr};
 
         State mState{State::Active};
 

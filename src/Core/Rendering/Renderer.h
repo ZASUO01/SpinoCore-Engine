@@ -30,7 +30,7 @@ namespace SpinoCore::Core::Rendering {
         using Duration = Presenter::Duration;
 
         Renderer(SDL_Window* window, Utils::Size2D windowSize, Events::EventBus& bus,
-                 const Lighting::GlobalLight& globalLight = Lighting::GlobalLight{});
+                 const Lighting::GlobalLight& globalLight = Lighting::GlobalLight{}, bool debugColliders = false);
         ~Renderer();
 
         Renderer(const Renderer&) = delete;
@@ -47,6 +47,9 @@ namespace SpinoCore::Core::Rendering {
 
         [[nodiscard]] UIDrawList& GetUIDrawList() { return mDrawer.GetUIDrawList(); }
         [[nodiscard]] ModelDrawList& GetModelDrawList() { return mDrawer.GetModelDrawList(); }
+        [[nodiscard]] DebugDrawList& GetDebugDrawList() { return mDrawer.GetDebugDrawList(); }
+        [[nodiscard]] ParticleDrawList& GetParticleDrawList() { return mDrawer.GetParticleDrawList(); }
+        [[nodiscard]] bool IsDebugDrawEnabled() const noexcept { return mDebugColliders; }
 
         [[nodiscard]] Lighting::GlobalLight& GetGlobalLight() noexcept { return mGlobalLight; }
         void SetPostProcessManager(Graphics::EnginePostProcessManager* postProcessManager) noexcept { mPostProcess = postProcessManager; }
@@ -69,6 +72,7 @@ namespace SpinoCore::Core::Rendering {
         Presenter mPresenter;
         Drawer mDrawer;
         Lighting::GlobalLight mGlobalLight;
+        bool mDebugColliders{false};
         std::optional<Graphics::FrameBuffer> mShadowMap{};
         Graphics::EnginePostProcessManager* mPostProcess{nullptr};
         std::optional<Graphics::FrameBuffer> mFilterBuffer{};

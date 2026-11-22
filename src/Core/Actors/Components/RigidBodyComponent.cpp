@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
-#pragma once
 #include "SpinoCore/Core/Actors/Components/RigidBodyComponent.h"
 #include <algorithm>
 #include "SpinoCore/Core/Actors/Actor.h"
@@ -19,6 +18,10 @@ namespace SpinoCore::Core::Actors::Components {
 
     void RigidBodyComponent::ApplyForce(const Math::Vector3f &force) {
         mAcceleration += force * (1.0f / mMass);
+    }
+
+    void RigidBodyComponent::ApplyImpulse(const Math::Vector3f &impulse) {
+        mVelocity += impulse * GetInverseMass();
     }
 
     void RigidBodyComponent::Update(const float deltaTime) {

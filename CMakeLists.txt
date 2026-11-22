@@ -24,9 +24,15 @@ target_sources(${PROJECT_NAME} PRIVATE
         #Actors
             #Components
                 "include/SpinoCore/Core/Actors/Components/AnimatorComponent.h"
+                "include/SpinoCore/Core/Actors/Components/BoxColliderComponent.h"
+                "include/SpinoCore/Core/Actors/Components/CapsuleColliderComponent.h"
+                "include/SpinoCore/Core/Actors/Components/ColliderComponent.h"
                 "include/SpinoCore/Core/Actors/Components/Component.h"
                 "include/SpinoCore/Core/Actors/Components/ModelComponent.h"
+                "include/SpinoCore/Core/Actors/Components/ParticleEffectsComponent.h"
+                "include/SpinoCore/Core/Actors/Components/PlaneColliderComponent.h"
                 "include/SpinoCore/Core/Actors/Components/RigidBodyComponent.h"
+                "include/SpinoCore/Core/Actors/Components/SphereColliderComponent.h"
             "include/SpinoCore/Core/Actors/Actor.h"
             "include/SpinoCore/Core/Actors/ActorsManager.h"
         #Cameras
@@ -95,10 +101,17 @@ target_sources(${PROJECT_NAME} PRIVATE
         #Actors
             #Components
                 "src/Core/Actors/Components/AnimatorComponent.cpp"
+                "src/Core/Actors/Components/BoxColliderComponent.cpp"
+                "src/Core/Actors/Components/CapsuleColliderComponent.cpp"
                 "src/Core/Actors/Components/Component.cpp"
                 "src/Core/Actors/Components/ModelComponent.cpp"
+                "src/Core/Actors/Components/ParticleEffectsComponent.cpp"
+                "src/Core/Actors/Components/PlaneColliderComponent.cpp"
+                "src/Core/Actors/Components/RigidBodyComponent.cpp"
+                "src/Core/Actors/Components/SphereColliderComponent.cpp"
             "src/Core/Actors/Actor.cpp"
             "src/Core/Actors/EngineActorsManager.cpp"
+            "src/Core/Actors/ComponentListener.h"
             "src/Core/Actors/EngineActorsManager.h"
         #Cameras
             "src/Core/Cameras/DefaultCamera.h"
@@ -126,6 +139,8 @@ target_sources(${PROJECT_NAME} PRIVATE
             "src/Core/Input/SimulationInput.h"
         #Rendering
             #Drawer
+                "src/Core/Rendering/Drawer/DebugShapes.cpp"
+                "src/Core/Rendering/Drawer/DebugShapes.h"
                 "src/Core/Rendering/Drawer/DrawCommands.h"
                 "src/Core/Rendering/Drawer/Drawer.cpp"
                 "src/Core/Rendering/Drawer/Drawer.h"
@@ -179,8 +194,11 @@ target_sources(${PROJECT_NAME} PRIVATE
             "src/Graphics/Resources/Texture.h"
         #Shaders
             #Sources
+                "src/Graphics/Shaders/Sources/DebugShader.h"
                 "src/Graphics/Shaders/Sources/ModelShader.h"
+                "src/Graphics/Shaders/Sources/ParticleShader.h"
                 "src/Graphics/Shaders/Sources/UIShader.h"
+                "src/Graphics/Shaders/Sources/PostProcessShader.h"
             "src/Graphics/Shaders/Shader.cpp"
             "src/Graphics/Shaders/Shader.h"
             "src/Graphics/Shaders/ShaderHelpers.cpp"
@@ -188,12 +206,20 @@ target_sources(${PROJECT_NAME} PRIVATE
         "src/Graphics/FrameBuffer.h"
         "src/Graphics/PostProcess/EnginePostProcessManager.cpp"
         "src/Graphics/PostProcess/EnginePostProcessManager.h"
-        "src/Graphics/Shaders/Sources/PostProcessShader.h"
         "src/Graphics/FrameBuffer.cpp"
     #Logs
         "src/Logs/ConsoleSink.h"
         "src/Logs/LogSystem.cpp"
         "src/Logs/LogSystem.h"
+    #Physics
+        "src/Physics/CollisionProcessor.cpp"
+        "src/Physics/CollisionProcessor.h"
+        "src/Physics/OrientedBox.cpp"
+        "src/Physics/OrientedBox.h"
+        "src/Physics/ColliderShapes.cpp"
+        "src/Physics/ColliderShapes.h"
+        "src/Physics/Shapes.cpp"
+        "src/Physics/Shapes.h"
     #Runtime
         "src/Runtime/FrameOperations.h"
         "src/Runtime/GameLooping.h"
