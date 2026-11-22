@@ -35,6 +35,14 @@ namespace SpinoCore::Core::UI {
         if (mCurrentScreen) mCurrentScreen->OnResume();
     }
 
+    void EngineScreensManager::CleanUp() {
+        while (!mScreens.empty()) {
+            mScreens.back()->OnExit();
+            mScreens.pop_back();
+        }
+        mCurrentScreen = nullptr;
+    }
+
     void EngineScreensManager::ProcessInputs(const Input::InputState &state) const {
         if (mCurrentScreen) {
             mCurrentScreen->ProcessInputs(state);

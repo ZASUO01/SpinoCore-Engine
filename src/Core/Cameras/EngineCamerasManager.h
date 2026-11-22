@@ -29,10 +29,13 @@ namespace SpinoCore::Core::Cameras {
         void SetCurrentCamera(const std::string &name) override;
         [[nodiscard]] Camera *GetCamera(const std::string &name) override;
         void RemoveCamera(const std::string &name) override;
+        void CleanUp() override;
 
         void Update(float deltaTime) const;
 
     private:
+        inline static const std::string DEFAULT_CAMERA_NAME{"default"};
+
         void UpdateRenderer() const;
         void OnResize(const Events::WindowResizeEvent& event);
 

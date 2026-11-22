@@ -10,8 +10,6 @@ namespace SpinoCore::Core::Input {
 }
 
 namespace SpinoCore::Core::UI::Elements {
-    // A Text that reacts to the mouse. OnHover runs when the mouse enters it; a left click inside runs OnClick and
-    // then selects it. Select() runs OnSelect, so code (or a keyboard shortcut) can trigger the button without a click.
     class Button final : public Text {
     public:
         using Callback = std::function<void()>;

@@ -9,17 +9,13 @@
 namespace SpinoCore::Core::UI::Elements {
     class Button;
 
-    // Shows one option of a list, with a "<" button on the left and a ">" button on the right that step through
-    // the options (wrapping around at both ends). Each button is a square as tall as the box, right beside it.
     class Select final : public Text {
     public:
-        // Throws std::invalid_argument when there are no options.
         Select(const TextInput& input, std::vector<std::string> options);
 
         void Next() { SetSelectedIndex((mSelectedIndex + 1) % mOptions.size()); }
         void Previous() { SetSelectedIndex((mSelectedIndex + mOptions.size() - 1) % mOptions.size()); }
 
-        // Indexes past the end are ignored.
         void SetSelectedIndex(std::size_t index);
         [[nodiscard]] std::size_t GetSelectedIndex() const { return mSelectedIndex; }
         [[nodiscard]] const std::string& GetSelectedOption() const { return mOptions[mSelectedIndex]; }

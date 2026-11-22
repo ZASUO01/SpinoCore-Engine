@@ -3,10 +3,12 @@
 #include "Engine.h"
 #include <memory>
 #include <utility>
-#include "SpinoCore/Core/Scenes/StartContext.h"
+#include "SpinoCore/Core/Scenes/Contexts.h"
 #include "SpinoCore/Game/InitializationContext.h"
 #include "Assets/AssetCache.h"
+#include "Core/Actors/EngineActorsManager.h"
 #include "Core/Cameras/EngineCamerasManager.h"
+#include "Core/Input/SimulationInput.h"
 #include "Core/Scenes/EngineScenesManager.h"
 #include "Core/UI/EngineScreensManager.h"
 #include "Core/Window/EngineWindow.h"
@@ -70,13 +72,21 @@ namespace SpinoCore::Core::Engine {
         mEngineModules.camerasManager.emplace(size, *mEngineModules.renderer, mEngineModules.eventBus);
 
         const Scenes::StartContext sceneStartContext{
+            .fileManager = *mEngineModules.fileManager
+        };
+
+        const Scenes::ControlContext sceneControlContext{
             .fileManager = *mEngineModules.fileManager,
             .camerasManager = *mEngineModules.camerasManager,
-            .screensManager = mEngineModules.screensManager
+            .screensManager = mEngineModules.screensManager,
+            .windowManager = *mEngineModules.window,
+            .actorsManager = mEngineModules.actorsManager,
+            .simulationInput = mEngineModules.simulationInput.GetState()
         };
 
         Scenes::ScenesManagerInput scenesManagerInput {
-            .startContext = sceneStartContext
+            .startContext = sceneStartContext,
+            .controlContext = sceneControlContext
         };
         mEngineModules.scenesManager.emplace(scenesManagerInput);
     }

@@ -18,14 +18,13 @@ namespace SpinoCore::Core::Input {
         void BeginFrame() noexcept;
         void Apply(const SDL_Event& event) noexcept;
         void ReleaseAll() noexcept;
+        void Accumulate(const InputState& frame);
 
         [[nodiscard]] bool IsKeyDown(SDL_Scancode key) const noexcept;
         [[nodiscard]] bool WasKeyPressed(SDL_Scancode key) const noexcept;
         [[nodiscard]] bool WasKeyReleased(SDL_Scancode key) const noexcept;
-        // Pressed this frame or repeated by the OS while held (e.g. holding backspace keeps deleting).
         [[nodiscard]] bool WasKeyTyped(SDL_Scancode key) const noexcept;
 
-        // UTF-8 text typed this frame (SDL_EVENT_TEXT_INPUT), already shaped by the keyboard layout.
         [[nodiscard]] const std::string& GetTypedText() const noexcept { return mTypedText; }
 
         [[nodiscard]] bool IsMouseButtonDown(MouseButton button) const noexcept;

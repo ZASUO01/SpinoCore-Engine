@@ -5,7 +5,7 @@
 #include <SDL3/SDL_mouse.h>
 #include <SDL3/SDL_scancode.h>
 #include <SDL3/SDL_stdinc.h>
-#include "Core/Input/InputState.h"
+#include "SpinoCore/Core/Input/InputState.h"
 
 namespace {
     using SpinoCore::Core::Input::InputState;
@@ -326,8 +326,6 @@ namespace {
 
         EXPECT_FALSE(input.IsMouseButtonDown(MouseButton::Left));
     }
-
-    // Typing
 
     TEST(InputStateTests, TextTypedThisFrameIsReported) {
         InputState input{};

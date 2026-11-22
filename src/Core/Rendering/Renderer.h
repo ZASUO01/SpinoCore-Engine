@@ -37,6 +37,7 @@ namespace SpinoCore::Core::Rendering {
         [[nodiscard]] const Math::Matrix4f& GetOrthoViewProjection() const noexcept { return mOrthoViewProjectionMatrix; }
 
         [[nodiscard]] UIDrawList& GetUIDrawList() { return mDrawer.GetUIDrawList(); }
+        [[nodiscard]] ModelDrawList& GetModelDrawList() { return mDrawer.GetModelDrawList(); }
 
     private:
         static constexpr float ORTHO_NEAR_PLANE = -1.0f;

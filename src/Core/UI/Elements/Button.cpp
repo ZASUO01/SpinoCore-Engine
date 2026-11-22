@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
 #include "SpinoCore/Core/UI/Elements/Button.h"
-#include "Core/Input/InputState.h"
+#include "SpinoCore/Core/Input/InputState.h"
 
 namespace SpinoCore::Core::UI::Elements {
     void Button::OnProcessInput(const Input::InputState &state) {

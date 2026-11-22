@@ -75,12 +75,9 @@ namespace SpinoCore::Core::UI::Elements {
         [[nodiscard]] std::uint8_t GetDepth() const { return mDepth; }
         [[nodiscard]] const std::vector<std::unique_ptr<Element>>& GetChildren() const { return mChildren; }
 
-        // An element holding the keyboard focus (e.g. an InputField being typed in) gets the screen's input alone.
         [[nodiscard]] virtual bool IsFocused() const { return false; }
-        // True when this element or any of its children is focused.
         [[nodiscard]] bool HasFocus() const;
 
-        // True when the point (in UI coordinates) is inside the element, following its position, rotation and scale.
         [[nodiscard]] bool Contains(const Math::Vector2f& point);
 
         [[nodiscard]] const Math::Matrix4f& GetTransform();

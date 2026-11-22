@@ -8,149 +8,333 @@
 #include <utility>
 #include <vector>
 #include <gtest/gtest.h>
+#include "Core/Actors/EngineActorsManager.h"
 #include "Core/Scenes/EngineScenesManager.h"
+#include "Core/UI/EngineScreensManager.h"
+#include "SpinoCore/Core/Actors/Actor.h"
 #include "SpinoCore/Core/Cameras/Camera.h"
 #include "SpinoCore/Core/Cameras/CamerasManager.h"
+#include "SpinoCore/Core/Scenes/Contexts.h"
+#include "SpinoCore/Core/Input/InputState.h"
 #include "SpinoCore/Core/Scenes/Scene.h"
-#include "SpinoCore/Core/Scenes/StartContext.h"
 #include "SpinoCore/Core/UI/Screen.h"
-#include "SpinoCore/Core/UI/ScreensManager.h"
+#include "SpinoCore/Core/Window/WindowManager.h"
+#include "SpinoCore/Core/Window/WindowProps.h"
+#include "SpinoCore/Core/Window/WindowSize.h"
 #include "SpinoCore/Files/FileManager.h"
+#include "SpinoCore/Utils/Size2D.h"
 
 namespace {
+    using SpinoCore::Core::Actors::Actor;
+    using SpinoCore::Core::Actors::EngineActorsManager;
     using SpinoCore::Core::Cameras::Camera;
+    using SpinoCore::Core::Input::InputState;
     using SpinoCore::Core::Cameras::CamerasManager;
+    using SpinoCore::Core::Scenes::ControlContext;
     using SpinoCore::Core::Scenes::EngineScenesManager;
     using SpinoCore::Core::Scenes::Scene;
     using SpinoCore::Core::Scenes::ScenesManagerInput;
     using SpinoCore::Core::Scenes::StartContext;
+    using SpinoCore::Core::UI::EngineScreensManager;
     using SpinoCore::Core::UI::Screen;
-    using SpinoCore::Core::UI::ScreensManager;
+    using SpinoCore::Core::Window::WINDOW_SIZE_MIN;
+    using SpinoCore::Core::Window::WindowManager;
+    using SpinoCore::Core::Window::WindowMode;
     using SpinoCore::Files::FileManager;
+    using SpinoCore::Utils::Size2D;
 
-    struct SceneEvents final {
-        int starts{0};
-        std::vector<int> destroyedScenes{};
-        const FileManager* startedWithFiles{nullptr};
-        const CamerasManager* startedWithCameras{nullptr};
-        const ScreensManager* startedWithScreens{nullptr};
+    class LoadingFileManager final : public FileManager {
+    public:
+        void LoadFromManifest(const std::filesystem::path&) override { mIsReady = false; }
+        void LoadFromSinglePath(SpinoCore::Files::AssetType, std::string, const std::filesystem::path&) override { mIsReady = false; }
+        void WriteToSinglePath(const std::filesystem::path&, std::vector<std::uint8_t>) override {}
+        [[nodiscard]] bool FileExists(const std::filesystem::path&) const override { return false; }
+        [[nodiscard]] bool IsReady() const override { return mIsReady; }
+        [[nodiscard]] const std::vector<std::string>& GetFailedLoads() const override { return mFailedLoads; }
+
+        void FinishLoading() { mIsReady = true; }
+
+    private:
+        bool mIsReady{true};
+        std::vector<std::string> mFailedLoads{};
     };
 
-    // The scenes manager only hands this to the scenes; it never calls into it.
-    class NullCamerasManager final : public CamerasManager {
+    class CountingCamerasManager final : public CamerasManager {
     public:
-        void AddCamera(std::unique_ptr<Camera> /*camera*/, const std::string& /*name*/) override {}
-        [[nodiscard]] Camera* GetCamera(const std::string& /*name*/) override { return nullptr; }
-        void SetCurrentCamera(const std::string& /*name*/) override {}
-        void RemoveCamera(const std::string& /*name*/) override {}
+        void AddCamera(std::unique_ptr<Camera>, const std::string&) override {}
+        [[nodiscard]] Camera* GetCamera(const std::string&) override { return nullptr; }
+        void SetCurrentCamera(const std::string&) override {}
+        void RemoveCamera(const std::string&) override {}
+        void CleanUp() override { ++cleanUps; }
+
+        int cleanUps{0};
     };
 
-    class NullFileManager final : public FileManager {
+    class FixedWindowManager final : public WindowManager {
     public:
-        void LoadFromManifest(const std::filesystem::path& /*manifestPath*/) override {}
-        void LoadFromSinglePath(SpinoCore::Files::AssetType /*type*/, std::string /*id*/, const std::filesystem::path& /*path*/) override {}
-        void WriteToSinglePath(const std::filesystem::path& /*path*/, std::vector<std::uint8_t> /*data*/) override {}
-        [[nodiscard]] bool FileExists(const std::filesystem::path& /*path*/) const override { return false; }
+        [[nodiscard]] WindowMode GetMode() const noexcept override { return WindowMode::Windowed; }
+        bool SetMode(WindowMode) noexcept override { return false; }
+        [[nodiscard]] Size2D GetSize() const noexcept override { return WINDOW_SIZE_MIN; }
+        bool SetSize(Size2D) noexcept override { return false; }
     };
 
-    class NullScreensManager final : public ScreensManager {
+    class IdleActor final : public Actor {
+    protected:
+        void OnUpdate(float) override {}
+        void OnProcessInput(const InputState&) override {}
+    };
+
+    class LoggedScreen final : public Screen {
     public:
-        void PushScreen(std::unique_ptr<Screen> /*screen*/) override {}
-        void PopScreen() override {}
+        explicit LoggedScreen(std::vector<std::string>& log) : mLog(log) {}
+
+        void OnEnter() override { mLog.emplace_back("screen entered"); }
+        void OnPause() override {}
+        void OnResume() override {}
+        void OnExit() override { mLog.emplace_back("screen exited"); }
+
+    private:
+        std::vector<std::string>& mLog;
     };
 
     class TrackedScene final : public Scene {
     public:
-        explicit TrackedScene(SceneEvents& events, const int id = 0) : mEvents(events), mId(id) {}
-        ~TrackedScene() override { mEvents.destroyedScenes.push_back(mId); }
+        TrackedScene(std::vector<std::string>& log, std::string name) : mLog(log), mName(std::move(name)) {}
+        ~TrackedScene() override { mLog.emplace_back(mName + " destroyed"); }
 
-    protected:
         void OnStart(const StartContext& ctx) override {
-            ++mEvents.starts;
-            mEvents.startedWithFiles = &ctx.fileManager;
-            mEvents.startedWithCameras = &ctx.camerasManager;
-            mEvents.startedWithScreens = &ctx.screensManager;
+            mLog.emplace_back(mName + " started");
+            ctx.fileManager.LoadFromManifest("manifest.json");
         }
 
+        void OnSetup(const ControlContext& ctx) override {
+            mLog.emplace_back(mName + " set up");
+            ctx.screensManager.PushScreen(std::make_unique<LoggedScreen>(mLog));
+        }
+
+        void OnUpdate(const ControlContext&) override { mLog.emplace_back(mName + " updated"); }
+        void OnFinish(const ControlContext&) override { mLog.emplace_back(mName + " finished"); }
+
     private:
-        SceneEvents& mEvents;
-        int mId;
+        std::vector<std::string>& mLog;
+        std::string mName;
     };
 
     class EngineScenesManagerTests : public testing::Test {
     protected:
-        // Declared before the manager so it outlives the scenes the manager destroys.
-        SceneEvents events{};
-        NullFileManager fileManager{};
-        NullCamerasManager camerasManager{};
-        NullScreensManager screensManager{};
-        StartContext startContext{.fileManager = fileManager, .camerasManager = camerasManager, .screensManager = screensManager};
-        EngineScenesManager scenesManager{ScenesManagerInput{.startContext = startContext}};
+        std::vector<std::string> log{};
+        LoadingFileManager fileManager{};
+        CountingCamerasManager camerasManager{};
+        EngineScreensManager screensManager{};
+        FixedWindowManager windowManager{};
+        EngineActorsManager actorsManager{};
+        InputState simulationInput{};
+        StartContext startContext{.fileManager = fileManager};
+        ControlContext controlContext{
+            .fileManager = fileManager,
+            .camerasManager = camerasManager,
+            .screensManager = screensManager,
+            .windowManager = windowManager,
+            .actorsManager = actorsManager,
+            .simulationInput = simulationInput
+        };
+        std::optional<EngineScenesManager> scenesManager{ScenesManagerInput{.startContext = startContext, .controlContext = controlContext}};
     };
 
     TEST_F(EngineScenesManagerTests, PushingASceneStartsIt) {
-        scenesManager.PushScene(std::make_unique<TrackedScene>(events));
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "menu"));
 
-        EXPECT_EQ(events.starts, 1);
-    }
-
-    TEST_F(EngineScenesManagerTests, StartedScenesReceiveTheEngineManagers) {
-        scenesManager.PushScene(std::make_unique<TrackedScene>(events));
-
-        EXPECT_EQ(events.startedWithFiles, &fileManager);
-        EXPECT_EQ(events.startedWithCameras, &camerasManager);
-        EXPECT_EQ(events.startedWithScreens, &screensManager);
+        EXPECT_EQ(log, (std::vector<std::string>{"menu started"}));
     }
 
     TEST_F(EngineScenesManagerTests, PushedSceneBecomesTheCurrentScene) {
-        auto scene = std::make_unique<TrackedScene>(events);
+        auto scene = std::make_unique<TrackedScene>(log, "menu");
         const Scene* pushed = scene.get();
 
-        scenesManager.PushScene(std::move(scene));
+        scenesManager->PushScene(std::move(scene));
 
-        EXPECT_EQ(scenesManager.GetCurrentScene(), pushed);
+        EXPECT_EQ(scenesManager->GetCurrentScene(), pushed);
     }
 
-    TEST_F(EngineScenesManagerTests, PoppingDestroysTheTopScene) {
-        scenesManager.PushScene(std::make_unique<TrackedScene>(events));
+    TEST_F(EngineScenesManagerTests, PushingANullSceneKeepsTheCurrentScene) {
+        auto scene = std::make_unique<TrackedScene>(log, "menu");
+        const Scene* pushed = scene.get();
+        scenesManager->PushScene(std::move(scene));
 
-        scenesManager.PopScene();
+        scenesManager->PushScene(nullptr);
 
-        EXPECT_EQ(events.destroyedScenes.size(), 1u);
+        EXPECT_EQ(scenesManager->GetCurrentScene(), pushed);
+    }
+
+    TEST_F(EngineScenesManagerTests, SceneIsNotSetUpWhileItsResourcesAreLoading) {
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "menu"));
+
+        scenesManager->PrepareCurrentScene();
+
+        EXPECT_FALSE(scenesManager->IsCurrentSceneReady());
+    }
+
+    TEST_F(EngineScenesManagerTests, SceneScreensAreNotCreatedWhileItsResourcesAreLoading) {
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "menu"));
+
+        scenesManager->PrepareCurrentScene();
+
+        EXPECT_EQ(log, (std::vector<std::string>{"menu started"}));
+    }
+
+    TEST_F(EngineScenesManagerTests, SceneScreensAreCreatedOnceItsResourcesFinishLoading) {
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "menu"));
+        scenesManager->PrepareCurrentScene();
+        fileManager.FinishLoading();
+
+        scenesManager->PrepareCurrentScene();
+
+        EXPECT_EQ(log, (std::vector<std::string>{"menu started", "menu set up", "screen entered"}));
+    }
+
+    TEST_F(EngineScenesManagerTests, ReadySceneIsSetUpOnlyOnce) {
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "menu"));
+        fileManager.FinishLoading();
+
+        scenesManager->PrepareCurrentScene();
+        scenesManager->PrepareCurrentScene();
+
+        EXPECT_EQ(log, (std::vector<std::string>{"menu started", "menu set up", "screen entered"}));
+    }
+
+    TEST_F(EngineScenesManagerTests, SceneIsNotUpdatedBeforeBeingSetUp) {
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "menu"));
+
+        scenesManager->UpdateCurrentScene();
+
+        EXPECT_EQ(log, (std::vector<std::string>{"menu started"}));
+    }
+
+    TEST_F(EngineScenesManagerTests, ReadySceneIsUpdated) {
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "menu"));
+        fileManager.FinishLoading();
+        scenesManager->PrepareCurrentScene();
+        log.clear();
+
+        scenesManager->UpdateCurrentScene();
+
+        EXPECT_EQ(log, (std::vector<std::string>{"menu updated"}));
+    }
+
+    TEST_F(EngineScenesManagerTests, PushingASceneFinishesThePreviousOneAndRemovesItsScreens) {
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "menu"));
+        fileManager.FinishLoading();
+        scenesManager->PrepareCurrentScene();
+        log.clear();
+
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "level"));
+
+        EXPECT_EQ(log, (std::vector<std::string>{"menu finished", "screen exited", "level started"}));
+    }
+
+    TEST_F(EngineScenesManagerTests, PushingASceneCleansUpTheCamerasOfThePreviousOne) {
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "menu"));
+
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "level"));
+
+        EXPECT_EQ(camerasManager.cleanUps, 1);
+    }
+
+    TEST_F(EngineScenesManagerTests, PushingASceneRemovesTheActorsOfThePreviousOne) {
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "menu"));
+        actorsManager.AddActor(std::make_unique<IdleActor>());
+
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "level"));
+
+        EXPECT_TRUE(actorsManager.GetActors().empty());
+    }
+
+    TEST_F(EngineScenesManagerTests, SceneThatWasNeverSetUpIsNotFinished) {
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "menu"));
+        log.clear();
+
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "level"));
+
+        EXPECT_EQ(log, (std::vector<std::string>{"level started"}));
+    }
+
+    TEST_F(EngineScenesManagerTests, PoppingFinishesAndDestroysTheTopScene) {
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "menu"));
+        fileManager.FinishLoading();
+        scenesManager->PrepareCurrentScene();
+        log.clear();
+
+        scenesManager->PopScene();
+
+        EXPECT_EQ(log, (std::vector<std::string>{"menu finished", "screen exited", "menu destroyed"}));
+    }
+
+    TEST_F(EngineScenesManagerTests, PoppingCleansUpTheCamerasOfTheTopScene) {
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "menu"));
+
+        scenesManager->PopScene();
+
+        EXPECT_EQ(camerasManager.cleanUps, 1);
     }
 
     TEST_F(EngineScenesManagerTests, AfterPoppingTheSceneBelowBecomesCurrent) {
-        auto bottom = std::make_unique<TrackedScene>(events);
+        auto bottom = std::make_unique<TrackedScene>(log, "menu");
         const Scene* bottomScene = bottom.get();
-        scenesManager.PushScene(std::move(bottom));
-        scenesManager.PushScene(std::make_unique<TrackedScene>(events));
+        scenesManager->PushScene(std::move(bottom));
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "level"));
 
-        scenesManager.PopScene();
+        scenesManager->PopScene();
 
-        EXPECT_EQ(scenesManager.GetCurrentScene(), bottomScene);
+        EXPECT_EQ(scenesManager->GetCurrentScene(), bottomScene);
+    }
+
+    TEST_F(EngineScenesManagerTests, SceneBelowIsSetUpAgainAfterThePop) {
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "menu"));
+        fileManager.FinishLoading();
+        scenesManager->PrepareCurrentScene();
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "level"));
+        fileManager.FinishLoading();
+        scenesManager->PrepareCurrentScene();
+        scenesManager->PopScene();
+        log.clear();
+
+        scenesManager->PrepareCurrentScene();
+
+        EXPECT_EQ(log, (std::vector<std::string>{"menu set up", "screen entered"}));
     }
 
     TEST_F(EngineScenesManagerTests, PoppingTheLastSceneLeavesNoCurrentScene) {
-        scenesManager.PushScene(std::make_unique<TrackedScene>(events));
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "menu"));
 
-        scenesManager.PopScene();
+        scenesManager->PopScene();
 
-        EXPECT_EQ(scenesManager.GetCurrentScene(), nullptr);
+        EXPECT_EQ(scenesManager->GetCurrentScene(), nullptr);
     }
 
     TEST_F(EngineScenesManagerTests, PoppingAnEmptyStackDoesNothing) {
-        scenesManager.PopScene();
+        scenesManager->PopScene();
 
-        EXPECT_EQ(scenesManager.GetCurrentScene(), nullptr);
+        EXPECT_EQ(scenesManager->GetCurrentScene(), nullptr);
+    }
+
+    TEST_F(EngineScenesManagerTests, DestroyingTheManagerFinishesTheCurrentScene) {
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "menu"));
+        fileManager.FinishLoading();
+        scenesManager->PrepareCurrentScene();
+        log.clear();
+
+        scenesManager.reset();
+
+        EXPECT_EQ(log, (std::vector<std::string>{"menu finished", "screen exited", "menu destroyed"}));
     }
 
     TEST_F(EngineScenesManagerTests, DestroyingTheManagerDestroysScenesFromTopToBottom) {
-        std::optional<EngineScenesManager> manager{ScenesManagerInput{.startContext = startContext}};
-        manager->PushScene(std::make_unique<TrackedScene>(events, 1));
-        manager->PushScene(std::make_unique<TrackedScene>(events, 2));
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "menu"));
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "level"));
+        log.clear();
 
-        manager.reset();
+        scenesManager.reset();
 
-        EXPECT_EQ(events.destroyedScenes, (std::vector<int>{2, 1}));
+        EXPECT_EQ(log, (std::vector<std::string>{"level destroyed", "menu destroyed"}));
     }
 }

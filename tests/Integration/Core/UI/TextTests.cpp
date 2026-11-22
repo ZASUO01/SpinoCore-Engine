@@ -193,8 +193,6 @@ namespace {
         EXPECT_FLOAT_EQ(background.size.y, 60.0f);
     }
 
-    // ---------------------------------------------------------------- overflow
-
     TEST_F(TextTests, HiddenOverflowDrawsOnlyTheGlyphsInsideTheBox) {
         auto input = MakeInput(std::string(40, 'a'));
         input.overflow = TextOverflow::Hidden;
@@ -202,7 +200,6 @@ namespace {
 
         const auto glyphs = Glyphs(Commands(text));
 
-        // The box is 120 wide centered at x = 100.
         EXPECT_TRUE(std::ranges::all_of(glyphs, [](const auto& g) { return Left(g) >= 40.0f && Left(g) + Width(g) <= 160.0f; }));
     }
 

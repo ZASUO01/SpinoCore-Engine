@@ -13,9 +13,9 @@ namespace SpinoCore::Core::Cameras {
     {
         auto defaultCamera = std::make_unique<DefaultCamera>(static_cast<float>(windowSize.width), static_cast<float>(windowSize.height));
 
-        mCameras.emplace("default", std::move(defaultCamera));
-        mCurrentCameraName = "default";
-        mCurrentCamera = mCameras["default"].get();
+        mCameras.emplace(DEFAULT_CAMERA_NAME, std::move(defaultCamera));
+        mCurrentCameraName = DEFAULT_CAMERA_NAME;
+        mCurrentCamera = mCameras[DEFAULT_CAMERA_NAME].get();
         UpdateRenderer();
 
         mResizeSubscription = bus.Listen<Events::WindowResizeEvent, &EngineCamerasManager::OnResize>(this);
@@ -39,12 +39,12 @@ namespace SpinoCore::Core::Cameras {
     }
 
     void EngineCamerasManager::RemoveCamera(const std::string& name) {
-        if (name == "default") return;
+        if (name == DEFAULT_CAMERA_NAME) return;
         
         if (const auto it = mCameras.find(name); it != mCameras.end()) {
             if (mCurrentCameraName == name) {
-                mCurrentCamera = mCameras["default"].get();
-                mCurrentCameraName = "default";
+                mCurrentCamera = mCameras[DEFAULT_CAMERA_NAME].get();
+                mCurrentCameraName = DEFAULT_CAMERA_NAME;
                 UpdateRenderer();
             }
             mCameras.erase(it);
@@ -63,6 +63,13 @@ namespace SpinoCore::Core::Cameras {
             mCurrentCamera->Update(deltaTime);
             UpdateRenderer();
         }
+    }
+
+    void EngineCamerasManager::CleanUp() {
+        std::erase_if(mCameras, [](const auto& entry) { return entry.first != DEFAULT_CAMERA_NAME; });
+        mCurrentCamera = mCameras.at(DEFAULT_CAMERA_NAME).get();
+        mCurrentCameraName = DEFAULT_CAMERA_NAME;
+        UpdateRenderer();
     }
 
     void EngineCamerasManager::UpdateRenderer() const {

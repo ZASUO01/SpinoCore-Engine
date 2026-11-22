@@ -5,16 +5,18 @@
 #include <string>
 #include <vector>
 #include <gtest/gtest.h>
+#include <SDL3/SDL_events.h>
 #include <SDL3/SDL_hints.h>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_mouse.h>
 #include "Core/Engine/Engine.h"
 #include "SpinoCore/Core/Cameras/CamerasManager.h"
+#include "SpinoCore/Core/Scenes/Contexts.h"
 #include "SpinoCore/Core/Scenes/Scene.h"
 #include "SpinoCore/Core/Scenes/ScenesManager.h"
-#include "SpinoCore/Core/Scenes/StartContext.h"
 #include "SpinoCore/Core/UI/Screen.h"
 #include "SpinoCore/Core/UI/ScreensManager.h"
+#include "SpinoCore/Files/FileManager.h"
 #include "SpinoCore/Game/GameApplication.h"
 #include "SpinoCore/Game/InitializationContext.h"
 #include "SpinoCore/LaunchOptions.h"
@@ -22,8 +24,10 @@
 namespace {
     using SpinoCore::LaunchOptions;
     using SpinoCore::Core::Engine::Engine;
+    using SpinoCore::Core::Scenes::ControlContext;
     using SpinoCore::Core::Scenes::Scene;
     using SpinoCore::Core::Scenes::StartContext;
+    using SpinoCore::Files::AssetType;
     using SpinoCore::Game::GameApplication;
     using SpinoCore::Game::InitializationContext;
 
@@ -32,8 +36,10 @@ namespace {
         explicit TrackedScene(std::vector<std::string>& destructions) : mDestructions(destructions) {}
         ~TrackedScene() override { mDestructions.emplace_back("scene"); }
 
-    protected:
-        void OnStart(const StartContext& /*ctx*/) override {}
+        void OnStart(const StartContext&) override {}
+        void OnSetup(const ControlContext&) override {}
+        void OnUpdate(const ControlContext&) override {}
+        void OnFinish(const ControlContext&) override {}
 
     private:
         std::vector<std::string>& mDestructions;
@@ -60,20 +66,32 @@ namespace {
         void OnEnter() override { mLog.emplace_back("screen entered"); }
         void OnPause() override {}
         void OnResume() override {}
-        void OnExit() override {}
+        void OnExit() override { mLog.emplace_back("screen exited"); }
 
     private:
         std::vector<std::string>& mLog;
     };
 
+    void RequestQuit() {
+        SDL_Event quit{};
+        quit.type = SDL_EVENT_QUIT;
+        SDL_PushEvent(&quit);
+    }
+
     class ScreenPushingScene final : public Scene {
     public:
         explicit ScreenPushingScene(std::vector<std::string>& log) : mLog(log) {}
 
-    protected:
-        void OnStart(const StartContext& ctx) override {
+        void OnStart(const StartContext&) override { mLog.emplace_back("scene started"); }
+
+        void OnSetup(const ControlContext& ctx) override {
+            mLog.emplace_back("scene set up");
             ctx.screensManager.PushScreen(std::make_unique<LoggedScreen>(mLog));
+            RequestQuit();
         }
+
+        void OnUpdate(const ControlContext&) override {}
+        void OnFinish(const ControlContext&) override { mLog.emplace_back("scene finished"); }
 
     private:
         std::vector<std::string>& mLog;
@@ -91,15 +109,51 @@ namespace {
         std::vector<std::string>& mLog;
     };
 
-    // Records whether the scene could reach the engine's default camera when it started.
+    class MissingTextureScene final : public Scene {
+    public:
+        explicit MissingTextureScene(std::vector<std::string>& failedLoads) : mFailedLoads(failedLoads) {}
+
+        void OnStart(const StartContext& ctx) override {
+            ctx.fileManager.LoadFromSinglePath(AssetType::Texture, "ghost", "EngineTests/missing.png");
+        }
+
+        void OnSetup(const ControlContext& ctx) override {
+            mFailedLoads = ctx.fileManager.GetFailedLoads();
+            RequestQuit();
+        }
+
+        void OnUpdate(const ControlContext&) override {}
+        void OnFinish(const ControlContext&) override {}
+
+    private:
+        std::vector<std::string>& mFailedLoads;
+    };
+
+    class MissingTextureGame final : public GameApplication {
+    public:
+        explicit MissingTextureGame(std::vector<std::string>& failedLoads) : mFailedLoads(failedLoads) {}
+
+        void Initialize(const InitializationContext& ctx) override {
+            ctx.scenesManager.PushScene(std::make_unique<MissingTextureScene>(mFailedLoads));
+        }
+
+    private:
+        std::vector<std::string>& mFailedLoads;
+    };
+
     class CameraProbeScene final : public Scene {
     public:
         explicit CameraProbeScene(bool& sawDefaultCamera) : mSawDefaultCamera(sawDefaultCamera) {}
 
-    protected:
-        void OnStart(const StartContext& ctx) override {
+        void OnStart(const StartContext&) override {}
+
+        void OnSetup(const ControlContext& ctx) override {
             mSawDefaultCamera = ctx.camerasManager.GetCamera("default") != nullptr;
+            RequestQuit();
         }
+
+        void OnUpdate(const ControlContext&) override {}
+        void OnFinish(const ControlContext&) override {}
 
     private:
         bool& mSawDefaultCamera;
@@ -124,7 +178,6 @@ namespace {
         }
     };
 
-    // Fails after its scene was already pushed, so the engine has to clean the scene up while unwinding.
     class FailingAfterPushingGame final : public GameApplication {
     public:
         explicit FailingAfterPushingGame(std::vector<std::string>& destructions) : mDestructions(destructions) {}
@@ -165,20 +218,50 @@ namespace {
         EXPECT_EQ(destructions, (std::vector<std::string>{"scene", "game"}));
     }
 
-    TEST_F(EngineTests, ScenesStartWithTheEngineCamerasManager) {
+    TEST_F(EngineTests, ScenesAreSetUpWithTheEngineCamerasManager) {
         bool sawDefaultCamera = false;
+        Engine engine{std::make_unique<CameraProbeGame>(sawDefaultCamera), LaunchOptions{}};
 
-        { const Engine engine{std::make_unique<CameraProbeGame>(sawDefaultCamera), LaunchOptions{}}; }
+        engine.Run();
 
         EXPECT_TRUE(sawDefaultCamera);
     }
 
-    TEST_F(EngineTests, ScenesCanPushScreensThatLiveUntilTheEngineShutsDown) {
+    TEST_F(EngineTests, SceneScreensAreNotCreatedBeforeTheEngineRuns) {
         std::vector<std::string> log;
 
-        { const Engine engine{std::make_unique<ScreenGame>(log), LaunchOptions{}}; }
+        const Engine engine{std::make_unique<ScreenGame>(log), LaunchOptions{}};
 
-        EXPECT_EQ(log, (std::vector<std::string>{"screen entered", "screen destroyed"}));
+        EXPECT_EQ(log, (std::vector<std::string>{"scene started"}));
+    }
+
+    TEST_F(EngineTests, RunningTheEngineSetsTheSceneUpOnceItsResourcesAreLoaded) {
+        std::vector<std::string> log;
+        Engine engine{std::make_unique<ScreenGame>(log), LaunchOptions{}};
+
+        engine.Run();
+
+        EXPECT_EQ(log, (std::vector<std::string>{"scene started", "scene set up", "screen entered"}));
+    }
+
+    TEST_F(EngineTests, ShuttingDownFinishesTheSceneAndRemovesItsScreens) {
+        std::vector<std::string> log;
+        auto engine = std::make_unique<Engine>(std::make_unique<ScreenGame>(log), LaunchOptions{});
+        engine->Run();
+        log.clear();
+
+        engine.reset();
+
+        EXPECT_EQ(log, (std::vector<std::string>{"scene finished", "screen exited", "screen destroyed"}));
+    }
+
+    TEST_F(EngineTests, ScenesAreSetUpKnowingWhichResourcesFailedToLoad) {
+        std::vector<std::string> failedLoads;
+        Engine engine{std::make_unique<MissingTextureGame>(failedLoads), LaunchOptions{}};
+
+        engine.Run();
+
+        EXPECT_EQ(failedLoads, (std::vector<std::string>{"ghost"}));
     }
 
     TEST_F(EngineTests, FailingToInitializeShutsSDLDown) {

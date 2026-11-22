@@ -3,7 +3,7 @@
 #include <gtest/gtest.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_mouse.h>
-#include "Core/Input/InputState.h"
+#include "SpinoCore/Core/Input/InputState.h"
 #include "SpinoCore/Core/UI/Elements/Button.h"
 #include "SpinoCore/Core/UI/Elements/Text.h"
 
@@ -12,7 +12,6 @@ namespace {
     using SpinoCore::Core::UI::Elements::Button;
     using SpinoCore::Core::UI::Elements::TextInput;
 
-    // A 100x40 button centered at (100, 50): it covers x in [50, 150] and y in [30, 70].
     [[nodiscard]] TextInput ButtonAt100x50() {
         TextInput input{};
         input.anchor = {100.0f, 50.0f};
@@ -50,8 +49,6 @@ namespace {
         button.ProcessInput(state);
     }
 
-    // Click
-
     TEST(ButtonTests, ClickingInsideRunsOnClick) {
         Button button{ButtonAt100x50()};
         int clicks = 0;
@@ -88,8 +85,6 @@ namespace {
         EXPECT_NO_THROW(Click(button, 100.0f, 50.0f));
     }
 
-    // Select
-
     TEST(ButtonTests, SelectFromCodeRunsOnSelect) {
         Button button{ButtonAt100x50()};
         int selections = 0;
@@ -109,8 +104,6 @@ namespace {
 
         EXPECT_EQ(clicks, 0);
     }
-
-    // Hover
 
     TEST(ButtonTests, MovingTheMouseOntoTheButtonRunsOnHover) {
         Button button{ButtonAt100x50()};

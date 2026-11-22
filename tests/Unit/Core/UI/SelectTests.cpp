@@ -6,7 +6,7 @@
 #include <gtest/gtest.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_mouse.h>
-#include "Core/Input/InputState.h"
+#include "SpinoCore/Core/Input/InputState.h"
 #include "SpinoCore/Core/UI/Elements/Select.h"
 #include "SpinoCore/Core/UI/Elements/Text.h"
 
@@ -15,8 +15,6 @@ namespace {
     using SpinoCore::Core::UI::Elements::Select;
     using SpinoCore::Core::UI::Elements::TextInput;
 
-    // A 120x40 select centered at (200, 50). Its arrows are 40x40 squares right beside it, centered at
-    // x = 200 - 80 = 120 ("<") and x = 200 + 80 = 280 (">").
     [[nodiscard]] TextInput SelectAt200x50() {
         TextInput input{};
         input.anchor = {200.0f, 50.0f};

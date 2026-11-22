@@ -8,10 +8,10 @@
 #include <string>
 #include <vector>
 #include "Assets/AssetCache.h"
-#include "Graphics/Resources/Font.h"
 #include "SpinoCore/Files/FileManager.h"
 
 namespace SpinoCore::Graphics::Resources {
+    class Font;
     class Texture;
 }
 
@@ -36,8 +36,10 @@ namespace SpinoCore::Files {
         void WriteToSinglePath(const std::filesystem::path& path, std::vector<std::uint8_t> data) override;
         [[nodiscard]] bool FileExists(const std::filesystem::path& path) const override;
 
+        [[nodiscard]] bool IsReady() const override { return mIsReady; }
+        [[nodiscard]] const std::vector<std::string>& GetFailedLoads() const override { return mFailedLoads; }
+
         void ProcessRequests();
-        [[nodiscard]] bool IsReady() const { return mIsReady; }
         [[nodiscard]] const std::filesystem::path& GetRootPath() const noexcept { return mRootPath; }
 
     private:
@@ -57,11 +59,12 @@ namespace SpinoCore::Files {
         };
 
         void Enqueue(FileRequest request);
-        void Process(const FileRequest& request) const;
-        void LoadTexture(const FileRequest& request) const;
-        void LoadFont(const FileRequest& request) const;
+        void Process(const FileRequest& request);
+        void LoadTexture(const FileRequest& request);
+        void LoadFont(const FileRequest& request);
 
         std::queue<FileRequest> mRequestQueue;
+        std::vector<std::string> mFailedLoads;
 
         const std::filesystem::path mRootPath;
         const Duration mWorkingPeriod{4'000'000};

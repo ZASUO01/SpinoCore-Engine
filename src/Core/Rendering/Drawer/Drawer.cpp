@@ -4,9 +4,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <span>
-#include <vector>
 #include <glad/glad.h>
-#include "Core/Rendering/Drawer/DrawCommands.h"
 #include "Graphics/Shaders/Sources/UIShader.h"
 
 namespace SpinoCore::Core::Rendering {
@@ -41,6 +39,8 @@ namespace SpinoCore::Core::Rendering {
             mUIShader->SetUniform(UIShaderLocation::Color, command.color);
             mUIShader->SetUniform(UIShaderLocation::Size, command.size);
             mUIShader->SetUniform(UIShaderLocation::Radius, command.borderRadius);
+            mUIShader->SetUniform(UIShaderLocation::BorderWidth, command.borderWidth);
+            mUIShader->SetUniform(UIShaderLocation::BorderColor, command.borderColor);
             mUIShader->SetUniform(UIShaderLocation::Opacity, command.opacity);
 
             const bool textured = command.textureId != 0 && command.textureMix > 0.0f;

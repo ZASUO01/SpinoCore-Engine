@@ -21,13 +21,20 @@ add_library(SpinoCore::Runtime ALIAS ${PROJECT_NAME})
 target_sources(${PROJECT_NAME} PRIVATE
 #include/SpinoCore
     #Core
+        #Actors
+            #Components
+                "include/SpinoCore/Core/Actors/Components/Component.h"
+            "include/SpinoCore/Core/Actors/Actor.h"
+            "include/SpinoCore/Core/Actors/ActorsManager.h"
         #Cameras
             "include/SpinoCore/Core/Cameras/Camera.h"
             "include/SpinoCore/Core/Cameras/CamerasManager.h"
+        #Input
+            "include/SpinoCore/Core/Input/InputState.h"
         #Scenes
             "include/SpinoCore/Core/Scenes/Scene.h"
             "include/SpinoCore/Core/Scenes/ScenesManager.h"
-            "include/SpinoCore/Core/Scenes/StartContext.h"
+            "include/SpinoCore/Core/Scenes/Contexts.h"
         #UI
             #Elements
                 "include/SpinoCore/Core/UI/Elements/Button.h"
@@ -75,6 +82,12 @@ target_sources(${PROJECT_NAME} PRIVATE
     #Assets
         "src/Assets/AssetCache.h"
     #Core
+        #Actors
+            #Components
+                "src/Core/Actors/Components/Component.cpp"
+            "src/Core/Actors/Actor.cpp"
+            "src/Core/Actors/EngineActorsManager.cpp"
+            "src/Core/Actors/EngineActorsManager.h"
         #Cameras
             "src/Core/Cameras/DefaultCamera.h"
             "src/Core/Cameras/EngineCamerasManager.cpp"
@@ -95,7 +108,8 @@ target_sources(${PROJECT_NAME} PRIVATE
             "src/Core/Events/Handler.h"
         #Input
             "src/Core/Input/InputState.cpp"
-            "src/Core/Input/InputState.h"
+            "src/Core/Input/SimulationInput.cpp"
+            "src/Core/Input/SimulationInput.h"
         #Rendering
             #Drawer
                 "src/Core/Rendering/Drawer/DrawCommands.h"
@@ -111,7 +125,6 @@ target_sources(${PROJECT_NAME} PRIVATE
         #Scenes
             "src/Core/Scenes/EngineScenesManager.cpp"
             "src/Core/Scenes/EngineScenesManager.h"
-            "src/Core/Scenes/Scene.cpp"
         #UI
             #Elements
                 "src/Core/UI/Elements/Button.cpp"

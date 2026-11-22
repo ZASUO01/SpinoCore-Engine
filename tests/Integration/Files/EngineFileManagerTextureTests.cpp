@@ -167,4 +167,25 @@ namespace {
         EXPECT_TRUE(textureCache->Contains("hero"));
         EXPECT_EQ(&textureCache->GetOrDefault("ghost"), &textureCache->GetDefault());
     }
+
+    TEST_F(EngineFileManagerTextureTests, TexturesThatFailToLoadAreReportedByTheirId) {
+        const fs::path good = WriteImage("good.bmp", 2, 2);
+
+        fileManager->LoadFromSinglePath(AssetType::Texture, "bad", folder / "missing.png");
+        fileManager->LoadFromSinglePath(AssetType::Texture, "good", good);
+        ProcessUntilReady();
+
+        EXPECT_EQ(fileManager->GetFailedLoads(), (std::vector<std::string>{"bad"}));
+    }
+
+    TEST_F(EngineFileManagerTextureTests, ANewBatchOfLoadsForgetsThePreviousFailures) {
+        const fs::path good = WriteImage("good.bmp", 2, 2);
+        fileManager->LoadFromSinglePath(AssetType::Texture, "bad", folder / "missing.png");
+        ProcessUntilReady();
+
+        fileManager->LoadFromSinglePath(AssetType::Texture, "good", good);
+        ProcessUntilReady();
+
+        EXPECT_TRUE(fileManager->GetFailedLoads().empty());
+    }
 }

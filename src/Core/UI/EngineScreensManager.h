@@ -27,6 +27,7 @@ namespace SpinoCore::Core::UI {
 
         void PushScreen(std::unique_ptr<Screen> screen) override;
         void PopScreen() override;
+        void CleanUp() override;
         void Clear() noexcept;
 
         void ProcessInputs(const Input::InputState& state) const;

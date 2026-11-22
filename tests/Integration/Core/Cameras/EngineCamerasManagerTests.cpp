@@ -176,6 +176,26 @@ namespace {
         EXPECT_NE(manager->GetCamera("default"), nullptr);
     }
 
+    TEST_F(EngineCamerasManagerTests, CleaningUpRemovesEveryCameraButTheDefault) {
+        manager->AddCamera(std::make_unique<TestCamera>(), "first");
+        manager->AddCamera(std::make_unique<TestCamera>(), "second");
+
+        manager->CleanUp();
+
+        EXPECT_EQ(manager->GetCamera("first"), nullptr);
+        EXPECT_EQ(manager->GetCamera("second"), nullptr);
+        EXPECT_NE(manager->GetCamera("default"), nullptr);
+    }
+
+    TEST_F(EngineCamerasManagerTests, CleaningUpMakesTheRendererUseTheDefaultCamera) {
+        manager->AddCamera(std::make_unique<TestCamera>(), "test");
+        manager->SetCurrentCamera("test");
+
+        manager->CleanUp();
+
+        EXPECT_TRUE(RendererShows(*manager->GetCamera("default")));
+    }
+
     TEST_F(EngineCamerasManagerTests, UpdateMovesOnlyTheCurrentCameraAndRefreshesTheRenderer) {
         int currentUpdates = 0;
         int otherUpdates = 0;

@@ -38,6 +38,7 @@ namespace {
 
         int frameInputsProcessed{0};
         int simulationInputsProcessed{0};
+        int simulationInputsDiscarded{0};
         int simulationUpdates{0};
         float lastDeltaTime{0.0f};
         float lastAlpha{0.0f};
@@ -47,6 +48,7 @@ namespace {
         bool PrepareSimulation() override { return simulationReady && mFramesStarted != notReadyFrame; }
         void ProcessFrameInputs() override { ++frameInputsProcessed; }
         void ProcessSimulationInputs() override { ++simulationInputsProcessed; }
+        void DiscardSimulationInputs() override { ++simulationInputsDiscarded; }
 
         void UpdateSimulation(const float deltaTime) override {
             ++simulationUpdates;
@@ -216,6 +218,41 @@ namespace {
         looping.Run(operations);
 
         EXPECT_EQ(operations.simulationUpdates, 3);
+    }
+
+    TEST_F(GameLoopingTests, DiscardsSimulationInputsOnEveryFrameThatIsNotReady) {
+        GameLooping looping;
+        ScriptedFrameOperations operations;
+        operations.framesToRun = 2;
+        operations.timePerFrame = 3 * SimulationStep;
+        operations.simulationReady = false;
+
+        looping.Run(operations);
+
+        EXPECT_EQ(operations.simulationInputsDiscarded, 2);
+    }
+
+    TEST_F(GameLoopingTests, DiscardsSimulationInputsOnEveryPausedFrame) {
+        GameLooping looping;
+        ScriptedFrameOperations operations;
+        operations.framesToRun = 2;
+        operations.timePerFrame = 3 * SimulationStep;
+        looping.Pause();
+
+        looping.Run(operations);
+
+        EXPECT_EQ(operations.simulationInputsDiscarded, 2);
+    }
+
+    TEST_F(GameLoopingTests, KeepsSimulationInputsWhileTheSimulationRuns) {
+        GameLooping looping;
+        ScriptedFrameOperations operations;
+        operations.framesToRun = 3;
+        operations.timePerFrame = SimulationStep / 2;
+
+        looping.Run(operations);
+
+        EXPECT_EQ(operations.simulationInputsDiscarded, 0);
     }
 
     TEST_F(GameLoopingTests, StopRequestedDuringAFrameEndsTheLoopAfterThatFrame) {

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
-#include "InputState.h"
+#include "SpinoCore/Core/Input/InputState.h"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_mouse.h>
 
@@ -65,6 +65,23 @@ namespace SpinoCore::Core::Input {
         mKeysDown.reset();
         mMouseButtonsReleased |= mMouseButtonsDown;
         mMouseButtonsDown.reset();
+    }
+
+    void InputState::Accumulate(const InputState& frame) {
+        mKeysDown = frame.mKeysDown;
+        mKeysPressed |= frame.mKeysPressed;
+        mKeysReleased |= frame.mKeysReleased;
+        mKeysTyped |= frame.mKeysTyped;
+        mTypedText += frame.mTypedText;
+
+        mMouseButtonsDown = frame.mMouseButtonsDown;
+        mMouseButtonsPressed |= frame.mMouseButtonsPressed;
+        mMouseButtonsReleased |= frame.mMouseButtonsReleased;
+
+        mMousePosition = frame.mMousePosition;
+        mMouseDelta += frame.mMouseDelta;
+        mWheelDelta += frame.mWheelDelta;
+        mIsMouseInWindow = frame.mIsMouseInWindow;
     }
 
     bool InputState::IsKeyDown(const SDL_Scancode key) const noexcept {

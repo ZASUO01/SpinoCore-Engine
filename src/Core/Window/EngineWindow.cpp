@@ -82,7 +82,6 @@ namespace SpinoCore::Core::Window {
 
         SDL_ShowWindow(mSDLWindow.get());
 
-        // Typed text (SDL_EVENT_TEXT_INPUT, used by InputField) only arrives while text input is active.
         if (!SDL_StartTextInput(mSDLWindow.get())) {
             Logs::Logger::Warn("[WINDOW] Could not start text input: {}", SDL_GetError());
         }

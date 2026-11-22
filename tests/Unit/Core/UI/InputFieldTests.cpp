@@ -5,7 +5,7 @@
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_mouse.h>
 #include <SDL3/SDL_scancode.h>
-#include "Core/Input/InputState.h"
+#include "SpinoCore/Core/Input/InputState.h"
 #include "SpinoCore/Core/UI/Elements/InputField.h"
 
 namespace {
@@ -13,7 +13,6 @@ namespace {
     using SpinoCore::Core::UI::Elements::InputField;
     using SpinoCore::Core::UI::Elements::InputFieldInput;
 
-    // A 200x40 field centered at (100, 50): it covers x in [0, 200] and y in [30, 70].
     [[nodiscard]] InputFieldInput FieldAt100x50(const std::string& text = {}) {
         InputFieldInput input{};
         input.anchor = {100.0f, 50.0f};
@@ -56,8 +55,6 @@ namespace {
         field.ProcessInput(state);
     }
 
-    // Focus
-
     TEST(InputFieldTests, StartsWithoutFocus) {
         const InputField field{FieldAt100x50()};
 
@@ -89,8 +86,6 @@ namespace {
 
         EXPECT_TRUE(field.IsFocused());
     }
-
-    // Typing
 
     TEST(InputFieldTests, TypingWhileFocusedAppendsToTheText) {
         InputField field{FieldAt100x50("ol")};
@@ -135,8 +130,6 @@ namespace {
 
         EXPECT_EQ(field.GetText(), "");
     }
-
-    // Length limit
 
     TEST(InputFieldTests, TypingStopsAtOneHundredCharacters) {
         InputField field{FieldAt100x50(std::string(99, 'a'))};

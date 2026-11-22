@@ -140,6 +140,40 @@ namespace {
         EXPECT_TRUE(drawer->GetUIDrawList().commands.empty());
     }
 
+    TEST_F(DrawerTests, ABorderIsDrawnAlongTheEdges) {
+        UIDrawCommand command = RectCommand(0.0f, 0.0f, 16.0f, 16.0f, RedColor);
+        command.borderWidth = 3.0f;
+        command.borderColor = BlueColor;
+        Submit(command);
+
+        drawer->DrawUI(PixelOrtho());
+
+        EXPECT_EQ(UIPixel(1, 8), Blue);
+    }
+
+    TEST_F(DrawerTests, TheInsideOfABorderedRectKeepsItsColor) {
+        UIDrawCommand command = RectCommand(0.0f, 0.0f, 16.0f, 16.0f, RedColor);
+        command.borderWidth = 3.0f;
+        command.borderColor = BlueColor;
+        Submit(command);
+
+        drawer->DrawUI(PixelOrtho());
+
+        EXPECT_EQ(UIPixel(8, 8), Red);
+    }
+
+    TEST_F(DrawerTests, ABorderFollowsTheRoundedCorners) {
+        UIDrawCommand command = RectCommand(0.0f, 0.0f, 16.0f, 16.0f, RedColor);
+        command.borderRadius = 8.0f;
+        command.borderWidth = 3.0f;
+        command.borderColor = BlueColor;
+        Submit(command);
+
+        drawer->DrawUI(PixelOrtho());
+
+        EXPECT_EQ(UIPixel(3, 3), Blue);
+    }
+
     TEST_F(DrawerTests, DrawingAnEmptyListDrawsNothing) {
         drawer->DrawUI(PixelOrtho());
 

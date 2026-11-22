@@ -11,7 +11,7 @@
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_mouse.h>
 #include "UITestElements.h"
-#include "Core/Input/InputState.h"
+#include "SpinoCore/Core/Input/InputState.h"
 #include "Core/Rendering/Drawer/DrawCommands.h"
 #include "Core/UI/EngineScreensManager.h"
 #include "SpinoCore/Core/UI/Elements/Cursor.h"
@@ -82,7 +82,6 @@ namespace {
         EXPECT_EQ(screen.RemoveElement(&stranger), nullptr);
     }
 
-    // A 100x40 input field centered on the given point.
     [[nodiscard]] std::unique_ptr<InputField> FieldAt(const Vector2f center) {
         InputFieldInput input{};
         input.anchor = center;
@@ -102,8 +101,6 @@ namespace {
         state.Apply(event);
         return state;
     }
-
-    // Cursor
 
     TEST(ScreenTests, AScreenRefusesASecondCursor) {
         Log log;
@@ -135,8 +132,6 @@ namespace {
         EXPECT_FLOAT_EQ(cursor.GetOffset().x, 300.0f);
         EXPECT_FLOAT_EQ(cursor.GetOffset().y, 250.0f);
     }
-
-    // Focus
 
     TEST(ScreenTests, WhileAFieldIsFocusedOtherElementsIgnoreClicks) {
         Log log;
@@ -254,6 +249,27 @@ namespace {
     TEST_F(EngineScreensManagerTests, ScreensCanBePushedAgainAfterClear) {
         Push("menu");
         manager->Clear();
+        log.clear();
+
+        Push("hud");
+        manager->PopScreen();
+
+        EXPECT_EQ(log, (Log{"hud:enter", "hud:exit", "hud:destroyed"}));
+    }
+
+    TEST_F(EngineScreensManagerTests, CleanUpExitsAndDestroysEveryScreenFromTheTop) {
+        Push("menu");
+        Push("options");
+        log.clear();
+
+        manager->CleanUp();
+
+        EXPECT_EQ(log, (Log{"options:exit", "options:destroyed", "menu:exit", "menu:destroyed"}));
+    }
+
+    TEST_F(EngineScreensManagerTests, ScreensCanBePushedAgainAfterCleanUp) {
+        Push("menu");
+        manager->CleanUp();
         log.clear();
 
         Push("hud");

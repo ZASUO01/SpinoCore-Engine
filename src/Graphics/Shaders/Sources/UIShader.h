@@ -13,6 +13,8 @@ namespace SpinoCore::Graphics::Shaders::Sources {
         inline constexpr std::int32_t Radius = 5;
         inline constexpr std::int32_t Opacity = 6;
         inline constexpr std::int32_t TintTexture = 7;
+        inline constexpr std::int32_t BorderWidth = 8;
+        inline constexpr std::int32_t BorderColor = 9;
 
     }
 
@@ -48,6 +50,8 @@ namespace SpinoCore::Graphics::Shaders::Sources {
         layout (location = 5) uniform float uRadius;
         layout (location = 6) uniform float uOpacity;
         layout (location = 7) uniform int uTintTexture;
+        layout (location = 8) uniform float uBorderWidth;
+        layout (location = 9) uniform vec4 uBorderColor;
 
         out vec4 outColor;
 
@@ -72,12 +76,17 @@ namespace SpinoCore::Graphics::Shaders::Sources {
                 baseColor = vec4(alpha > 0.0 ? rgb / alpha : vec3(0.0), alpha);
             }
 
+            vec2 halfSize = uSize * 0.5;
+            float r = min(uRadius, min(halfSize.x, halfSize.y));
+            float d = RoundedBoxSDF((fragQuadCoord - 0.5) * uSize, halfSize, r);
+
+            if (uBorderWidth > 0.0) {
+                baseColor = mix(baseColor, uBorderColor, smoothstep(-0.5, 0.5, d + uBorderWidth));
+            }
+
             baseColor.a *= uOpacity;
 
             if (uRadius > 0.0) {
-                vec2 halfSize = uSize * 0.5;
-                float r = min(uRadius, min(halfSize.x, halfSize.y));
-                float d = RoundedBoxSDF((fragQuadCoord - 0.5) * uSize, halfSize, r);
                 baseColor.a *= 1.0 - smoothstep(-0.5, 0.5, d);
             }
 

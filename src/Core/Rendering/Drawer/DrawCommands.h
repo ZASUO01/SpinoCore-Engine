@@ -34,6 +34,8 @@ namespace SpinoCore::Core::Rendering {
         Math::Vector4f color{1.0f, 1.0f, 1.0f, 1.0f};
         Math::Vector2f size{20.0f, 20.0f};
         float borderRadius{0.0f};
+        float borderWidth{0.0f};
+        Math::Vector4f borderColor{0.0f, 0.0f, 0.0f, 0.0f};
         std::uint32_t textureId{0};
         float textureMix{0.0f};
         float opacity{1.0f};
@@ -44,5 +46,13 @@ namespace SpinoCore::Core::Rendering {
         std::vector<UIDrawCommand> commands;
         const Assets::AssetCache<Graphics::Resources::Texture>* textures{nullptr};
         const Assets::AssetCache<Graphics::Resources::Font>* fonts{nullptr};
+    };
+
+    struct ModelDrawCommand{
+        uint64_t key{0};
+    };
+
+    struct ModelDrawList {
+        std::vector<ModelDrawCommand> commands;
     };
 }

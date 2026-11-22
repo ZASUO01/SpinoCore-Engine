@@ -21,5 +21,7 @@ namespace SpinoCore::Files {
         virtual void LoadFromSinglePath(AssetType type, std::string id, const std::filesystem::path& path) = 0;
         virtual void WriteToSinglePath(const std::filesystem::path& path, std::vector<std::uint8_t> data) = 0;
         [[nodiscard]] virtual bool FileExists(const std::filesystem::path& path) const = 0;
+        [[nodiscard]] virtual bool IsReady() const = 0;
+        [[nodiscard]] virtual const std::vector<std::string>& GetFailedLoads() const = 0;
     };
 }

@@ -12,7 +12,7 @@
 #include "Core/Events/EventBus.h"
 #include "Core/Events/Handler.h"
 #include "Core/Events/TypeEvents/WindowEvents.h"
-#include "Core/Input/InputState.h"
+#include "SpinoCore/Core/Input/InputState.h"
 #include "SDL/Context.h"
 #include "SDL/Structs.h"
 #include "SpinoCore/Game/GameInfo.h"

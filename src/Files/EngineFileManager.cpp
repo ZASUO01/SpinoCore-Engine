@@ -13,6 +13,7 @@
 #include <SDL3/SDL_filesystem.h>
 #include <nlohmann/json.hpp>
 #include "FileHelpers.h"
+#include "Graphics/Resources/Font.h"
 #include "Graphics/Resources/Texture.h"
 #include "SpinoCore/Logs/Logger.h"
 #include "Utils/JSONHelpers.h"
@@ -144,11 +145,12 @@ namespace SpinoCore::Files {
             Logs::Logger::Error("[FILES] \"{}\" must be relative to the Assets folder; the request was ignored.", request.path.string());
             return;
         }
+        if (mIsReady) mFailedLoads.clear();
         mRequestQueue.push(std::move(request));
         mIsReady = false;
     }
 
-    void EngineFileManager::Process(const FileRequest& request) const {
+    void EngineFileManager::Process(const FileRequest& request) {
         switch (request.operation) {
             case Operation::Load:
                 switch (request.type) {
@@ -164,7 +166,7 @@ namespace SpinoCore::Files {
         }
     }
 
-    void EngineFileManager::LoadTexture(const FileRequest& request) const {
+    void EngineFileManager::LoadTexture(const FileRequest& request) {
         if (mTextureCache.Contains(request.id)) {
             Logs::Logger::Warn(R"([FILES] Texture "{}" is already cached; "{}" was not loaded.)", request.id, request.path.string());
             return;
@@ -174,10 +176,11 @@ namespace SpinoCore::Files {
             mTextureCache.Add(request.id, std::make_unique<const Graphics::Resources::Texture>(mRootPath / request.path));
         } catch (const std::exception& e) {
             Logs::Logger::Error(R"([FILES] Failed to load texture "{}" from "{}": {})", request.id, request.path.string(), e.what());
+            mFailedLoads.push_back(request.id);
         }
     }
 
-    void EngineFileManager::LoadFont(const FileRequest &request) const {
+    void EngineFileManager::LoadFont(const FileRequest &request) {
         if (mFontCache.Contains(request.id)) {
             Logs::Logger::Warn(R"([FILES] Font "{}" is already cached; "{}" was not loaded.)", request.id, request.path.string());
             return;
@@ -185,8 +188,9 @@ namespace SpinoCore::Files {
 
         try {
             mFontCache.Add(request.id, std::make_unique<const Graphics::Resources::Font>(mRootPath / request.path));
-        }catch (const std::exception& e) {
+        } catch (const std::exception& e) {
             Logs::Logger::Error(R"([FILES] Failed to load font "{}" from "{}": {})", request.id, request.path.string(), e.what());
+            mFailedLoads.push_back(request.id);
         }
     }
 }

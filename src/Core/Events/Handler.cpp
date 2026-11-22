@@ -5,7 +5,7 @@
 #include <SDL3/SDL_video.h>
 #include "EventBus.h"
 #include "TypeEvents/WindowEvents.h"
-#include "Core/Input/InputState.h"
+#include "SpinoCore/Core/Input/InputState.h"
 #include "SpinoCore/Utils/Size2D.h"
 
 namespace SpinoCore::Core::Events {

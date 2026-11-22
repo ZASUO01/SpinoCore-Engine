@@ -34,9 +34,6 @@ namespace SpinoCore::Core::Engine {
         void SetCacheDefaults();
         void Shutdown() noexcept;
 
-        // Destroyed bottom to top. The game outlives everything it created; the cache dies before the modules,
-        // so its textures go while the GL context (owned by the renderer) is still alive. Shutdown() destroys the
-        // modules that may hold cached assets before the cache itself.
         std::optional<SDL::Context> mSDLContext{};
         std::unique_ptr<Game::GameApplication> mGame{nullptr};
         EngineModules mEngineModules{};

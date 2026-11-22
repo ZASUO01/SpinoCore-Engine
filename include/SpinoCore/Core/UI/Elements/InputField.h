@@ -32,7 +32,7 @@ namespace SpinoCore::Core::UI::Elements {
 
         explicit InputField(const InputFieldInput& input);
 
-        void SetText(std::string text);
+        void SetText(const std::string& text) const;
         [[nodiscard]] const std::string& GetText() const;
 
         void SetFocused(const bool focused) { mIsFocused = focused; }

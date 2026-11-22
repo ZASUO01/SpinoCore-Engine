@@ -125,7 +125,6 @@ namespace SpinoCore::Core::UI::Elements {
         return IsFocused() || std::ranges::any_of(mChildren, [](const auto& child) { return child->HasFocus(); });
     }
 
-    // Brings the point into the element's own space (undoing translation, rotation and scale) and tests it there.
     bool Element::Contains(const Math::Vector2f &point) {
         const Math::Matrix4f& frame = GetWorldFrame();
         const float cosScaled = frame(0, 0);

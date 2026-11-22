@@ -25,9 +25,9 @@ namespace SpinoCore::Core::UI::Elements {
     };
 
     enum class TextOverflow : std::uint8_t {
-        Visible,     // glyphs may be drawn outside the box
-        Hidden,      // glyphs that leave the box are not drawn
-        ScrollToEnd, // like Hidden, but a line wider than the box shows its end (as in a text field)
+        Visible,
+        Hidden,
+        ScrollToEnd,
     };
 
     struct TextInput final : RectInput {

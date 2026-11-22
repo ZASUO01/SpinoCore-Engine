@@ -52,7 +52,7 @@ namespace SpinoCore::Assets {
         }
 
         [[nodiscard]] const T& Get(const std::string_view id) const { return *Find(id); }
-        // The asset under the id, or the default one when nothing was cached under it (e.g. a load that failed).
+
         [[nodiscard]] const T& GetOrDefault(const std::string_view id) const {
             const auto it = mAssets.find(id);
             return it != mAssets.end() ? *it->second : GetDefault();
@@ -75,7 +75,7 @@ namespace SpinoCore::Assets {
 
         [[nodiscard]] std::size_t Size() const noexcept { return mAssets.size(); }
         [[nodiscard]] bool IsEmpty() const noexcept { return mAssets.empty(); }
-        // Changes whenever an asset or the default is added, replaced or removed.
+
         [[nodiscard]] std::uint64_t GetVersion() const noexcept { return mVersion; }
 
     private:

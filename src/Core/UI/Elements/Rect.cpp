@@ -8,6 +8,8 @@ namespace SpinoCore::Core::UI::Elements {
     void Rect::SetDrawCommand(Rendering::UIDrawList &drawList, const int drawLayer){
         Math::Vector4f color = mBackgroundColor;
         color.w *= mOpacity;
+        Math::Vector4f borderColor = mBorderColor;
+        borderColor.w *= mOpacity;
 
         const std::uint64_t key = Rendering::MakeUIDrawKey(drawLayer, GetDrawOrder(), 0);
 
@@ -20,6 +22,8 @@ namespace SpinoCore::Core::UI::Elements {
             .color = color,
             .size = {size.x * worldScale, size.y * worldScale},
             .borderRadius = mBorderRadius,
+            .borderWidth = mBorderWidth,
+            .borderColor = borderColor,
         };
         drawList.commands.push_back(cmd);
     }

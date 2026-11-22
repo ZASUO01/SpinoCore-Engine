@@ -3,9 +3,10 @@
 #pragma once
 #include <memory>
 #include <string>
-#include "Camera.h"
 
 namespace SpinoCore::Core::Cameras {
+    class Camera;
+
     class CamerasManager {
     public:
         virtual ~CamerasManager() = default;
@@ -14,5 +15,6 @@ namespace SpinoCore::Core::Cameras {
         [[nodiscard]] virtual Camera* GetCamera(const std::string &name) = 0;
         virtual void SetCurrentCamera(const std::string& name) = 0;
         virtual void RemoveCamera(const std::string& name) = 0;
+        virtual void CleanUp() = 0;
     };
 }

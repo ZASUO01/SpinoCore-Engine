@@ -14,10 +14,12 @@ namespace SpinoCore::Core::Rendering {
         Drawer();
         ~Drawer() = default;
 
+        [[nodiscard]] ModelDrawList& GetModelDrawList() { return mModelDrawList;}
         [[nodiscard]] UIDrawList& GetUIDrawList() { return mUIDrawList; }
 
         void DrawUI(const Math::Matrix4f& ortho);
     private:
+        ModelDrawList mModelDrawList;
         UIDrawList mUIDrawList;
 
         void BuildUIQuadVertices();

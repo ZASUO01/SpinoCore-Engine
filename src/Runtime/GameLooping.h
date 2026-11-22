@@ -46,9 +46,12 @@ namespace SpinoCore::Runtime {
                             operations.UpdateSimulation(fixedDeltaSeconds);
                             accumulator -= FixedDelta;
                         }
+                    } else {
+                        operations.DiscardSimulationInputs();
                     }
                     operations.Interpolate(std::chrono::duration<float>(accumulator) / FixedDelta);
-                }else {
+                } else {
+                    operations.DiscardSimulationInputs();
                     accumulator = Duration{0};
                     previousTime = Clock::now();
                 }

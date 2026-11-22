@@ -120,4 +120,38 @@ namespace {
 
         EXPECT_NE(CommandOf(a, 2).key, CommandOf(b, 1).key);
     }
+
+    TEST(RectTests, StartsWithoutABorder) {
+        const Rect rect;
+
+        EXPECT_FLOAT_EQ(rect.GetBorderWidth(), 0.0f);
+    }
+
+    TEST(RectTests, ANegativeBorderWidthBecomesZero) {
+        Rect rect;
+
+        rect.SetBorder(-2.0f, Vector4f{1.0f, 1.0f, 1.0f, 1.0f});
+
+        EXPECT_FLOAT_EQ(rect.GetBorderWidth(), 0.0f);
+    }
+
+    TEST(RectTests, TheBorderGoesIntoTheDrawCommand) {
+        Rect rect;
+        rect.SetBorder(3.0f, Vector4f{0.0f, 0.0f, 1.0f, 1.0f});
+
+        const UIDrawCommand command = CommandOf(rect);
+
+        EXPECT_FLOAT_EQ(command.borderWidth, 3.0f);
+        EXPECT_TRUE(Vector4f::NearlyEqual(command.borderColor, Vector4f{0.0f, 0.0f, 1.0f, 1.0f}));
+    }
+
+    TEST(RectTests, TheBorderFadesWithTheOpacity) {
+        Rect rect;
+        rect.SetOpacity(0.5f);
+        rect.SetBorder(3.0f, Vector4f{0.0f, 0.0f, 1.0f, 1.0f});
+
+        const UIDrawCommand command = CommandOf(rect);
+
+        EXPECT_FLOAT_EQ(command.borderColor.w, 0.5f);
+    }
 }

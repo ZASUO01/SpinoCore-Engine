@@ -6,7 +6,7 @@
 #include <string_view>
 #include <utility>
 #include <SDL3/SDL_scancode.h>
-#include "Core/Input/InputState.h"
+#include "SpinoCore/Core/Input/InputState.h"
 #include "SpinoCore/Core/UI/Elements/Text.h"
 
 namespace SpinoCore::Core::UI::Elements {
@@ -15,7 +15,6 @@ namespace SpinoCore::Core::UI::Elements {
             return (static_cast<unsigned char>(byte) & 0xC0) == 0x80;
         }
 
-        // Appends whole UTF-8 characters from `typed` while `text` has fewer than maxLength characters.
         void AppendLimited(std::string& text, const std::string_view typed, const std::size_t maxLength) {
             auto length = static_cast<std::size_t>(std::ranges::count_if(text, [](const char c) { return !IsContinuationByte(c); }));
             for (const char byte : typed) {
@@ -48,7 +47,7 @@ namespace SpinoCore::Core::UI::Elements {
         SetText(input.text);
     }
 
-    void InputField::SetText(std::string text) {
+    void InputField::SetText(const std::string& text) const {
         std::string limited;
         AppendLimited(limited, text, MAX_LENGTH);
         mText->SetText(std::move(limited));
@@ -71,8 +70,7 @@ namespace SpinoCore::Core::UI::Elements {
     void InputField::SetDrawCommand(Rendering::UIDrawList &drawList, const int drawLayer) {
         Rect::SetDrawCommand(drawList, drawLayer);
 
-        const Math::Vector2f textSize = TextSize();
-        if (mText->GetSize().x != textSize.x || mText->GetSize().y != textSize.y) mText->SetSize(textSize);
+        if (const Math::Vector2f textSize = TextSize(); mText->GetSize().x != textSize.x || mText->GetSize().y != textSize.y) mText->SetSize(textSize);
         if (mText->GetDrawOrder() != GetDrawOrder()) mText->SetDrawOrder(GetDrawOrder());
     }
 

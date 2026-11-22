@@ -23,6 +23,7 @@ namespace SpinoCore::Core::Engine {
         [[nodiscard]] bool PrepareSimulation() override;
         void ProcessFrameInputs() override;
         void ProcessSimulationInputs() override;
+        void DiscardSimulationInputs() override;
         void UpdateSimulation(float deltaTime) override;
         void Interpolate(float alpha) override;
         void Render() override;

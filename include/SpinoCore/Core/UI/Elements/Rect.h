@@ -5,6 +5,14 @@
 #include "Element.h"
 #include "SpinoCore/Math/Vector.h"
 
+namespace SpinoCore::Core::Input {
+    class InputState;
+}
+
+namespace SpinoCore::Core::Rendering {
+    struct UIDrawList;
+}
+
 namespace SpinoCore::Core::UI::Elements {
     struct RectInput : ElementInput {
         Math::Vector4f backgroundColor = Math::Vector4f{0.0f, 0.0f, 0.0f, 1.0f};
@@ -25,6 +33,10 @@ namespace SpinoCore::Core::UI::Elements {
         void SetBorderRadius(const float radius) { mBorderRadius = std::clamp(radius, 0.0f, MAX_BORDER_RADIUS); }
         [[nodiscard]] float GetBorderRadius() const { return mBorderRadius; }
 
+        void SetBorder(const float width, const Math::Vector4f& color) { mBorderWidth = std::max(width, 0.0f); mBorderColor = color; }
+        [[nodiscard]] float GetBorderWidth() const { return mBorderWidth; }
+        [[nodiscard]] const Math::Vector4f& GetBorderColor() const { return mBorderColor; }
+
     protected:
         void OnProcessInput(const Input::InputState& /*state*/) override {}
         void SetDrawCommand(Rendering::UIDrawList &drawList, int drawLayer) override;
@@ -34,6 +46,8 @@ namespace SpinoCore::Core::UI::Elements {
         
         float mOpacity = 1.0f;
         float mBorderRadius = 0.0f;
+        float mBorderWidth = 0.0f;
+        Math::Vector4f mBorderColor = Math::Vector4f{0.0f, 0.0f, 0.0f, 0.0f};
         Math::Vector4f mBackgroundColor = Math::Vector4f{0.0f, 0.0f, 0.0f, 1.0f};
     };
 }
