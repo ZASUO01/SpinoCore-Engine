@@ -7,31 +7,47 @@
 #include "Quaternion.h"
 #include "Vector.h"
 
+/// @brief Functions that build and read 4x4 transform matrices.
 namespace SpinoCore::Math::MatrixFactory {
+    /// @brief Reads the local X axis of a transform.
+    /// @param mat Transform.
+    /// @return The first column.
     template <typename T>
     requires std::is_arithmetic_v<T>
     [[nodiscard]] constexpr Vector3<T> GetRight(const Matrix4<T>& mat) noexcept {
         return Vector3<T>{mat(0, 0), mat(1, 0), mat(2, 0)};
     }
 
+    /// @brief Reads the local Y axis of a transform.
+    /// @param mat Transform.
+    /// @return The second column.
     template <typename T>
     requires std::is_arithmetic_v<T>
     [[nodiscard]] constexpr Vector3<T> GetUp(const Matrix4<T>& mat) noexcept {
         return Vector3<T>{mat(0, 1), mat(1, 1), mat(2, 1)};
     }
 
+    /// @brief Reads the direction a transform faces.
+    /// @param mat Transform.
+    /// @return The negated third column (-Z).
     template <typename T>
     requires std::is_arithmetic_v<T>
     [[nodiscard]] constexpr Vector3<T> GetForward(const Matrix4<T>& mat) noexcept {
         return Vector3<T>{-mat(0, 2), -mat(1, 2), -mat(2, 2)};
     }
 
+    /// @brief Reads the translation of a transform.
+    /// @param mat Transform.
+    /// @return The fourth column.
     template <typename T>
     requires std::is_arithmetic_v<T>
     [[nodiscard]] constexpr Vector3<T> GetTranslation(const Matrix4<T>& mat) noexcept {
         return Vector3<T>{mat(0, 3), mat(1, 3), mat(2, 3)};
     }
 
+    /// @brief Reads the Euler angles of a rotation matrix.
+    /// @param mat Transform without shear.
+    /// @return Pitch, yaw and roll in radians.
     template <std::floating_point T>
     [[nodiscard]] Vector3<T> GetRotationEuler(const Matrix4<T>& mat) noexcept {
         const Vector3<T> right = GetRight(mat).Normalized();
@@ -54,6 +70,9 @@ namespace SpinoCore::Math::MatrixFactory {
         return euler;
     }
 
+    /// @brief Reads the scale of a transform.
+    /// @param mat Transform.
+    /// @return The length of each axis.
     template <std::floating_point T>
     [[nodiscard]] Vector3<T> GetScale(const Matrix4<T>& mat) noexcept {
         return Vector3<T>{
@@ -63,6 +82,9 @@ namespace SpinoCore::Math::MatrixFactory {
         };
     }
 
+    /// @brief Creates a translation.
+    /// @param translation Offset.
+    /// @return The matrix.
     template <typename T>
     requires std::is_arithmetic_v<T>
     [[nodiscard]] constexpr Matrix4<T> CreateTranslation(const Vector3<T>& translation) noexcept {
@@ -73,6 +95,11 @@ namespace SpinoCore::Math::MatrixFactory {
         return mat;
     }
 
+    /// @brief Creates a scale on each axis.
+    /// @param xScale Scale along X.
+    /// @param yScale Scale along Y.
+    /// @param zScale Scale along Z.
+    /// @return The matrix.
     template <typename T>
     requires std::is_arithmetic_v<T>
     [[nodiscard]] constexpr Matrix4<T> CreateScale(const T xScale, const T yScale, const T zScale) noexcept {
@@ -83,18 +110,27 @@ namespace SpinoCore::Math::MatrixFactory {
         return mat;
     }
 
+    /// @brief Creates a scale on each axis.
+    /// @param scale Scale along X, Y and Z.
+    /// @return The matrix.
     template <typename T>
     requires std::is_arithmetic_v<T>
     [[nodiscard]] constexpr Matrix4<T> CreateScale(const Vector3<T>& scale) noexcept {
         return CreateScale(scale.x, scale.y, scale.z);
     }
 
+    /// @brief Creates a uniform scale.
+    /// @param scale Scale on every axis.
+    /// @return The matrix.
     template <typename T>
     requires std::is_arithmetic_v<T>
     [[nodiscard]] constexpr Matrix4<T> CreateScale(const T scale) noexcept {
         return CreateScale(scale, scale, scale);
     }
 
+    /// @brief Creates a rotation around X.
+    /// @param angleRadians Angle in radians.
+    /// @return The matrix.
     template <std::floating_point T>
     [[nodiscard]] Matrix4<T> CreateRotationX(const T angleRadians) noexcept {
         Matrix4<T> mat;
@@ -107,6 +143,9 @@ namespace SpinoCore::Math::MatrixFactory {
         return mat;
     }
 
+    /// @brief Creates a rotation around Y.
+    /// @param angleRadians Angle in radians.
+    /// @return The matrix.
     template <std::floating_point T>
     [[nodiscard]] Matrix4<T> CreateRotationY(const T angleRadians) noexcept {
         Matrix4<T> mat;
@@ -119,6 +158,9 @@ namespace SpinoCore::Math::MatrixFactory {
         return mat;
     }
 
+    /// @brief Creates a rotation around Z.
+    /// @param angleRadians Angle in radians.
+    /// @return The matrix.
     template <std::floating_point T>
     [[nodiscard]] Matrix4<T> CreateRotationZ(const T angleRadians) noexcept {
         Matrix4<T> mat;
@@ -131,6 +173,9 @@ namespace SpinoCore::Math::MatrixFactory {
         return mat;
     }
 
+    /// @brief Creates the rotation of a quaternion.
+    /// @param q Unit quaternion.
+    /// @return The matrix.
     template <std::floating_point T>
     [[nodiscard]] constexpr Matrix4<T> CreateFromQuaternion(const Quaternion<T>& q) noexcept {
         Matrix4<T> mat;
@@ -162,12 +207,22 @@ namespace SpinoCore::Math::MatrixFactory {
         return mat;
     }
 
+    /// @brief Creates a transform that scales, then rotates, then translates.
+    /// @param translation Position.
+    /// @param rotation Rotation.
+    /// @param scale Scale on each axis.
+    /// @return The matrix.
     template <std::floating_point T>
     [[nodiscard]] constexpr Matrix4<T> CreateTransform(const Vector3<T>& translation, const Quaternion<T>& rotation,
                                                        const Vector3<T>& scale) noexcept {
         return CreateTranslation(translation) * CreateFromQuaternion(rotation) * CreateScale(scale);
     }
 
+    /// @brief Creates a right-handed view matrix.
+    /// @param eye Camera position.
+    /// @param target Point the camera looks at.
+    /// @param up Approximate up direction.
+    /// @return The matrix.
     template <std::floating_point T>
     [[nodiscard]] Matrix4<T> CreateLookAt(const Vector3<T>& eye, const Vector3<T>& target, const Vector3<T>& up) noexcept {
         Vector3<T> forward = target - eye;
@@ -206,6 +261,12 @@ namespace SpinoCore::Math::MatrixFactory {
         return mat;
     }
 
+    /// @brief Creates an orthographic projection centered on the origin.
+    /// @param width Visible width.
+    /// @param height Visible height.
+    /// @param nearPlane Near clip distance.
+    /// @param farPlane Far clip distance.
+    /// @return The matrix, or the identity for invalid sizes.
     template <std::floating_point T>
     [[nodiscard]] constexpr Matrix4<T> CreateOrtho(const T width, const T height, const T nearPlane, const T farPlane) noexcept {
         Matrix4<T> mat;
@@ -220,6 +281,14 @@ namespace SpinoCore::Math::MatrixFactory {
         return mat;
     }
 
+    /// @brief Creates an orthographic projection for a box.
+    /// @param left Left edge.
+    /// @param right Right edge.
+    /// @param bottom Bottom edge.
+    /// @param top Top edge.
+    /// @param nearPlane Near clip distance.
+    /// @param farPlane Far clip distance.
+    /// @return The matrix, or the identity for an empty box.
     template <std::floating_point T>
     [[nodiscard]] constexpr Matrix4<T> CreateOrtho(const T left, const T right, const T bottom, const T top,
                                                    const T nearPlane, const T farPlane) noexcept {
@@ -238,6 +307,13 @@ namespace SpinoCore::Math::MatrixFactory {
         return mat;
     }
 
+    /// @brief Creates a perspective projection for OpenGL clip space.
+    /// @param fovYRadians Vertical field of view in radians.
+    /// @param width Viewport width.
+    /// @param height Viewport height.
+    /// @param nearPlane Near clip distance.
+    /// @param farPlane Far clip distance.
+    /// @return The matrix, or the identity for invalid sizes.
     template <std::floating_point T>
     [[nodiscard]] Matrix4<T> CreatePerspectiveFOV(const T fovYRadians, const T width, const T height,
                                                   const T nearPlane, const T farPlane) noexcept {

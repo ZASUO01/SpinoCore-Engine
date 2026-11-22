@@ -78,15 +78,14 @@ namespace SpinoCore::Utils {
             const auto padding = static_cast<std::size_t>(std::ranges::count(base64, '='));
             const std::size_t size = base64.size() / 4 * 3 - padding;
 
-            void* decoded = nullptr;
-            if (size == 0 || cgltf_load_buffer_base64(&options, size, base64.c_str(), &decoded) != cgltf_result_success) {
+            void* raw = nullptr;
+            if (size == 0 || cgltf_load_buffer_base64(&options, size, base64.c_str(), &raw) != cgltf_result_success) {
                 Fail(modelPath, "could not decode an embedded image");
             }
+            const std::unique_ptr<void, decltype(&std::free)> decoded{raw, &std::free};
 
-            const auto* bytes = static_cast<const std::uint8_t*>(decoded);
-            std::vector result(bytes, bytes + size);
-            std::free(decoded);
-            return result;
+            const auto* bytes = static_cast<const std::uint8_t*>(decoded.get());
+            return {bytes, bytes + size};
         }
 
         void ReadImage(const cgltf_options& options, const cgltf_image& image, Res::MaterialData& material,

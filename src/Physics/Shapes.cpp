@@ -12,7 +12,9 @@ namespace SpinoCore::Physics {
         constexpr int BoxCapsuleIterations = 4;
 
         [[nodiscard]] float Component(const Math::Vector3f& vector, const std::size_t index) {
-            return index == 0 ? vector.x : index == 1 ? vector.y : vector.z;
+            if (index == 0) return vector.x;
+            if (index == 1) return vector.y;
+            return vector.z;
         }
 
         [[nodiscard]] std::optional<Contact> TestPoints(const Math::Vector3f& a, const float radiusA, const Math::Vector3f& b, const float radiusB) {

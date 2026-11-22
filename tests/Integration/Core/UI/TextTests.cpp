@@ -44,7 +44,6 @@ namespace {
     constexpr Vector4f BlueColor{0.0f, 0.0f, 1.0f, 1.0f};
     constexpr Vector4f Transparent{0.0f, 0.0f, 0.0f, 0.0f};
 
-    // Texts drawn with the engine's default font, both as raw commands and through the real Drawer and shader.
     class TextTests : public GLTestContext {
     protected:
         void SetUp() override {
@@ -111,8 +110,6 @@ namespace {
         std::optional<Drawer> drawer{};
         std::optional<AssetCache<Font>> fonts{};
     };
-
-    // ---------------------------------------------------------------- commands
 
     TEST_F(TextTests, SendsOneCommandPerVisibleGlyph) {
         Text text{MakeInput("a b")};
@@ -238,8 +235,6 @@ namespace {
         EXPECT_FLOAT_EQ(Left(scrolledGlyph), Left(plainGlyph));
     }
 
-    // ---------------------------------------------------------------- layout
-
     TEST_F(TextTests, GlyphsAdvanceFromLeftToRight) {
         Text text{MakeInput("ab")};
 
@@ -308,8 +303,6 @@ namespace {
         EXPECT_EQ(Glyphs(Commands(text)).size(), 3u);
     }
 
-    // ---------------------------------------------------------------- fonts
-
     TEST_F(TextTests, UnknownFontsDrawTheDefaultOne) {
         auto input = MakeInput("a");
         input.font = "not-loaded";
@@ -349,8 +342,6 @@ namespace {
         ASSERT_EQ(list.commands.size(), 1u);
         EXPECT_FALSE(list.commands[0].tintTexture);
     }
-
-    // ---------------------------------------------------------------- drawing
 
     TEST_F(TextTests, GlyphsAreDrawnInTheTextColorOverTheBackground) {
         TextInput input{};

@@ -24,7 +24,7 @@ namespace SpinoCore::Core::Window {
     }
 
     [[nodiscard]] constexpr Size2D FitStandardWindowSize(const Size2D requested, const Size2D available) noexcept {
-        const auto fitting = std::ranges::find_if(STANDARD_WINDOW_SIZES, [&](const Size2D size) {
+        const auto* const fitting = std::ranges::find_if(STANDARD_WINDOW_SIZES, [&](const Size2D size) {
             return Fits(size, requested) && Fits(size, available);
         });
         return fitting != STANDARD_WINDOW_SIZES.end() ? *fitting : WINDOW_SIZE_MIN;

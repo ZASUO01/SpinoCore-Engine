@@ -9,12 +9,12 @@
 namespace SpinoCore::Core::Cameras {
     EngineCamerasManager::EngineCamerasManager(const Utils::Size2D windowSize, Rendering::Renderer &renderer, Events::EventBus& bus)
     :mRenderer(renderer)
+    ,mCurrentCameraName(DEFAULT_CAMERA_NAME)
     ,mViewportSize(windowSize)
     {
         auto defaultCamera = std::make_unique<DefaultCamera>(static_cast<float>(windowSize.width), static_cast<float>(windowSize.height));
 
         mCameras.emplace(DEFAULT_CAMERA_NAME, std::move(defaultCamera));
-        mCurrentCameraName = DEFAULT_CAMERA_NAME;
         mCurrentCamera = mCameras[DEFAULT_CAMERA_NAME].get();
         UpdateRenderer();
 

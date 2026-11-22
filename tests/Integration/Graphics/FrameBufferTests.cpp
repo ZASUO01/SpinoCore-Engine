@@ -12,7 +12,6 @@
 namespace {
     using SpinoCore::Graphics::FrameBuffer;
     using SpinoCore::Graphics::FrameBufferFormat;
-    using SpinoCore::Graphics::FrameBufferSpecification;
     using SpinoCore::Tests::GLTestContext;
     using SpinoCore::Utils::Size2D;
 

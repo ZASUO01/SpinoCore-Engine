@@ -34,7 +34,7 @@ namespace SpinoCore::Core::Cameras {
         void Update(float deltaTime) const;
 
     private:
-        inline static const std::string DEFAULT_CAMERA_NAME{"default"};
+        static constexpr const char* DEFAULT_CAMERA_NAME{"default"};
 
         void UpdateRenderer() const;
         void OnResize(const Events::WindowResizeEvent& event);

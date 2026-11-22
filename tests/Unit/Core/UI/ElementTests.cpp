@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
+#include <cstddef>
 #include <memory>
 #include <stdexcept>
 #include <utility>
@@ -19,7 +20,6 @@ namespace {
 
     constexpr float Tolerance = 1e-4f;
 
-    // Where a point of the unit quad (0..1 on both axes) ends up on screen.
     [[nodiscard]] Vector2f QuadPoint(Element& element, const float u, const float v) {
         const Vector3f point = element.GetTransform().TransformPoint(Vector3f{u, v, 0.0f});
         return {point.x, point.y};
@@ -67,12 +67,11 @@ namespace {
         EXPECT_TRUE(Near(QuadPoint(element, 1.0f, 1.0f), {140.0f, 120.0f}));
     }
 
-    // With the UI projection y points down, so a positive angle turns the element clockwise on screen.
     TEST(ElementTests, RotationTurnsTheQuadAroundItsCenter) {
         TestElement element{{.anchor = {100.0f, 100.0f}, .size = {40.0f, 20.0f}, .angleDegrees = 90.0f}};
 
         EXPECT_TRUE(Near(Center(element), {100.0f, 100.0f}));
-        // The middle of the right edge (20 px from the center along x) ends up 20 px along +y.
+
         EXPECT_TRUE(Near(QuadPoint(element, 1.0f, 0.5f), {100.0f, 120.0f}));
     }
 
@@ -146,7 +145,6 @@ namespace {
         TestElement parent{{.anchor = {100.0f, 100.0f}, .size = {50.0f, 50.0f}, .scale = 2.0f, .angleDegrees = 90.0f}};
         Element& child = parent.AddChild(MakeElement({.offSet = {10.0f, 0.0f}, .size = {4.0f, 4.0f}, .scale = 1.5f}));
 
-        // The offset is in the parent's space: scaled by 2 and turned 90 degrees.
         EXPECT_TRUE(Near(Center(child), {100.0f, 120.0f}));
         EXPECT_FLOAT_EQ(child.GetWorldScale(), 3.0f);
     }
@@ -175,20 +173,36 @@ namespace {
         EXPECT_TRUE(Near(Center(child), {110.0f, 0.0f}));
     }
 
-    TEST(ElementHierarchyTests, RemoveChildGivesBackOwnershipAndDetachesTheSubtree) {
+    TEST(ElementHierarchyTests, RemoveChildGivesBackTheChildAndForgetsIt) {
+        TestElement root;
+        Element& child = root.AddChild(MakeElement());
+
+        const std::unique_ptr<Element> removed = root.RemoveChild(child);
+
+        EXPECT_EQ(removed.get(), &child);
+        EXPECT_TRUE(root.GetChildren().empty());
+    }
+
+    TEST(ElementHierarchyTests, ARemovedSubtreeBecomesItsOwnRoot) {
+        TestElement root;
+        Element& child = root.AddChild(MakeElement());
+        Element& grandchild = child.AddChild(MakeElement());
+
+        const std::unique_ptr<Element> removed = root.RemoveChild(child);
+
+        EXPECT_EQ(removed->GetParent(), nullptr);
+        EXPECT_EQ(removed->GetDepth(), 0);
+        EXPECT_EQ(grandchild.GetDepth(), 1);
+    }
+
+    TEST(ElementHierarchyTests, ARemovedSubtreeIsPlacedWithoutTheOldParent) {
         TestElement root{{.anchor = {100.0f, 100.0f}}};
         Element& child = root.AddChild(MakeElement({.anchor = {5.0f, 5.0f}}));
         Element& grandchild = child.AddChild(MakeElement());
         (void)Center(grandchild);
 
-        std::unique_ptr<Element> removed = root.RemoveChild(child);
+        const std::unique_ptr<Element> removed = root.RemoveChild(child);
 
-        ASSERT_NE(removed, nullptr);
-        EXPECT_TRUE(root.GetChildren().empty());
-        EXPECT_EQ(removed->GetParent(), nullptr);
-        EXPECT_EQ(removed->GetDepth(), 0);
-        EXPECT_EQ(grandchild.GetDepth(), 1);
-        // Once detached it is a root again, so its own anchor applies.
         EXPECT_TRUE(Near(Center(*removed), {5.0f, 5.0f}));
         EXPECT_TRUE(Near(Center(grandchild), {5.0f, 5.0f}));
     }
@@ -214,14 +228,14 @@ namespace {
     TEST(ElementHierarchyTests, AChainCanReachTheMaximumDepthButNotGoPastIt) {
         TestElement root;
         Element* deepest = &root;
-        for (int depth = 1; depth <= Element::MAX_DEPTH; ++depth) {
+        for (std::size_t depth = 1; depth <= Element::MAX_DEPTH; ++depth) {
             deepest = &deepest->AddChild(MakeElement());
         }
         ASSERT_EQ(deepest->GetDepth(), Element::MAX_DEPTH);
 
         auto oneTooMany = MakeElement();
         EXPECT_THROW(deepest->AddChild(std::move(oneTooMany)), std::invalid_argument);
-        // A rejected child stays with the caller.
+
         EXPECT_NE(oneTooMany, nullptr);
     }
 

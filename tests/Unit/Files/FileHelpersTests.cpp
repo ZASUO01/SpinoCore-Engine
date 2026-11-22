@@ -18,7 +18,6 @@ namespace {
     namespace fs = std::filesystem;
     using namespace SpinoCore::Files;
 
-    // A fresh folder under the system temp directory, removed when the test ends.
     class TempDirectory final {
     public:
         TempDirectory() {
@@ -49,9 +48,9 @@ namespace {
         return {text.begin(), text.end()};
     }
 
-    // Every byte value, plus bytes that text-mode streams would mangle (\r\n, \x1A, \0).
     [[nodiscard]] std::vector<std::uint8_t> AllByteValues() {
         std::vector<std::uint8_t> data;
+        data.reserve(262);
         for (int value = 0; value < 256; ++value) data.push_back(static_cast<std::uint8_t>(value));
         for (const std::uint8_t value : {0x0D, 0x0A, 0x1A, 0x00, 0x0D, 0x0A}) data.push_back(value);
         return data;
@@ -62,8 +61,6 @@ namespace {
         TempDirectory dir;
     };
 }
-
-// ---------------------------------------------------------------- existence
 
 TEST_F(FileHelpersTests, DirectoryExistsOnlyForFolders) {
     WriteRaw(dir.Path() / "file.txt", "x");
@@ -87,8 +84,6 @@ TEST_F(FileHelpersTests, ExistenceChecksNeverThrowOnInvalidPaths) {
     EXPECT_NO_THROW({ EXPECT_FALSE(DirectoryExists(impossible)); });
     EXPECT_NO_THROW({ EXPECT_FALSE(FileExists(impossible)); });
 }
-
-// ---------------------------------------------------------------- reading
 
 TEST_F(FileHelpersTests, ReadsEveryByteExactly) {
     const auto expected = AllByteValues();
@@ -132,8 +127,6 @@ TEST_F(FileHelpersTests, ReadsPathsWithNonAsciiCharacters) {
     ASSERT_TRUE(data.has_value());
     EXPECT_EQ(*data, Bytes("acentos"));
 }
-
-// ---------------------------------------------------------------- writing
 
 TEST_F(FileHelpersTests, WriteAcceptsAnyContiguousBuffer) {
     const std::uint8_t array[] = {1, 2, 3, 4, 5};
@@ -204,7 +197,7 @@ TEST_F(FileHelpersTests, FailedWriteKeepsTheOldFile) {
     ASSERT_TRUE(WriteFile(folder / "save.bin", Bytes("old")));
     fs::permissions(folder, fs::perms::owner_write | fs::perms::group_write | fs::perms::others_write,
                     fs::perm_options::remove);
-    if (std::ofstream probe(folder / "probe"); probe) {
+    if (const std::ofstream probe(folder / "probe"); probe) {
         GTEST_SKIP() << "Running with permissions that ignore read-only folders (e.g. root).";
     }
 

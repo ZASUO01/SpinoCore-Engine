@@ -7,7 +7,8 @@
 
 namespace SpinoCore::Core::Actors::Components {
     namespace {
-        [[nodiscard]] ColliderInput AsStaticPlane(ColliderInput input) {
+        [[nodiscard]] ColliderInput AsStaticPlane(const ColliderInput& base) {
+            ColliderInput input = base;
             input.type = ColliderType::Plane;
             input.isStatic = true;
             return input;

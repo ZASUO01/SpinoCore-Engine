@@ -27,8 +27,6 @@ namespace {
         "a.b": true
     })";
 
-    // ---------------------------------------------------------------- parsing
-
     TEST(JSONHelpersTests, ParsesValidJSONWithoutRequiredFields) {
         const auto json = ParseJSON(Bytes(Manifest));
 
@@ -76,8 +74,6 @@ namespace {
         ASSERT_TRUE(json.has_value());
         EXPECT_EQ(json->at("name"), "demo");
     }
-
-    // ---------------------------------------------------------------- required fields
 
     TEST(JSONHelpersTests, TopLevelFieldsArePresent) {
         EXPECT_TRUE(ParseJSON(Bytes(Manifest), Fields{"name", "version", "texture"}).has_value());

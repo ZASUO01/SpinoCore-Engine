@@ -9,7 +9,6 @@
 #include "SpinoCore/Core/UI/Elements/Rect.h"
 #include "SpinoCore/Math/Vector.h"
 
-// No GL context here: only what an Image sends to the renderer when no texture can be found.
 namespace {
     using SpinoCore::Assets::AssetCache;
     using SpinoCore::Core::Rendering::UIDrawCommand;
@@ -80,8 +79,6 @@ namespace {
         EXPECT_EQ(command.textureMix, 0.0f);
     }
 
-    // The texture is laid over the background first and the opacity applies to the result,
-    // so the background keeps its own alpha and the opacity travels on its own.
     TEST(ImageTests, BackgroundAndOpacityAreSentSeparately) {
         Image image{MakeInput("hero")};
 

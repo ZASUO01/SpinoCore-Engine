@@ -51,7 +51,6 @@ namespace {
         void main() { outColor = uColor; }
     )";
 
-    // Every uniform type the shader can set, all used so the compiler keeps them.
     constexpr auto UniformsFragmentSource = R"(
         #version 460 core
         layout (location = 1) uniform vec4 uVec4;
@@ -69,7 +68,6 @@ namespace {
         void main() { this is not glsl; }
     )";
 
-    // Compiles fine on its own, but a program without main() cannot link.
     constexpr auto FragmentWithoutMainSource = R"(
         #version 460 core
         out vec4 outColor;
@@ -84,7 +82,6 @@ namespace {
         float y;
     };
 
-    // A quad covering [minX, maxX] x [minY, maxY] in clip space.
     [[nodiscard]] std::unique_ptr<VertexArray> MakeQuad(const float minX, const float minY, const float maxX, const float maxY) {
         const std::array vertices{
             Vertex2D{minX, minY}, Vertex2D{maxX, minY}, Vertex2D{maxX, maxY}, Vertex2D{minX, maxY}
@@ -242,7 +239,6 @@ namespace {
         EXPECT_EQ(unsignedInteger, 7u);
     }
 
-    // The UI shader draws a unit quad and cuts its corners with a rounded box SDF.
     class UIShaderTests : public GLTestContext {
     protected:
         void DrawUIQuad(const float radius) {

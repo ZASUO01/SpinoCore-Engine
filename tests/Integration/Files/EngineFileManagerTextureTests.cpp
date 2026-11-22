@@ -33,7 +33,6 @@ namespace {
     using SpinoCore::Graphics::Resources::Texture;
     using SpinoCore::Sound::Resources::AudioClip;
 
-    // Loads real images from the Assets folder next to the test binary into a cache, with a live GL context.
     class EngineFileManagerTextureTests : public SpinoCore::Tests::GLTestContext {
     protected:
         void SetUp() override {
@@ -51,14 +50,13 @@ namespace {
                 std::error_code ignored;
                 fs::remove_all(fileManager->GetRootPath() / folder, ignored);
             }
-            // Textures go before the GL context the fixture owns.
+
             fileManager.reset();
             modelCache.reset();
             textureCache.reset();
             GLTestContext::TearDown();
         }
 
-        // Saves a width x height BMP under the test's folder and returns its path relative to Assets.
         [[nodiscard]] fs::path WriteImage(const std::string& name, const int width, const int height) const {
             SDL_Surface* surface = SDL_CreateSurface(width, height, SDL_PIXELFORMAT_RGBA32);
             EXPECT_NE(surface, nullptr) << SDL_GetError();
@@ -68,7 +66,6 @@ namespace {
             return relative;
         }
 
-        // Requests past the frame budget wait for the next frame, so a slow machine may need more than one.
         void ProcessUntilReady() {
             for (int frame = 0; frame < 1'000 && !fileManager->IsReady(); ++frame) fileManager->ProcessRequests();
         }

@@ -17,7 +17,6 @@
 #include "Core/Rendering/Renderer.h"
 #include "Core/Rendering/Drawer/DrawCommands.h"
 #include "Graphics/Resources/Font.h"
-#include "Graphics/PostProcess/EnginePostProcessManager.h"
 #include "Sound/EngineSoundManager.h"
 #include "Sound/Resources/AudioClip.h"
 #include "Sound/Synth/EngineSynthManager.h"
@@ -66,7 +65,7 @@ namespace SpinoCore::Core::Engine {
     }
 
     void Engine::InitializeModules(const LaunchOptions &launchOptions) {
-        Files::FileManagerInput fileManagerInput {
+        const Files::FileManagerInput fileManagerInput {
             .textureCache = mEngineCache.textureCache,
             .fontCache = mEngineCache.fontCache,
             .modelCache = mEngineCache.modelCache,
@@ -77,7 +76,7 @@ namespace SpinoCore::Core::Engine {
         mEngineModules.window.emplace(launchOptions.windowProps);
         if (launchOptions.windowProps.hideSystemCursor) Window::EngineWindow::SetSystemCursorVisible(false);
 
-        auto window = mEngineModules.window->GetSDLWindow();
+        auto* window = mEngineModules.window->GetSDLWindow();
         auto size = mEngineModules.window->GetSize();
         mEngineModules.renderer.emplace(window, size, mEngineModules.eventBus,
                                         Lighting::GlobalLight{launchOptions.enableGlobalLight, launchOptions.globalLight},
@@ -106,7 +105,7 @@ namespace SpinoCore::Core::Engine {
             .simulationInput = mEngineModules.simulationInput.GetState()
         };
 
-        Scenes::ScenesManagerInput scenesManagerInput {
+        const Scenes::ScenesManagerInput scenesManagerInput {
             .startContext = sceneStartContext,
             .controlContext = sceneControlContext
         };

@@ -4,7 +4,6 @@
 #include <array>
 #include <cstdint>
 #include <stdexcept>
-#include <string>
 #include <SDL3/SDL_pixels.h>
 #include <SDL3/SDL_surface.h>
 #include <glad/glad.h>

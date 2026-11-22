@@ -28,6 +28,8 @@ namespace SpinoCore::Graphics::Resources {
 
         FontAtlas();
         ~FontAtlas();
+        FontAtlas(const FontAtlas&) = delete;
+        FontAtlas& operator=(const FontAtlas&) = delete;
         FontAtlas(FontAtlas&&) noexcept;
         FontAtlas& operator=(FontAtlas&&) noexcept;
     };

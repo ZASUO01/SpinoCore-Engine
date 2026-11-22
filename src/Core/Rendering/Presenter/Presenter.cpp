@@ -56,7 +56,7 @@ namespace SpinoCore::Core::Rendering {
         ApplyVSyncAction(mVSyncGuard.OnWindowVisibility(event.visible, now), now);
     }
 
-    void Presenter::OnPresentationChanged(Events::WindowPresentationChangedEvent& /*event*/) {
+    void Presenter::OnPresentationChanged(Events::WindowPresentationChangedEvent&) {
         mDisplayRefreshRate = DisplayRefreshRate();
         const auto now = Clock::now();
         ApplyVSyncAction(mVSyncGuard.OnPresentationChanged(now), now);

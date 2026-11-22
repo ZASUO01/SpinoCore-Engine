@@ -11,13 +11,11 @@
 namespace {
     using SpinoCore::Assets::AssetCache;
 
-    // Stand-in for a real asset type such as a texture.
     struct FakeTexture final {
         int width{0};
         int height{0};
     };
 
-    // Counts live instances, to check when the cache destroys its assets.
     struct Tracked final {
         static inline int alive = 0;
         Tracked() { ++alive; }
@@ -30,8 +28,6 @@ namespace {
         return std::make_unique<const FakeTexture>(FakeTexture{width, height});
     }
 }
-
-// ---------------------------------------------------------------- adding and getting
 
 TEST(AssetCacheTests, StartsEmptyWithoutDefault) {
     const AssetCache<FakeTexture> cache;
@@ -75,7 +71,7 @@ TEST(AssetCacheTests, LookupsAcceptEveryStringKind) {
     EXPECT_TRUE(cache.Contains("player"));
     EXPECT_TRUE(cache.Contains(asString));
     EXPECT_TRUE(cache.Contains(asView));
-    // A view that is not null-terminated must still match only its own characters.
+
     EXPECT_TRUE(cache.Contains(std::string_view("player-two").substr(0, 6)));
     EXPECT_FALSE(cache.Contains(std::string_view("player-two")));
 }
@@ -138,8 +134,6 @@ TEST(AssetCacheTests, RejectedAssetsAreDestroyed) {
     EXPECT_EQ(Tracked::alive, 0);
 }
 
-// ---------------------------------------------------------------- default asset
-
 TEST(AssetCacheTests, DefaultCanBeSetInTheConstructor) {
     auto fallback = Texture(2, 2);
     const auto* raw = fallback.get();
@@ -201,8 +195,6 @@ TEST(AssetCacheTests, DefaultIsNotAnEntry) {
     EXPECT_TRUE(cache.IsEmpty());
     EXPECT_FALSE(cache.Contains(""));
 }
-
-// ---------------------------------------------------------------- removal and ownership
 
 TEST(AssetCacheTests, RemoveDeletesOnlyThatId) {
     AssetCache<FakeTexture> cache;

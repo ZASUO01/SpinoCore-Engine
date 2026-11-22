@@ -17,7 +17,6 @@ namespace {
     using SpinoCore::Tests::VectorsNear;
     namespace MatrixFactory = SpinoCore::Math::MatrixFactory;
 
-    // A matrix with no special structure, so every term of the inverse matters.
     [[nodiscard]] Matrix4f GeneralMatrix() {
         constexpr float values[16] = {
             2.0f, 1.0f, 0.0f, 0.5f,
@@ -58,7 +57,6 @@ namespace {
         Matrix4f matrix;
         matrix(1, 3) = 7.0f;
 
-        // Row 1 of column 3 lives at 3 * 4 + 1.
         EXPECT_FLOAT_EQ(matrix.Data()[13], 7.0f);
         EXPECT_FLOAT_EQ(MatrixFactory::CreateTranslation(Vector3f{4.0f, 5.0f, 6.0f}).Data()[12], 4.0f);
     }

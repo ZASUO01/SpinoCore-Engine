@@ -35,7 +35,6 @@ namespace {
         void main() { outColor = uColor; }
     )";
 
-    // Passes a normalized per-vertex color through.
     constexpr auto VertexColorVertexSource = R"(
         #version 460 core
         layout (location = 0) in vec2 inPos;
@@ -51,7 +50,6 @@ namespace {
         void main() { outColor = color; }
     )";
 
-    // Green only when the integer attribute arrives untouched, red otherwise.
     constexpr auto IntegerIdVertexSource = R"(
         #version 460 core
         layout (location = 0) in vec2 inPos;
@@ -76,7 +74,6 @@ namespace {
         float y;
     };
 
-    // Two triangles worth of corners for a full-screen quad.
     constexpr std::array FullScreenCorners{Position{-1, -1}, Position{1, -1}, Position{1, 1}, Position{-1, 1}};
     constexpr std::array<std::uint32_t, 6> FullScreenIndices{0, 1, 2, 2, 3, 0};
     const std::vector<VertexAttribute> PositionLayout{{.location = 0, .type = AttributeType::Float2}};
@@ -104,7 +101,7 @@ namespace {
     }
 
     TEST_F(VertexArrayTests, DrawsTheVerticesInOrderWhenThereAreNoIndices) {
-        // Only the lower-left triangle of the screen.
+
         const std::array triangle{Position{-1, -1}, Position{1, -1}, Position{-1, 1}};
         const VertexArray vertexArray{{.vertexData = std::as_bytes(std::span{triangle}), .indices = {}, .layout = PositionLayout}};
 

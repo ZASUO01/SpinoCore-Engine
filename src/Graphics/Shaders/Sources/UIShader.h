@@ -67,7 +67,6 @@ namespace SpinoCore::Graphics::Shaders::Sources {
                 float coverage = texture(uTexture, fragTextureCoord).a * uTextureMix;
                 baseColor = vec4(uColor.rgb, uColor.a * coverage);
             }
-            // The texture is laid over the color ("over" compositing): where it is transparent the color shows through.
             else if (uTextureMix > 0.0) {
                 vec4 texColor = texture(uTexture, fragTextureCoord);
                 float textureAlpha = texColor.a * uTextureMix;

@@ -18,11 +18,11 @@ namespace {
     [[nodiscard]] std::vector<int> DrawInts(const std::uint32_t seed) {
         Random::Seed(seed);
         std::vector<int> values;
+        values.reserve(32);
         for (int i = 0; i < 32; ++i) values.push_back(Random::GetIntRange(0, 1'000'000));
         return values;
     }
 
-    // Every test seeds the engine itself, so results never depend on test order or on the clock.
     TEST(RandomTests, TheSameSeedRepeatsTheSameSequence) {
         EXPECT_EQ(DrawInts(1234), DrawInts(1234));
     }
@@ -56,7 +56,6 @@ namespace {
 
         for (int i = 0; i < 4000; ++i) ++counts[static_cast<std::size_t>(Random::GetIntRange(0, 3))];
 
-        // About 1000 each; the bounds are far outside what a fair generator produces.
         for (const int count : counts) {
             EXPECT_GT(count, 800);
             EXPECT_LT(count, 1200);
@@ -119,7 +118,6 @@ namespace {
         EXPECT_LT(value, 20.0);
     }
 
-    // The engine is thread_local: seeding or drawing on one thread does not disturb another.
     TEST(RandomTests, EachThreadHasItsOwnGenerator) {
         const std::vector<int> expected = DrawInts(2024);
 

@@ -11,37 +11,54 @@ namespace SpinoCore::Math {
     template <typename T>
     class Matrix4;
 
+    /// @brief 3x3 matrix stored in column-major order, as OpenGL expects.
+    /// @tparam T Arithmetic type of the elements.
     template <typename T>
     class Matrix3 final {
         static_assert(std::is_arithmetic_v<T>, "Matrix3 must be of arithmetic type.");
     public:
+        /// Elements in column-major order.
         T data[9];
 
+        /// @brief Creates an identity matrix.
         constexpr Matrix3() noexcept :data{
             T{1}, T{0}, T{0},
             T{0}, T{1}, T{0},
             T{0}, T{0}, T{1}
         }{}
 
+        /// @brief Creates a matrix from 9 elements in column-major order.
+        /// @param inData Elements to copy.
         constexpr explicit Matrix3(const T inData[9]) noexcept {
             for (std::size_t i = 0; i < 9; ++i) {
                 data[i] = inData[i];
             }
         }
 
+        /// @brief Takes the upper-left 3x3 part of a 4x4 matrix.
+        /// @param matrix Source matrix.
         constexpr explicit Matrix3(const Matrix4<T>& matrix) noexcept;
 
+        /// @param row Row index.
+        /// @param col Column index.
+        /// @return The element at the row and column.
         [[nodiscard]] constexpr T& operator()(const std::size_t row, const std::size_t col) noexcept {
             return data[col * 3 + row];
         }
 
+        /// @param row Row index.
+        /// @param col Column index.
+        /// @return The element at the row and column.
         [[nodiscard]] constexpr const T& operator()(const std::size_t row, const std::size_t col) const noexcept {
             return data[col * 3 + row];
         }
 
+        /// @return A pointer to the elements, for GPU uploads.
         [[nodiscard]] constexpr const T* Data() const noexcept { return data; }
+        /// @return A pointer to the elements.
         [[nodiscard]] constexpr T* Data() noexcept { return data; }
 
+        /// @return The matrix product a times b; b is applied first to vectors.
         [[nodiscard]] friend constexpr Matrix3 operator*(const Matrix3& a, const Matrix3& b){
             Matrix3 retVal;
 
@@ -57,11 +74,14 @@ namespace SpinoCore::Math {
             return retVal;
         }
 
+        /// @brief Multiplies this matrix by another on the right.
         constexpr Matrix3& operator*=(const Matrix3& rhs) noexcept {
             *this = *this * rhs;
             return *this;
         }
 
+        /// @param outSuccess Receives false when the matrix cannot be inverted; it may be nullptr.
+        /// @return The inverse, or the identity when there is none.
         [[nodiscard]] constexpr Matrix3 GetInverse(bool* outSuccess = nullptr) const noexcept requires std::floating_point<T> {
             Matrix3 inv;
 
@@ -102,14 +122,16 @@ namespace SpinoCore::Math {
             return inv;
         }
 
+        /// @brief Inverts the matrix in place; a matrix without an inverse is left unchanged.
         constexpr void Invert() noexcept requires std::floating_point<T> {
             bool success = false;
-            Matrix3 inverse = GetInverse(&success);
+            const Matrix3 inverse = GetInverse(&success);
             if (success) {
                 *this = inverse;
             }
         }
 
+        /// @return The matrix with rows and columns swapped.
         [[nodiscard]] constexpr Matrix3 GetTransposed() const noexcept {
             Matrix3 transposed;
 
@@ -124,12 +146,15 @@ namespace SpinoCore::Math {
             return transposed;
         }
 
+        /// @brief Swaps rows and columns in place.
         constexpr void Transpose() noexcept {
             Operations::swap(data[1], data[3]);
             Operations::swap(data[2], data[6]);
             Operations::swap(data[5], data[7]);
         }
 
+        /// @param v Direction.
+        /// @return The direction transformed without translation.
         [[nodiscard]] constexpr Vector3<T> TransformVector(const Vector3<T>& v) const noexcept {
             return Vector3<T>(
                 v.x * operator()(0, 0) + v.y * operator()(0, 1) + v.z * operator()(0, 2),
@@ -138,17 +163,22 @@ namespace SpinoCore::Math {
             );
         }
 
+        /// @return The identity matrix.
         [[nodiscard]] static constexpr Matrix3 Identity() noexcept {
             return Matrix3();
         }
     };
 
+    /// @brief 4x4 matrix stored in column-major order, as OpenGL expects.
+    /// @tparam T Arithmetic type of the elements.
     template <typename T>
     class Matrix4 final {
         static_assert(std::is_arithmetic_v<T>, "Matrix4 must be of arithmetic type.");
     public:
+        /// Elements in column-major order.
         T data[16];
 
+        /// @brief Creates an identity matrix.
         constexpr Matrix4() noexcept :data{
             T{1}, T{0}, T{0}, T{0},
             T{0}, T{1}, T{0}, T{0},
@@ -156,23 +186,34 @@ namespace SpinoCore::Math {
             T{0}, T{0}, T{0}, T{1},
         }{}
 
+        /// @brief Creates a matrix from 16 elements in column-major order.
+        /// @param inData Elements to copy.
         constexpr explicit Matrix4(const T inData[16]) noexcept {
             for (std::size_t i = 0; i < 16; ++i) {
                 data[i] = inData[i];
             }
         }
 
+        /// @param row Row index.
+        /// @param col Column index.
+        /// @return The element at the row and column.
         [[nodiscard]] constexpr T& operator()(const std::size_t row, const std::size_t col) noexcept {
             return data[col * 4 + row];
         }
 
+        /// @param row Row index.
+        /// @param col Column index.
+        /// @return The element at the row and column.
         [[nodiscard]] constexpr const T& operator()(const std::size_t row, const std::size_t col) const noexcept {
             return data[col * 4 + row];
         }
 
+        /// @return A pointer to the elements, for GPU uploads.
         [[nodiscard]] constexpr const T* Data() const noexcept { return data; }
+        /// @return A pointer to the elements.
         [[nodiscard]] constexpr T* Data() noexcept { return data; }
 
+        /// @return The matrix product a times b; b is applied first to vectors.
         [[nodiscard]] friend constexpr Matrix4 operator*(const Matrix4& a, const Matrix4& b){
 		    Matrix4 retVal;
 
@@ -189,11 +230,14 @@ namespace SpinoCore::Math {
 		    return retVal;
 	    }
 
+        /// @brief Multiplies this matrix by another on the right.
         constexpr Matrix4& operator*=(const Matrix4& rhs) noexcept {
             *this = *this * rhs;
             return *this;
         }
 
+        /// @param outSuccess Receives false when the matrix cannot be inverted; it may be nullptr.
+        /// @return The inverse, or the identity when there is none.
         [[nodiscard]] constexpr Matrix4 GetInverse(bool* outSuccess = nullptr) const noexcept requires std::floating_point<T> {
             Matrix4 inv;
 
@@ -247,14 +291,16 @@ namespace SpinoCore::Math {
             return inv;
         }
 
+        /// @brief Inverts the matrix in place; a matrix without an inverse is left unchanged.
         constexpr void Invert() noexcept requires std::floating_point<T> {
             bool success = false;
-            Matrix4 inverse = GetInverse(&success);
+            const Matrix4 inverse = GetInverse(&success);
             if (success) {
                 *this = inverse;
             }
         }
 
+        /// @return The matrix with rows and columns swapped.
         [[nodiscard]] constexpr Matrix4 GetTransposed() const noexcept {
             Matrix4 transposed;
 
@@ -273,6 +319,7 @@ namespace SpinoCore::Math {
             return transposed;
         }
 
+        /// @brief Swaps rows and columns in place.
         constexpr void Transpose() noexcept {
             Operations::swap(data[1], data[4]);
             Operations::swap(data[2], data[8]);
@@ -282,6 +329,8 @@ namespace SpinoCore::Math {
             Operations::swap(data[11], data[14]);
         }
 
+        /// @param v Direction.
+        /// @return The direction transformed without translation.
         [[nodiscard]] constexpr Vector3<T> TransformVector(const Vector3<T>& v) const noexcept {
             return Vector3<T>(
                 v.x * operator()(0, 0) + v.y * operator()(0, 1) + v.z * operator()(0, 2),
@@ -290,6 +339,8 @@ namespace SpinoCore::Math {
             );
         }
 
+        /// @param v Point.
+        /// @return The point transformed with translation and divided by w.
         [[nodiscard]] constexpr Vector3<T> TransformPoint(const Vector3<T>& v) const noexcept requires std::floating_point<T> {
             T x = v.x * operator()(0, 0) + v.y * operator()(0, 1) + v.z * operator()(0, 2) + operator()(0, 3);
             T y = v.x * operator()(1, 0) + v.y * operator()(1, 1) + v.z * operator()(1, 2) + operator()(1, 3);
@@ -304,6 +355,7 @@ namespace SpinoCore::Math {
             return Vector3<T>{x, y, z};
         }
 
+        /// @return The matrix times a 4-component vector.
         [[nodiscard]] friend constexpr Vector4<T> operator*(const Matrix4& m, const Vector4<T>& v) noexcept {
             return Vector4<T>(
                 v.x * m(0, 0) + v.y * m(0, 1) + v.z * m(0, 2) + v.w * m(0, 3),
@@ -313,6 +365,7 @@ namespace SpinoCore::Math {
             );
         }
 
+        /// @return The identity matrix.
         [[nodiscard]] static constexpr Matrix4 Identity() noexcept {
             return Matrix4();
         }
@@ -327,6 +380,8 @@ namespace SpinoCore::Math {
         }
     }
 
+    /// 3x3 float matrix.
     using Matrix3f = Matrix3<float>;
+    /// 4x4 float matrix.
     using Matrix4f = Matrix4<float>;
 }

@@ -38,6 +38,7 @@ namespace {
 
     [[nodiscard]] std::vector<std::uint64_t> Keys(const UIDrawList& drawList) {
         std::vector<std::uint64_t> keys;
+        keys.reserve(drawList.commands.size());
         for (const auto& command : drawList.commands) keys.push_back(command.key);
         return keys;
     }
@@ -172,7 +173,7 @@ namespace {
 
     class EngineScreensManagerTests : public testing::Test {
     protected:
-        // Declared before the manager so it outlives the screens the manager destroys.
+
         Log log{};
         std::optional<EngineScreensManager> manager{std::in_place};
 
@@ -286,7 +287,7 @@ namespace {
         manager->GetDrawCommands(drawList);
 
         EXPECT_EQ(Keys(drawList), (std::vector{TestElement::KeyFor(1, 5), TestElement::KeyFor(2, 3)}));
-        // Anything on a higher layer sorts after everything below it, whatever its draw order.
+
         EXPECT_LT(TestElement::KeyFor(1, 1000), TestElement::KeyFor(2, 1));
     }
 

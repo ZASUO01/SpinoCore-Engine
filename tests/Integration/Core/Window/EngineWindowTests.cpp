@@ -86,25 +86,25 @@ namespace {
     }
 
     TEST_F(EngineWindowTests, HidesTheSystemCursorWhenAsked) {
-        EngineWindow window{WindowProps{}};
+        const EngineWindow window{WindowProps{}};
 
-        window.SetSystemCursorVisible(false);
+        EngineWindow::SetSystemCursorVisible(false);
 
-        EXPECT_FALSE(window.IsSystemCursorVisible());
+        EXPECT_FALSE(EngineWindow::IsSystemCursorVisible());
     }
 
     TEST_F(EngineWindowTests, ShowsTheSystemCursorAgainWhenAsked) {
-        EngineWindow window{WindowProps{}};
-        window.SetSystemCursorVisible(false);
+        const EngineWindow window{WindowProps{}};
+        EngineWindow::SetSystemCursorVisible(false);
 
-        window.SetSystemCursorVisible(true);
+        EngineWindow::SetSystemCursorVisible(true);
 
-        EXPECT_TRUE(window.IsSystemCursorVisible());
+        EXPECT_TRUE(EngineWindow::IsSystemCursorVisible());
     }
 
     TEST_F(EngineWindowTests, ClosingTheWindowShowsTheSystemCursorAgain) {
         std::optional<EngineWindow> window{std::in_place, WindowProps{}};
-        window->SetSystemCursorVisible(false);
+        EngineWindow::SetSystemCursorVisible(false);
 
         window.reset();
 

@@ -39,7 +39,7 @@ namespace SpinoCore {
         const LaunchOptions& launchOptions,
         Logs::LogOptions logOptions
     ) {
-        RunningGuard runningGuard{}; // NOLINT
+        const RunningGuard runningGuard{};
         if (!runningGuard.IsAcquired()) {
             std::fputs("[LAUNCH] Only one engine instance may run at a time.\n", stderr);
             return EXIT_FAILURE;
@@ -69,7 +69,6 @@ namespace SpinoCore {
             Logs::Logger::Fatal("The engine execution failed due non-standard exception.");
             return EXIT_FAILURE;
         }
-
 
         return EXIT_SUCCESS;
     }

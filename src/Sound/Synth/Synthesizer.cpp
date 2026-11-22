@@ -200,7 +200,7 @@ namespace SpinoCore::Sound::Synth {
         const auto& config = mTimbre->GetConfig();
 
         const double step = static_cast<double>(voice.frequency) * static_cast<double>(mSampleTimeStep);
-        const double spread = static_cast<double>(config.detune * DetuneSpread);
+        const auto spread = static_cast<double>(config.detune * DetuneSpread);
         Advance(voice.phaseL, step * (1.0 - spread));
         Advance(voice.phaseR, step * (1.0 + spread));
 

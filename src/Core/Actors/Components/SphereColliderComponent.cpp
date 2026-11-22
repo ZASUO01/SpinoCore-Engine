@@ -6,7 +6,8 @@
 
 namespace SpinoCore::Core::Actors::Components {
     namespace {
-        [[nodiscard]] ColliderInput AsSphere(ColliderInput input) {
+        [[nodiscard]] ColliderInput AsSphere(const ColliderInput& base) {
+            ColliderInput input = base;
             input.type = ColliderType::Sphere;
             return input;
         }

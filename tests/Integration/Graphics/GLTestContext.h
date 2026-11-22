@@ -18,8 +18,6 @@
 namespace SpinoCore::Tests {
     using Pixel = std::array<std::uint8_t, 4>;
 
-    // Brings up the engine's real GL context on the offscreen driver and renders into a small
-    // framebuffer, so the tests can read back exactly what the GPU drew.
     class GLTestContext : public testing::Test {
     protected:
         static constexpr GLsizei TargetSize = 16;
@@ -52,7 +50,6 @@ namespace SpinoCore::Tests {
             glDeleteRenderbuffers(1, &colorBuffer);
         }
 
-        // x and y count from the bottom-left corner, like OpenGL.
         [[nodiscard]] static Pixel ReadPixel(const GLint x, const GLint y) {
             Pixel pixel{};
             glReadPixels(x, y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel.data());

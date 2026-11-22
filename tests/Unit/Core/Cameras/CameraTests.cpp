@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <gtest/gtest.h>
@@ -19,7 +20,6 @@ namespace {
 
     constexpr float Tolerance = 1e-4f;
 
-    // Projects a point through view and projection and returns its normalized device coordinates.
     [[nodiscard]] Vector3f ToNDC(const Camera& camera, const Vector3f& worldPoint) {
         const Vector4f clip = camera.GetProjectionMatrix() * (camera.GetViewMatrix() * Vector4f{worldPoint, 1.0f});
         return Vector3f{clip.x / clip.w, clip.y / clip.w, clip.z / clip.w};
@@ -35,19 +35,15 @@ namespace {
     }
 
     [[nodiscard]] bool IsFinite(const Matrix4f& matrix) {
-        for (const float value : matrix.data) {
-            if (!std::isfinite(value)) return false;
-        }
-        return true;
+        return std::ranges::all_of(matrix.data, [](const float value) { return std::isfinite(value); });
     }
 
-    // A camera that sets nothing up, to observe what the base class does on its own.
     class BareCamera final : public Camera {
     public:
-        void Update(float /*deltaTime*/) override {}
+        void Update(float) override {}
     };
 
-    constexpr float DefaultEyeDistance = 5.196152f; // |(3, 3, 3)|
+    constexpr float DefaultEyeDistance = 5.196152f;
     const float HalfFovTangent = Operations::Tan(Operations::ToRadians(45.0f) / 2.0f);
 
     TEST(CameraTests, ABareCameraStartsWithIdentityMatrices) {

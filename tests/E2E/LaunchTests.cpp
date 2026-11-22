@@ -4,7 +4,8 @@
 #include <memory>
 #include <stdexcept>
 #include <gtest/gtest.h>
-#include <SDL3/SDL.h>
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_hints.h>
 #include "SpinoCore/Game/GameApplication.h"
 #include "SpinoCore/Game/InitializationContext.h"
 #include "SpinoCore/Launch.h"
@@ -20,7 +21,7 @@ namespace {
 
     class QuittingGame final : public GameApplication {
     public:
-        void Initialize(const InitializationContext& /*ctx*/) override {
+        void Initialize(const InitializationContext&) override {
             SDL_Event quit{};
             quit.type = SDL_EVENT_QUIT;
             SDL_PushEvent(&quit);
@@ -29,7 +30,7 @@ namespace {
 
     class FailingGame final : public GameApplication {
     public:
-        void Initialize(const InitializationContext& /*ctx*/) override {
+        void Initialize(const InitializationContext&) override {
             throw std::runtime_error("game failed to initialize");
         }
     };

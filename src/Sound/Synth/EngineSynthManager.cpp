@@ -6,6 +6,7 @@
 #include <SDL3/SDL_audio.h>
 #include <SDL3/SDL_error.h>
 #include "SpinoCore/Logs/Logger.h"
+#include "SpinoCore/Sound/Synth/SynthUtils.h"
 #include "SpinoCore/Sound/Synth/Timbre.h"
 
 namespace SpinoCore::Sound::Synth {

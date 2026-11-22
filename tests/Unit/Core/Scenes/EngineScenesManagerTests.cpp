@@ -26,6 +26,9 @@
 #include "SpinoCore/Core/Window/WindowProps.h"
 #include "SpinoCore/Core/Window/WindowSize.h"
 #include "SpinoCore/Files/FileManager.h"
+#include "SpinoCore/Graphics/PostProcess.h"
+#include "SpinoCore/Sound/Synth/Synthesizer.h"
+#include "SpinoCore/Sound/Synth/Timbre.h"
 #include "SpinoCore/Utils/Size2D.h"
 
 namespace {
@@ -35,9 +38,12 @@ namespace {
     using SpinoCore::Core::Input::InputState;
     using SpinoCore::Core::Lighting::GlobalLight;
     using SpinoCore::Graphics::EnginePostProcessManager;
+    using SpinoCore::Graphics::PostProcess;
     using SpinoCore::Sound::EngineSoundManager;
     using SpinoCore::Sound::Synth::AudioOutput;
     using SpinoCore::Sound::Synth::EngineSynthManager;
+    using SpinoCore::Sound::Synth::SynthMode;
+    using SpinoCore::Sound::Synth::Timbre;
     using SpinoCore::Core::Cameras::CamerasManager;
     using SpinoCore::Core::Scenes::ControlContext;
     using SpinoCore::Core::Scenes::EngineScenesManager;
@@ -91,6 +97,11 @@ namespace {
     protected:
         void OnUpdate(float) override {}
         void OnProcessInput(const InputState&) override {}
+    };
+
+    class SilentTimbre final : public Timbre {
+    public:
+        void SetupInstrument() override {}
     };
 
     class LoggedScreen final : public Screen {
@@ -264,6 +275,24 @@ namespace {
         scenesManager->PushScene(std::make_unique<TrackedScene>(log, "level"));
 
         EXPECT_TRUE(actorsManager.GetActors().empty());
+    }
+
+    TEST_F(EngineScenesManagerTests, PushingASceneRemovesThePostProcessesOfThePreviousOne) {
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "menu"));
+        postProcessManager.AddPostProcess("Flash", PostProcess{.fragmentShader = "void main() { outColor = vec4(1.0); }", .uniforms = {}});
+
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "level"));
+
+        EXPECT_FALSE(postProcessManager.Contains("Flash"));
+    }
+
+    TEST_F(EngineScenesManagerTests, PushingASceneRemovesTheInstrumentsOfThePreviousOne) {
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "menu"));
+        synthManager.Register("lead", Timbre::CreateUnique<SilentTimbre>(), SynthMode::Monophonic);
+
+        scenesManager->PushScene(std::make_unique<TrackedScene>(log, "level"));
+
+        EXPECT_FALSE(synthManager.Contains("lead"));
     }
 
     TEST_F(EngineScenesManagerTests, SceneThatWasNeverSetUpIsNotFinished) {

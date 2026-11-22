@@ -3,6 +3,7 @@
 #include "SDL/Helpers/Helpers.h"
 #include <array>
 #include <cstddef>
+#include <memory>
 #include <string>
 #include <SDL3/SDL_audio.h>
 #include <SDL3/SDL_iostream.h>
@@ -46,9 +47,9 @@ namespace SpinoCore::SDL::Helpers {
         return UniqueSDLSurface{SDL_ConvertSurface(loaded.get(), SDL_PIXELFORMAT_RGBA32)};
     }
 
-    UniqueSDLSurface CreateFromImage(const std::filesystem::path &path) noexcept {
+    UniqueSDLSurface CreateFromImage(const std::filesystem::path &path) {
         const std::u8string utf8 = path.u8string();
-        const auto cpath = reinterpret_cast<const char*>(utf8.c_str());
+        const auto* const cpath = reinterpret_cast<const char*>(utf8.c_str());
 
         UniqueSDLSurface loaded{IMG_Load(cpath)};
         if (!loaded) return nullptr;
@@ -61,9 +62,9 @@ namespace SpinoCore::SDL::Helpers {
         return converted;
     }
 
-    UniqueTTFFont CreateTTFFont(const std::filesystem::path &path, const float pointSize) noexcept {
+    UniqueTTFFont CreateTTFFont(const std::filesystem::path &path, const float pointSize) {
         const std::u8string utf8 = path.u8string();
-        const auto cpath = reinterpret_cast<const char*>(utf8.c_str());
+        const auto* const cpath = reinterpret_cast<const char*>(utf8.c_str());
 
         return UniqueTTFFont(TTF_OpenFont(cpath, pointSize));
     }
@@ -101,19 +102,17 @@ namespace SpinoCore::SDL::Helpers {
         MIX_Quit();
         if (failed || audio.samples.empty()) return std::nullopt;
 
-        audio.duration = static_cast<float>(audio.samples.size() / static_cast<std::size_t>(channels)) / static_cast<float>(sampleRate);
+        const std::size_t frames = audio.samples.size() / static_cast<std::size_t>(channels);
+        audio.duration = static_cast<float>(frames) / static_cast<float>(sampleRate);
         return audio;
     }
 
     std::optional<DecodedAudio> LoadAudio(const std::filesystem::path& path, const int sampleRate, const int channels) {
         const std::u8string utf8 = path.u8string();
         std::size_t size = 0;
-        void* contents = SDL_LoadFile(reinterpret_cast<const char*>(utf8.c_str()), &size);
+        const std::unique_ptr<void, decltype(&SDL_free)> contents{SDL_LoadFile(reinterpret_cast<const char*>(utf8.c_str()), &size), &SDL_free};
         if (!contents) return std::nullopt;
 
-        const std::span bytes(static_cast<const std::uint8_t*>(contents), size);
-        std::optional<DecodedAudio> audio = LoadAudio(bytes, sampleRate, channels);
-        SDL_free(contents);
-        return audio;
+        return LoadAudio(std::span(static_cast<const std::uint8_t*>(contents.get()), size), sampleRate, channels);
     }
 }

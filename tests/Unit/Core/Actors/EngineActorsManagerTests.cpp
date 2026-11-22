@@ -50,6 +50,28 @@ namespace {
         bool mSpawned{false};
     };
 
+    class ReportingSpawner final : public Actor {
+    public:
+        ReportingSpawner(EngineActorsManager& manager, Log& log) : mManager(manager), mLog(log) {}
+
+        const Actor* spawned{nullptr};
+        const Actor* returned{nullptr};
+
+    protected:
+        void OnUpdate(float) override {
+            if (spawned) return;
+            auto actor = std::make_unique<LoggedActor>(mLog, "spawned");
+            spawned = actor.get();
+            returned = mManager.AddActor(std::move(actor));
+        }
+
+        void OnProcessInput(const InputState&) override {}
+
+    private:
+        EngineActorsManager& mManager;
+        Log& mLog;
+    };
+
     class EngineActorsManagerTests : public testing::Test {
     protected:
         Log log{};
@@ -64,6 +86,16 @@ namespace {
         const Actor* added = manager.AddActor(std::move(early));
 
         EXPECT_EQ(added, expected);
+    }
+
+    TEST_F(EngineActorsManagerTests, AddingAnActorDuringAnUpdateReturnsThatActor) {
+        auto spawner = std::make_unique<ReportingSpawner>(manager, log);
+        const ReportingSpawner& reporter = *spawner;
+        manager.AddActor(std::move(spawner));
+
+        manager.UpdateActors(0.016f);
+
+        EXPECT_EQ(reporter.returned, reporter.spawned);
     }
 
     TEST_F(EngineActorsManagerTests, AddingANullActorIsIgnored) {

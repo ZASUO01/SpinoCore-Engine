@@ -28,7 +28,7 @@ namespace {
         EXPECT_FLOAT_EQ(data[3], 4.0f);
     }
 
-    TEST(VectorTests, ArithmeticIsComponentWise) {
+    TEST(VectorTests, ArithmeticBetweenVectorsIsComponentWise) {
         const Vector3f a{1.0f, 2.0f, 3.0f};
         const Vector3f b{4.0f, 5.0f, 6.0f};
 
@@ -36,9 +36,20 @@ namespace {
         EXPECT_TRUE(VectorsNear(b - a, Vector3f{3.0f, 3.0f, 3.0f}));
         EXPECT_TRUE(VectorsNear(a * b, Vector3f{4.0f, 10.0f, 18.0f}));
         EXPECT_TRUE(VectorsNear(b / a, Vector3f{4.0f, 2.5f, 2.0f}));
-        EXPECT_TRUE(VectorsNear(2.0f * a, a * 2.0f));
+    }
+
+    TEST(VectorTests, ScalarArithmeticAppliesToEveryComponent) {
+        const Vector3f a{1.0f, 2.0f, 3.0f};
+
+        EXPECT_TRUE(VectorsNear(2.0f * a, Vector3f{2.0f, 4.0f, 6.0f}));
+        EXPECT_TRUE(VectorsNear(a * 2.0f, Vector3f{2.0f, 4.0f, 6.0f}));
         EXPECT_TRUE(VectorsNear(a / 2.0f, Vector3f{0.5f, 1.0f, 1.5f}));
         EXPECT_TRUE(VectorsNear(6.0f / a, Vector3f{6.0f, 3.0f, 2.0f}));
+    }
+
+    TEST(VectorTests, NegationFlipsEveryComponent) {
+        const Vector3f a{1.0f, 2.0f, 3.0f};
+
         EXPECT_TRUE(VectorsNear(-a, Vector3f{-1.0f, -2.0f, -3.0f}));
     }
 

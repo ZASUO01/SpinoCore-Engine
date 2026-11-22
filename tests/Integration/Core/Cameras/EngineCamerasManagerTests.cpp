@@ -4,7 +4,7 @@
 #include <memory>
 #include <optional>
 #include <gtest/gtest.h>
-#include <SDL3/SDL.h>
+#include <SDL3/SDL_hints.h>
 #include "Core/Cameras/EngineCamerasManager.h"
 #include "Core/Events/EventBus.h"
 #include "Core/Events/TypeEvents/WindowEvents.h"
@@ -36,7 +36,6 @@ namespace {
     using SpinoCore::SDL::Context;
     using SpinoCore::Utils::Size2D;
 
-    // A camera on the +X axis looking at the origin, that moves one unit further away on every update.
     class TestCamera final : public Camera {
     public:
         explicit TestCamera(int* updates = nullptr) : mUpdates(updates) {
@@ -64,7 +63,6 @@ namespace {
         return true;
     }
 
-    // The aspect ratio the projection was built for: with a vertical FOV, x is scaled by 1 / aspect relative to y.
     [[nodiscard]] float AspectOf(const Matrix4f& projection) { return projection(1, 1) / projection(0, 0); }
 
     class EngineCamerasManagerTests : public testing::Test {
@@ -209,7 +207,7 @@ namespace {
         EXPECT_EQ(otherUpdates, 0);
         const Camera& current = *manager->GetCamera("current");
         EXPECT_TRUE(RendererShows(current));
-        // The eye moved from x = 10 to x = 12, so the origin is now 12 units in front of it.
+
         EXPECT_TRUE(Vector3f::NearlyEqual(current.GetViewMatrix().TransformPoint(Vector3f::Zero()), Vector3f{0.0f, 0.0f, -12.0f}));
     }
 
@@ -242,7 +240,6 @@ namespace {
     TEST_F(EngineCamerasManagerTests, AfterTheManagerIsDestroyedResizesNoLongerReachIt) {
         manager.reset();
 
-        // Would touch freed cameras if the subscription outlived the manager (caught by ASan).
         DispatchResize({.width = 900, .height = 300});
 
         SUCCEED();

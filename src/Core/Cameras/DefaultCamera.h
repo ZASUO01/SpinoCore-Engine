@@ -21,7 +21,7 @@ namespace SpinoCore::Core::Cameras {
 
         ~DefaultCamera() override = default;
 
-        void Update(float /*dt*/) override {}
+        void Update(float) override {}
 
     private:
         static constexpr float FOV = 45.0f;

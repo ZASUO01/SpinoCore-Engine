@@ -33,7 +33,10 @@ namespace SpinoCore::Core::Window {
 
         [[nodiscard]] std::optional<Size2D> UsableArea(SDL_Window* window) noexcept {
             auto area = UsableArea(SDL_GetDisplayForWindow(window));
-            int top = 0, left = 0, bottom = 0, right = 0;
+            int top = 0;
+            int left = 0;
+            int bottom = 0;
+            int right = 0;
             if (area && SDL_GetWindowBordersSize(window, &top, &left, &bottom, &right)) {
                 area->width -= left + right;
                 area->height -= top + bottom;

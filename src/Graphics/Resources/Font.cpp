@@ -5,6 +5,7 @@
 #include <array>
 #include <format>
 #include <functional>
+#include <optional>
 #include <span>
 #include <stdexcept>
 #include <string_view>
@@ -42,53 +43,74 @@ namespace SpinoCore::Graphics::Resources {
             SDL_Point position{0, 0};
         };
 
-        FontAtlas GenerateAtlas(TTF_Font* font) {
-            FontAtlas atlas;
-            atlas.ascent = TTF_GetFontAscent(font);
-            atlas.lineHeight = TTF_GetFontLineSkip(font);
+        struct GlyphLayout final {
+            std::vector<RenderedGlyph> glyphs;
+            int height{1};
+        };
 
-            std::vector<RenderedGlyph> rendered;
+        [[nodiscard]] std::optional<RenderedGlyph> RenderGlyph(TTF_Font* font, const char32_t codepoint, const int ascent) {
+            if (!TTF_FontHasGlyph(font, codepoint)) return std::nullopt;
+
+            int minX = 0;
+            int maxX = 0;
+            int minY = 0;
+            int maxY = 0;
+            int advance = 0;
+            if (!TTF_GetGlyphMetrics(font, codepoint, &minX, &maxX, &minY, &maxY, &advance)) return std::nullopt;
+
+            RenderedGlyph glyph{codepoint, {}, nullptr};
+            glyph.info.advance = advance;
+            glyph.info.bearingX = minX;
+            glyph.info.bearingY = ascent - maxY;
+
+            if (maxX > minX && maxY > minY) {
+                glyph.image.reset(TTF_GetGlyphImage(font, codepoint, nullptr));
+            }
+            return glyph;
+        }
+
+        [[nodiscard]] GlyphLayout LayoutGlyphs(TTF_Font* font, const int ascent) {
+            GlyphLayout layout;
             int penX = 0;
             int penY = 0;
             int rowHeight = 0;
 
             for (const auto& [first, last] : CHARACTER_RANGES) {
                 for (char32_t codepoint = first; codepoint <= last; ++codepoint) {
-                    if (!TTF_FontHasGlyph(font, codepoint)) continue;
+                    std::optional<RenderedGlyph> glyph = RenderGlyph(font, codepoint, ascent);
+                    if (!glyph) continue;
 
-                    int minX = 0, maxX = 0, minY = 0, maxY = 0, advance = 0;
-                    if (!TTF_GetGlyphMetrics(font, codepoint, &minX, &maxX, &minY, &maxY, &advance)) continue;
-
-                    RenderedGlyph glyph{codepoint, {}, nullptr};
-                    glyph.info.advance = advance;
-                    glyph.info.bearingX = minX;
-                    glyph.info.bearingY = atlas.ascent - maxY;
-
-                    if (maxX > minX && maxY > minY) {
-                        glyph.image.reset(TTF_GetGlyphImage(font, codepoint, nullptr));
-                    }
-
-                    if (glyph.image) {
-                        const int width = glyph.image->w;
-                        const int height = glyph.image->h;
+                    if (glyph->image) {
+                        const int width = glyph->image->w;
+                        const int height = glyph->image->h;
                         if (penX + width > ATLAS_WIDTH) {
                             penX = 0;
                             penY += rowHeight + GLYPH_PADDING;
                             rowHeight = 0;
                         }
-                        glyph.position = {penX, penY};
-                        glyph.info.width = width;
-                        glyph.info.height = height;
+                        glyph->position = {penX, penY};
+                        glyph->info.width = width;
+                        glyph->info.height = height;
 
                         penX += width + GLYPH_PADDING;
                         rowHeight = std::max(rowHeight, height);
                     }
 
-                    rendered.push_back(std::move(glyph));
+                    layout.glyphs.push_back(std::move(*glyph));
                 }
             }
 
-            const int atlasHeight = std::max(1, penY + rowHeight);
+            layout.height = std::max(1, penY + rowHeight);
+            return layout;
+        }
+
+        FontAtlas GenerateAtlas(TTF_Font* font) {
+            FontAtlas atlas;
+            atlas.ascent = TTF_GetFontAscent(font);
+            atlas.lineHeight = TTF_GetFontLineSkip(font);
+
+            GlyphLayout layout = LayoutGlyphs(font, atlas.ascent);
+            const int atlasHeight = layout.height;
 
             const SDL::UniqueSDLSurface atlasSurface{SDL_CreateSurface(ATLAS_WIDTH, atlasHeight, SDL_PIXELFORMAT_RGBA32)};
             if (!atlasSurface) throw std::runtime_error("[FONT] Failed to create the atlas surface.");
@@ -97,9 +119,9 @@ namespace SpinoCore::Graphics::Resources {
             constexpr auto atlasWidthF = static_cast<float>(ATLAS_WIDTH);
             const auto atlasHeightF = static_cast<float>(atlasHeight);
 
-            for (auto&[codepoint, info, image, position] : rendered) {
+            for (auto&[codepoint, info, image, position] : layout.glyphs) {
                 if (image) {
-                    SDL_Rect destination{position.x, position.y, info.width, info.height};
+                    const SDL_Rect destination{position.x, position.y, info.width, info.height};
                     SDL_SetSurfaceBlendMode(image.get(), SDL_BLENDMODE_NONE);
                     SDL_BlitSurface(image.get(), nullptr, atlasSurface.get(), &destination);
 
@@ -114,7 +136,6 @@ namespace SpinoCore::Graphics::Resources {
             atlas.texture = std::make_unique<Texture>(atlasSurface.get());
             return atlas;
         }
-
 
         using FontOpener = std::function<SDL::UniqueTTFFont(float pointSize)>;
 

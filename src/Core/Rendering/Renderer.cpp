@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
-#include <SDL3/SDL.h>
-#include <glad/glad.h>
 #include "Renderer.h"
+#include <SDL3/SDL_video.h>
+#include <glad/glad.h>
 #include "Graphics/PostProcess/EnginePostProcessManager.h"
 #include "Graphics/Resources/Texture.h"
 #include "SpinoCore/Math/Vector.h"

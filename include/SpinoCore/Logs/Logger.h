@@ -11,49 +11,77 @@
 #include "LogLevel.h"
 
 namespace SpinoCore::Logs {
+    /// @brief Format string that also records where it was written.
+    /// @tparam Args Types of the format arguments.
     template <typename... Args>
     struct BasicFormatWithLocation final {
+        /// @brief Checks the format string at compile time.
+        /// @param fmt Format string.
+        /// @param loc Location of the call.
         template <typename T>
         requires std::convertible_to<const T&, std::format_string<Args...>>
-        consteval BasicFormatWithLocation(const T& fmt, // NOLINT(google-explicit-constructor)
+        consteval BasicFormatWithLocation(const T& fmt,
                                           const std::source_location loc = std::source_location::current())
             : format(fmt), location(loc) {}
 
+        /// Checked format string.
         std::format_string<Args...> format;
+        /// Location of the call.
         std::source_location location;
     };
 
+    /// @brief Format string type deduced only from the arguments.
     template <typename... Args>
     using FormatWithLocation = BasicFormatWithLocation<std::type_identity_t<Args>...>;
 
+    /// @brief Static logging functions with std::format syntax.
+    ///
+    /// Messages below the current level are skipped. Logging never throws.
     class Logger final {
     public:
         Logger() = delete;
 
+        /// @brief Changes the lowest level written.
+        /// @param level New level.
         static void SetLevel(const Level level) noexcept {
             globalLevel.store(level, std::memory_order_relaxed);
         }
 
+        /// @brief Writes a message whatever the level.
+        /// @param fmt Format string.
+        /// @param args Format arguments.
         template <typename... Args>
         static void Force(FormatWithLocation<Args...> fmt, Args&&... args) noexcept {
             Log(Level::Force, fmt, std::forward<Args>(args)...);
         }
 
+        /// @brief Writes an information message.
+        /// @param fmt Format string.
+        /// @param args Format arguments.
         template <typename... Args>
         static void Info(FormatWithLocation<Args...> fmt, Args&&... args) noexcept {
             Log(Level::Info, fmt, std::forward<Args>(args)...);
         }
 
+        /// @brief Writes a warning.
+        /// @param fmt Format string.
+        /// @param args Format arguments.
         template <typename... Args>
         static void Warn(FormatWithLocation<Args...> fmt, Args&&... args) noexcept {
             Log(Level::Warn, fmt, std::forward<Args>(args)...);
         }
 
+        /// @brief Writes an error.
+        /// @param fmt Format string.
+        /// @param args Format arguments.
         template <typename... Args>
         static void Error(FormatWithLocation<Args...> fmt, Args&&... args) noexcept {
             Log(Level::Error, fmt, std::forward<Args>(args)...);
         }
 
+        /// @brief Writes a fatal error.
+        /// @param fmt Format string.
+        /// @param args Format arguments.
         template <typename... Args>
         static void Fatal(FormatWithLocation<Args...> fmt, Args&&... args) noexcept {
             Log(Level::Fatal, fmt, std::forward<Args>(args)...);

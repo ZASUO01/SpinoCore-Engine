@@ -27,7 +27,6 @@ namespace {
     using SpinoCore::Graphics::Resources::Texture;
     using SpinoCore::Tests::Pixel;
 
-    // A fresh folder under the system temp directory, removed when the test ends.
     class TempDirectory final {
     public:
         TempDirectory() {
@@ -48,18 +47,16 @@ namespace {
         fs::path mPath;
     };
 
-    // Image given row by row, top row first, as RGBA bytes.
     struct Image final {
         int width;
         int height;
         std::vector<Pixel> pixels;
 
         [[nodiscard]] Pixel At(const int x, const int y) const {
-            return pixels[static_cast<std::size_t>(y * width + x)];
+            return pixels[(static_cast<std::size_t>(y) * static_cast<std::size_t>(width)) + static_cast<std::size_t>(x)];
         }
     };
 
-    // Distinct opaque or translucent colors, so any swap of rows, columns or channels shows up.
     [[nodiscard]] Image MakeImage(const int width, const int height, const bool translucent) {
         Image image{width, height, {}};
         for (int y = 0; y < height; ++y) {
@@ -92,7 +89,6 @@ namespace {
         return ok;
     }
 
-    // 24-bit BMP: 3 bytes per pixel, rows padded to 4 bytes, no alpha. Goes through the RGBA conversion.
     [[nodiscard]] bool SaveRGB24BMP(const Image& image, const fs::path& path) {
         SDL_Surface* surface = ToSurface(image, SDL_PIXELFORMAT_RGB24);
         const auto utf8 = path.u8string();
@@ -106,7 +102,6 @@ namespace {
         out << bytes;
     }
 
-    // Texture contents as GL stores them: row 0 is the first row uploaded.
     [[nodiscard]] std::vector<Pixel> ReadTexture(const Texture& texture) {
         const auto size = texture.GetSize();
         std::vector<Pixel> pixels(static_cast<std::size_t>(size.width * size.height));
@@ -142,8 +137,6 @@ namespace {
     };
 }
 
-// ---------------------------------------------------------------- loading
-
 TEST_F(TextureTests, LoadsAPngWithExactPixelsAndSize) {
     const auto image = MakeImage(3, 2, true);
     const auto path = dir.Path() / "rgba.png";
@@ -157,10 +150,8 @@ TEST_F(TextureTests, LoadsAPngWithExactPixelsAndSize) {
     EXPECT_EQ(glGetError(), static_cast<GLenum>(GL_NO_ERROR));
 }
 
-// The image's top row is uploaded first, so texture row 0 (v = 0) is the top of the image.
-// That matches the UI quad, whose y = 0 is the top of the screen.
 TEST_F(TextureTests, FirstTextureRowIsTheTopOfTheImage) {
-    Image image{1, 2, {{255, 0, 0, 255}, {0, 0, 255, 255}}};
+    const Image image{1, 2, {{255, 0, 0, 255}, {0, 0, 255, 255}}};
     const auto path = dir.Path() / "top-red.png";
     ASSERT_TRUE(SavePNG(image, path)) << SDL_GetError();
 
@@ -181,7 +172,7 @@ TEST_F(TextureTests, OddWidthsKeepEveryRowAligned) {
 }
 
 TEST_F(TextureTests, ConvertsRgbImagesToOpaqueRgba) {
-    // 3 pixels * 3 bytes = 9 bytes per row, padded in the file: exercises both conversion and pitch.
+
     const auto image = MakeImage(3, 3, false);
     const auto path = dir.Path() / "rgb24.bmp";
     ASSERT_TRUE(SaveRGB24BMP(image, path)) << SDL_GetError();
@@ -198,8 +189,6 @@ TEST_F(TextureTests, LoadsPathsWithNonAsciiCharacters) {
     const Texture texture{path};
     ExpectSameContent(texture, image, false);
 }
-
-// ---------------------------------------------------------------- GL state
 
 TEST_F(TextureTests, UsesLinearFiltering) {
     const auto path = dir.Path() / "filters.png";
@@ -252,7 +241,7 @@ TEST_F(TextureTests, ErrorsLeftByEarlierGLCallsDoNotFailTheLoad) {
     const auto path = dir.Path() / "pending-error.png";
     ASSERT_TRUE(SavePNG(MakeImage(2, 2, false), path)) << SDL_GetError();
 
-    glEnable(0xFFFF);  // GL_INVALID_ENUM, left pending on purpose.
+    glEnable(0xFFFF);
     EXPECT_NO_THROW({ const Texture texture{path}; });
 }
 
@@ -292,8 +281,6 @@ TEST_F(TextureTests, EachTextureGetsItsOwnId) {
     EXPECT_NE(first.GetID(), second.GetID());
 }
 
-// ---------------------------------------------------------------- failures
-
 TEST_F(TextureTests, MissingFileThrows) {
     EXPECT_THROW({ const Texture texture{dir.Path() / "missing.png"}; }, std::runtime_error);
 }
@@ -315,21 +302,27 @@ TEST_F(TextureTests, FailedLoadLeavesNoGLErrorBehind) {
     EXPECT_EQ(glGetError(), static_cast<GLenum>(GL_NO_ERROR));
 }
 
-// ---------------------------------------------------------------- default constructor: blank texture
-
-TEST_F(TextureTests, BlankTextureIsOneOpaqueWhitePixel) {
+TEST_F(TextureTests, BlankTextureIsAValidGLTexture) {
     const auto texture = std::make_unique<Texture>();
 
-    ASSERT_NE(texture, nullptr);
-    EXPECT_NE(texture->GetID(), 0u);
     EXPECT_TRUE(glIsTexture(texture->GetID()));
+    EXPECT_EQ(glGetError(), static_cast<GLenum>(GL_NO_ERROR));
+}
+
+TEST_F(TextureTests, BlankTextureIsASinglePixel) {
+    const auto texture = std::make_unique<Texture>();
+
     EXPECT_EQ(texture->GetSize().width, 1);
     EXPECT_EQ(texture->GetSize().height, 1);
+}
+
+TEST_F(TextureTests, BlankTextureIsOpaqueWhite) {
+    const auto texture = std::make_unique<Texture>();
 
     const auto pixels = ReadTexture(*texture);
+
     ASSERT_EQ(pixels.size(), 1u);
     EXPECT_EQ(pixels[0], (Pixel{255, 255, 255, 255}));
-    EXPECT_EQ(glGetError(), static_cast<GLenum>(GL_NO_ERROR));
 }
 
 TEST_F(TextureTests, BlankTextureUsesTheSameParametersAsLoadedOnes) {
@@ -363,7 +356,7 @@ TEST_F(TextureTests, BlankTextureRestoresUnpackStateAndBinding) {
 
 TEST_F(TextureTests, EachBlankTextureIsIndependent) {
     const auto first = std::make_unique<Texture>();
-    GLuint firstId = first->GetID();
+    const GLuint firstId = first->GetID();
     {
         const auto second = std::make_unique<Texture>();
         EXPECT_NE(second->GetID(), firstId);
@@ -381,8 +374,6 @@ TEST_F(TextureTests, BlankTextureIsReleasedWithItsOwner) {
     EXPECT_FALSE(glIsTexture(id));
 }
 
-// ---------------------------------------------------------------- from a surface
-
 TEST_F(TextureTests, CopiesAnRgbaSurfaceWithExactPixelsAndSize) {
     const auto image = MakeImage(3, 2, true);
     SDL_Surface* surface = ToSurface(image, SDL_PIXELFORMAT_RGBA32);
@@ -394,7 +385,6 @@ TEST_F(TextureTests, CopiesAnRgbaSurfaceWithExactPixelsAndSize) {
     ExpectSameContent(texture, image, false);
 }
 
-// SDL_ttf renders ARGB8888, so surfaces in other layouts must come out the same as RGBA ones.
 TEST_F(TextureTests, ConvertsSurfacesInOtherPixelFormats) {
     const auto image = MakeImage(3, 2, true);
     SDL_Surface* surface = ToSurface(image, SDL_PIXELFORMAT_ARGB8888);

@@ -49,11 +49,11 @@ namespace {
             SDL_PumpEvents();
             SDL_FlushEvents(SDL_EVENT_FIRST, SDL_EVENT_LAST);
 
-            resizeSubscription = bus.Listen<WindowResizeEvent>([](WindowResizeEvent& event, // NOLINT
+            resizeSubscription = bus.Listen<WindowResizeEvent>([](WindowResizeEvent& event,
                 void* received) {
                 static_cast<ReceivedEvents*>(received)->resizes.push_back(event.size);
             }, &received);
-            visibilitySubscription = bus.Listen<WindowVisibilityChangedEvent>([](WindowVisibilityChangedEvent& event, // NOLINT
+            visibilitySubscription = bus.Listen<WindowVisibilityChangedEvent>([](WindowVisibilityChangedEvent& event,
                 void* received) {
                 static_cast<ReceivedEvents*>(received)->visibility.push_back(event.visible);
             }, &received);

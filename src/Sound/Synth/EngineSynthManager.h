@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
 #pragma once
+#include <algorithm>
 #include <array>
 #include <atomic>
 #include <cstddef>
@@ -45,8 +46,7 @@ namespace SpinoCore::Sound::Synth {
 
         bool SetVolume(std::string_view name, float volume) override;
         void SetMasterVolume(float volume) override;
-        void SetDucking(float gain) noexcept { mDuckingTarget.store(gain < 0.0f ? 0.0f : gain > 1.0f ? 1.0f : gain, std::memory_order_relaxed); }
-        [[nodiscard]] float GetDucking() const noexcept { return mDucking; }
+        void SetDucking(float gain) noexcept { mDuckingTarget.store(std::clamp(gain, 0.0f, 1.0f), std::memory_order_relaxed); }
         [[nodiscard]] float GetMasterVolume() const override { return mMasterVolume.load(std::memory_order_relaxed); }
 
         [[nodiscard]] bool Contains(std::string_view name) const override;

@@ -62,8 +62,6 @@ namespace {
         return event;
     }
 
-    // Keyboard
-
     TEST(InputStateTests, NothingIsHeldBeforeAnyEvent) {
         const InputState input{};
 
@@ -160,8 +158,6 @@ namespace {
         EXPECT_TRUE(input.WasKeyPressed(SDL_SCANCODE_E));
     }
 
-    // Mouse buttons
-
     TEST(InputStateTests, AMouseButtonPressedThisFrameIsHeld) {
         InputState input{};
         input.BeginFrame();
@@ -219,8 +215,6 @@ namespace {
         EXPECT_FLOAT_EQ(input.GetMousePosition().x, 40.0f);
         EXPECT_FLOAT_EQ(input.GetMousePosition().y, 25.0f);
     }
-
-    // Mouse motion and wheel
 
     TEST(InputStateTests, MovingTheMouseUpdatesItsPosition) {
         InputState input{};
@@ -302,8 +296,6 @@ namespace {
 
         EXPECT_FALSE(input.IsMouseInWindow());
     }
-
-    // Focus
 
     TEST(InputStateTests, LosingFocusReleasesHeldKeys) {
         InputState input{};

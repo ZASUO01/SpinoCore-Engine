@@ -18,7 +18,6 @@ namespace {
     constexpr float HalfPi = SpinoCore::Math::Constants::PIOver2<float>;
     constexpr float Pi = SpinoCore::Math::Constants::PI<float>;
 
-    // The angle a unit quaternion rotates by, ignoring the q / -q ambiguity.
     [[nodiscard]] float AngleBetween(const Quaternionf& a, const Quaternionf& b) {
         return 2.0f * Operations::Acos(Operations::Abs(a.Dot(b)));
     }
@@ -131,7 +130,7 @@ namespace {
 
     TEST(QuaternionTests, SlerpTakesTheShortestPath) {
         const Quaternionf start;
-        // 300 degrees one way is 60 degrees the other way.
+
         const Quaternionf end{Vector3f::UnitZ(), Operations::ToRadians(300.0f)};
 
         const Quaternionf halfway = Quaternionf::Slerp(start, end, 0.5f);
@@ -176,7 +175,7 @@ namespace {
     }
 
     TEST(QuaternionTests, FromAxesRebuildsTheRotationOfAMatrix) {
-        // Cover each branch of the conversion: positive trace and each dominant diagonal.
+
         const Quaternionf rotations[] = {
             Quaternionf{Vector3f{1.0f, 1.0f, 0.0f}.Normalized(), 0.4f},
             Quaternionf{Vector3f::UnitX(), Pi * 0.95f},
@@ -199,7 +198,7 @@ namespace {
         const Quaternionf look = Quaternionf::LookRotation(forward);
 
         EXPECT_TRUE(VectorsNear(look.Rotate(Vector3f::NegUnitZ()), forward));
-        // The rotated up stays in the plane of world up and forward, so the view does not roll.
+
         EXPECT_NEAR(look.Rotate(Vector3f::UnitX()).y, 0.0f, 1e-5f);
     }
 

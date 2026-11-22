@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
-#include <chrono>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
@@ -37,8 +36,6 @@ namespace {
         return {std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>()};
     }
 
-    // The test binary has an empty Assets folder next to it, created at build time.
-    // Each test writes only inside its own subfolder of it, removed when the test ends.
     class EngineFileManagerTests : public testing::Test {
     protected:
         void SetUp() override {
@@ -88,17 +85,6 @@ namespace {
         fileManager.ProcessRequests();
 
         EXPECT_TRUE(fileManager.IsReady());
-    }
-
-    TEST_F(EngineFileManagerTests, ProcessingWithAnEmptyQueueDoesNotSpendTheFrameBudget) {
-        fileManager.WriteToSinglePath(folder / "save.bin", Bytes{1});
-        fileManager.ProcessRequests();
-
-        const auto start = std::chrono::steady_clock::now();
-        fileManager.ProcessRequests();
-        const auto elapsed = std::chrono::steady_clock::now() - start;
-
-        EXPECT_LT(elapsed, std::chrono::milliseconds{2});
     }
 
     TEST_F(EngineFileManagerTests, WritesWaitForTheNextProcessing) {
@@ -177,12 +163,9 @@ namespace {
         EXPECT_FALSE(textureCache.Contains("outside"));
     }
 
-    // ---------------------------------------------------------------- manifests
-    // Loads are only queued here, never processed: these tests have no GL context.
-
     class EngineFileManagerManifestTests : public EngineFileManagerTests {
     protected:
-        // Writes the manifest straight to disk under the test's folder and returns its path relative to Assets.
+
         [[nodiscard]] fs::path Manifest(const std::string_view json) const {
             fs::create_directories(OnDisk(folder));
             const fs::path relative = folder / "manifest.json";

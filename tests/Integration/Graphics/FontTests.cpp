@@ -4,11 +4,11 @@
 #include <filesystem>
 #include <fstream>
 #include <initializer_list>
+#include <ios>
 #include <random>
 #include <stdexcept>
 #include <string>
 #include <system_error>
-#include <unordered_map>
 #include <vector>
 #include <gtest/gtest.h>
 #include <glad/glad.h>
@@ -28,7 +28,6 @@ namespace {
     using SpinoCore::Tests::Pixel;
     namespace Embedded = SpinoCore::Graphics::Resources::Embedded;
 
-    // A fresh folder under the system temp directory, removed when the test ends.
     class TempDirectory final {
     public:
         TempDirectory() {
@@ -61,8 +60,6 @@ namespace {
 
     using FontTests = SpinoCore::Tests::GLTestContext;
 
-    // ---------------------------------------------------------------- default font
-
     TEST_F(FontTests, DefaultFontBuildsAnAtlasForEverySize) {
         const Font font{};
 
@@ -94,7 +91,6 @@ namespace {
         EXPECT_EQ(space.height, 0);
     }
 
-    // At the biggest size the glyphs no longer fit in one 512x512 page, so the atlas grows instead of clipping them.
     TEST_F(FontTests, EveryGlyphFitsInsideItsAtlas) {
         const Font font{};
         const FontAtlas* atlas = font.GetAtlas(FontSize::Size72);
@@ -108,7 +104,6 @@ namespace {
         }
     }
 
-    // The atlas holds white glyphs whose coverage is in the alpha channel, so the UI shader can tint them.
     TEST_F(FontTests, GlyphPixelsAreWhiteWithCoverageInAlpha) {
         const Font font{};
         const FontAtlas* atlas = font.GetAtlas(FontSize::Size72);
@@ -118,12 +113,11 @@ namespace {
 
         const int centerX = static_cast<int>(bar.uMin * static_cast<float>(atlasSize.width)) + bar.width / 2;
         const int centerY = static_cast<int>(bar.vMin * static_cast<float>(atlasSize.height)) + bar.height / 2;
-        const Pixel center = pixels[static_cast<std::size_t>(centerY * atlasSize.width + centerX)];
+        const Pixel center = pixels[(static_cast<std::size_t>(centerY) * static_cast<std::size_t>(atlasSize.width)) + static_cast<std::size_t>(centerX)];
 
         EXPECT_EQ(center, (Pixel{255, 255, 255, 255}));
     }
 
-    // Measured from the top of the line: a descender like 'g' ends below the baseline that capitals sit on.
     TEST_F(FontTests, BearingYPlacesGlyphsOnACommonBaseline) {
         const Font font{};
         const FontAtlas* atlas = font.GetAtlas(FontSize::Size36);
@@ -142,8 +136,6 @@ namespace {
 
         EXPECT_LT(font.GetAtlas(FontSize::Size12)->lineHeight, font.GetAtlas(FontSize::Size48)->lineHeight);
     }
-
-    // ---------------------------------------------------------------- from a file
 
     TEST_F(FontTests, LoadsAFontFileWithTheSameGlyphsAsTheEmbeddedCopy) {
         const TempDirectory dir;

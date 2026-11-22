@@ -1,0 +1,6 @@
+InheritParentConfig: true
+Checks: >
+  -cppcoreguidelines-special-member-functions,
+  -bugprone-use-after-move,
+  -bugprone-throwing-static-initialization,
+  -readability-suspicious-call-argument

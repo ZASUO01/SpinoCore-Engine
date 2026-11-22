@@ -173,7 +173,7 @@ namespace {
 
     class FailingGame final : public GameApplication {
     public:
-        void Initialize(const InitializationContext& /*ctx*/) override {
+        void Initialize(const InitializationContext&) override {
             throw std::runtime_error("game failed to initialize");
         }
     };

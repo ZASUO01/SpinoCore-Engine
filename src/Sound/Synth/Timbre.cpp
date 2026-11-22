@@ -8,10 +8,6 @@ namespace SpinoCore::Sound::Synth {
         constexpr float ReverbSeconds = 0.034f;
     }
 
-    Timbre::Timbre() = default;
-
-    Timbre::~Timbre() = default;
-
     void Timbre::Prepare(const int sampleRate) {
         mSampleRate = std::max(sampleRate, 1);
 

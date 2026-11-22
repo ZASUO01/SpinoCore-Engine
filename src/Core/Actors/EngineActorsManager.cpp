@@ -6,6 +6,7 @@
 #include <utility>
 #include "Physics/CollisionProcessor.h"
 #include "SpinoCore/Core/Actors/Components/ColliderComponent.h"
+#include "SpinoCore/Core/Actors/Components/Component.h"
 
 namespace SpinoCore::Core::Actors {
     EngineActorsManager::EngineActorsManager(Physics::CollisionProcessor* collisionProcessor)
@@ -19,16 +20,17 @@ namespace SpinoCore::Core::Actors {
     Actor* EngineActorsManager::AddActor(std::unique_ptr<Actor> actor) {
         if (!actor) return nullptr;
 
-        actor->SetComponentListener(Actor::ManagerKey{}, this);
+        Actor* added = actor.get();
+        added->SetComponentListener(Actor::ManagerKey{}, this);
 
         if (mIsUpdatingActors) {
             mPendingActors.emplace_back(std::move(actor));
-            return mPendingActors.back().get();
+            return added;
         }
 
         mActors.emplace_back(std::move(actor));
         SortByUpdateOrder();
-        return mActors.back().get();
+        return added;
     }
 
     void EngineActorsManager::CleanUp() {

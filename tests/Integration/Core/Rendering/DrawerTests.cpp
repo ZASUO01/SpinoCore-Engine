@@ -39,14 +39,11 @@ namespace {
             GLTestContext::TearDown();
         }
 
-        // Same convention as the engine: window pixels, origin at the top-left corner, y pointing down.
         [[nodiscard]] static Matrix4f PixelOrtho() {
             const auto size = static_cast<float>(TargetSize);
             return MatrixFactory::CreateOrtho(0.0f, size, size, 0.0f, -1.0f, 1.0f);
         }
 
-        // A command for an axis-aligned rectangle given in pixels, built the way elements build theirs:
-        // the unit quad is centered and scaled to the rectangle.
         [[nodiscard]] static UIDrawCommand RectCommand(const float x, const float y, const float width, const float height,
                                                        const Vector4f& color, const std::uint64_t key = 0) {
             UIDrawCommand command{};
@@ -59,7 +56,6 @@ namespace {
             return command;
         }
 
-        // Reads a pixel addressed like the UI: from the top-left corner, y pointing down.
         [[nodiscard]] static Pixel UIPixel(const int x, const int y) { return ReadPixel(x, TargetSize - 1 - y); }
 
         void Submit(const UIDrawCommand& command) { drawer->GetUIDrawList().commands.push_back(command); }
@@ -95,12 +91,12 @@ namespace {
     }
 
     TEST_F(DrawerTests, CommandsWithTheSameKeyKeepTheOrderTheyWereSubmittedIn) {
-        // Many ties mixed with lower keys: an unstable sort moves equal elements around while partitioning.
+
         for (int i = 0; i < 256; ++i) {
             const std::uint64_t key = i % 3 == 0 ? 1 : 5;
             Submit(RectCommand(0.0f, 0.0f, 16.0f, 16.0f, i % 2 == 0 ? BlueColor : RedColor, key));
         }
-        // The last command submitted with the top key must be the one left on screen.
+
         Submit(RectCommand(0.0f, 0.0f, 16.0f, 16.0f, RedColor, 5));
 
         drawer->DrawUI(PixelOrtho());
@@ -130,7 +126,6 @@ namespace {
         EXPECT_EQ(UIPixel(8, 8), Red);
     }
 
-    // The engine refills the list every frame, so drawing must consume it or it grows forever.
     TEST_F(DrawerTests, DrawingConsumesTheQueuedCommands) {
         Submit(RectCommand(0.0f, 0.0f, 4.0f, 4.0f, RedColor, 2));
         Submit(RectCommand(0.0f, 0.0f, 4.0f, 4.0f, RedColor, 1));

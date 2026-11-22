@@ -114,7 +114,7 @@ namespace {
     }
 
     TEST(RectTests, DifferentLayersAndOrdersNeverShareAKey) {
-        // With a key of order * layer, (layer 2, order 50) and (layer 1, order 100) would collide.
+
         Rect a{WithOrder(50)};
         Rect b{WithOrder(100)};
 

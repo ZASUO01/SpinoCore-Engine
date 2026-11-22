@@ -37,7 +37,6 @@ namespace SpinoCore::Graphics {
 
         [[nodiscard]] Resources::Texture* GetTexture() const;
         [[nodiscard]] std::uint32_t GetID() const noexcept { return mFBO; }
-        [[nodiscard]] const FrameBufferSpecification& GetSpecification() const noexcept { return mSpec; }
 
     private:
         void Reset();

@@ -10,6 +10,7 @@
 #include "Sound/Synth/EngineSynthManager.h"
 #include "SpinoCore/Sound/Synth/SynthManager.h"
 #include "SpinoCore/Sound/Synth/Synthesizer.h"
+#include "SpinoCore/Sound/Synth/SynthUtils.h"
 #include "SpinoCore/Sound/Synth/Timbre.h"
 
 namespace {

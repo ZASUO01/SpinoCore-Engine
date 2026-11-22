@@ -26,13 +26,13 @@ namespace SpinoCore::Core::UI::Elements {
             if ((lead & 0xE0) == 0xC0) { continuationBytes = 1; codepoint = lead & 0x1F; }
             else if ((lead & 0xF0) == 0xE0) { continuationBytes = 2; codepoint = lead & 0x0F; }
             else if ((lead & 0xF8) == 0xF0) { continuationBytes = 3; codepoint = lead & 0x07; }
-            else return REPLACEMENT_CHARACTER;
+            else { return REPLACEMENT_CHARACTER; }
 
             for (int i = 0; i < continuationBytes; ++i) {
                 if (index >= text.size()) return REPLACEMENT_CHARACTER;
                 const auto next = static_cast<unsigned char>(text[index]);
                 if ((next & 0xC0) != 0x80) return REPLACEMENT_CHARACTER;
-                codepoint = (codepoint << 6) | (next & 0x3F); // NOLINT
+                codepoint = (codepoint << 6) | (next & 0x3F);
                 ++index;
             }
             return codepoint;

@@ -76,6 +76,41 @@ namespace SpinoCore::Files {
             return path;
         }
 
+        struct ManifestEntry final {
+            AssetType type{AssetType::None};
+            std::string id;
+            std::filesystem::path path;
+            std::filesystem::path texturePath;
+            std::filesystem::path materialPath;
+        };
+
+        ManifestEntry ParseManifestEntry(const Utils::JSON& asset, const std::size_t index, const std::filesystem::path& manifestPath) {
+            if (!asset.is_object()) {
+                throw std::runtime_error(std::format("[FILE MANAGER] Asset {} in manifest {} must be an object.", index, manifestPath.string()));
+            }
+
+            ManifestEntry entry;
+            entry.id = RequireString(asset, "name", index, manifestPath);
+            const std::string& type = RequireString(asset, "type", index, manifestPath);
+            entry.path = PathFromUTF8(RequireString(asset, "path", index, manifestPath));
+
+            entry.type = StringToAssetType(type);
+            if (entry.type == AssetType::None) {
+                throw std::runtime_error(std::format(R"([FILE MANAGER] Asset "{}" in manifest {} has an unknown type "{}".)",
+                                                     entry.id, manifestPath.string(), type));
+            }
+            if (entry.path.is_absolute()) {
+                throw std::runtime_error(std::format("[FILE MANAGER] Asset \"{}\" in manifest {} must have a path relative to the Assets folder.",
+                                                     entry.id, manifestPath.string()));
+            }
+
+            if (entry.type == AssetType::Model) {
+                entry.texturePath = OptionalPath(asset, "texture", entry.id, manifestPath);
+                entry.materialPath = OptionalPath(asset, "material", entry.id, manifestPath);
+            }
+            return entry;
+        }
+
         struct MaterialOverride final {
             std::optional<Math::Vector4f> baseColor{};
             std::filesystem::path texturePath{};
@@ -140,31 +175,10 @@ namespace SpinoCore::Files {
         std::vector<FileRequest> requests;
         requests.reserve(assets.size());
         for (std::size_t index = 0; index < assets.size(); ++index) {
-            const auto& asset = assets[index];
-            if (!asset.is_object()) {
-                throw std::runtime_error(std::format("[FILE MANAGER] Asset {} in manifest {} must be an object.", index, manifestPath.string()));
-            }
-
-            const std::string& id = RequireString(asset, "name", index, manifestPath);
-            const std::string& type = RequireString(asset, "type", index, manifestPath);
-            const std::filesystem::path path = PathFromUTF8(RequireString(asset, "path", index, manifestPath));
-
-            const auto assetType = StringToAssetType(type);
-            if (assetType == AssetType::None) {
-                throw std::runtime_error(std::format(R"([FILE MANAGER] Asset "{}" in manifest {} has an unknown type "{}".)",
-                                                     id, manifestPath.string(), type));
-            }
-            if (path.is_absolute()) {
-                throw std::runtime_error(std::format("[FILE MANAGER] Asset \"{}\" in manifest {} must have a path relative to the Assets folder.",
-                                                     id, manifestPath.string()));
-            }
-
-            FileRequest request{.operation = Operation::Load, .type = assetType, .id = id, .path = path};
-            if (assetType == AssetType::Model) {
-                request.texturePath = OptionalPath(asset, "texture", id, manifestPath);
-                request.materialPath = OptionalPath(asset, "material", id, manifestPath);
-            }
-            requests.push_back(std::move(request));
+            ManifestEntry entry = ParseManifestEntry(assets[index], index, manifestPath);
+            requests.push_back(FileRequest{.operation = Operation::Load, .type = entry.type, .id = std::move(entry.id),
+                                           .path = std::move(entry.path), .data = {}, .texturePath = std::move(entry.texturePath),
+                                           .materialPath = std::move(entry.materialPath)});
         }
 
         for (auto& request : requests) Enqueue(std::move(request));

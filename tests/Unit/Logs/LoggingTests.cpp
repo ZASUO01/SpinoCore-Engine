@@ -36,10 +36,9 @@ namespace {
 
     class ThrowingSink final : public LogSink {
     public:
-        void Write(const LogRecord& /*record*/) override { throw std::runtime_error("sink failed"); }
+        void Write(const LogRecord&) override { throw std::runtime_error("sink failed"); }
     };
 
-    // A sink that logs while writing, which would recurse forever without the reentrancy guard.
     class LoggingSink final : public LogSink {
     public:
         explicit LoggingSink(std::vector<CapturedLog>& logs) : mLogs(logs) {}

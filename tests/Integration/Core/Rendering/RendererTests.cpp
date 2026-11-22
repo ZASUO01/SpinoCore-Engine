@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <optional>
 #include <gtest/gtest.h>
-#include <SDL3/SDL.h>
+#include <SDL3/SDL_hints.h>
 #include <glad/glad.h>
 #include "Core/Events/EventBus.h"
 #include "Core/Events/TypeEvents/WindowEvents.h"
@@ -88,14 +88,13 @@ namespace {
         renderer->SetCamera(view, projection);
 
         const auto& matrices = renderer->GetCameraMatrices();
-        // Translate first (z = -5), then scale: (1, 1, 0) -> (1, 1, -5) -> (2, 3, -5).
+
         const Vector4f result = matrices.viewProjection * Vector4f{1.0f, 1.0f, 0.0f, 1.0f};
         EXPECT_TRUE(Vector4f::NearlyEqual(result, Vector4f{2.0f, 3.0f, -5.0f, 1.0f}));
         EXPECT_FLOAT_EQ(matrices.view(2, 3), -5.0f);
         EXPECT_FLOAT_EQ(matrices.projection(1, 1), 3.0f);
     }
 
-    // The 2D projection uses window coordinates with the origin at the top-left corner and y pointing down.
     TEST_F(RendererTests, TheOrthoProjectionMapsWindowCornersToTheScreenCorners) {
         const auto& ortho = renderer->GetOrthoViewProjection();
         const auto width = static_cast<float>(WINDOW_SIZE_MIN.width);
@@ -121,7 +120,6 @@ namespace {
         for (std::size_t i = 0; i < 16; ++i) EXPECT_FLOAT_EQ(renderer->GetOrthoViewProjection().data[i], before.data[i]);
     }
 
-    // The engine refills the UI draw list every frame, so each Draw must consume it.
     TEST_F(RendererTests, DrawConsumesTheUIDrawList) {
         renderer->GetUIDrawList().commands.push_back({.key = 1});
         renderer->GetUIDrawList().commands.push_back({.key = 2});

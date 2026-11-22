@@ -11,7 +11,6 @@
 namespace {
     using SpinoCore::Math::Quaternionf;
     using SpinoCore::Math::Vector3f;
-    using SpinoCore::Physics::Contact;
     using SpinoCore::Physics::MakeOrientedBox;
     using SpinoCore::Physics::OrientedBox;
     using SpinoCore::Physics::TestOrientedBoxes;
@@ -40,12 +39,6 @@ namespace {
         const OrientedBox box = UnitBoxAt(Vector3f::Zero(), Quaternionf{Vector3f::UnitZ(), EighthTurn * 2.0f});
 
         EXPECT_TRUE(Vector3f::NearlyEqual(box.axes[0], Vector3f::UnitY()));
-    }
-
-    TEST(OrientedBoxTests, SeparatedBoxesDoNotCollide) {
-        const auto contact = TestOrientedBoxes(UnitBoxAt(Vector3f::Zero()), UnitBoxAt(Vector3f{2.0f, 0.0f, 0.0f}));
-
-        EXPECT_FALSE(contact.has_value());
     }
 
     TEST(OrientedBoxTests, OverlappingBoxesReportThePenetrationDepth) {

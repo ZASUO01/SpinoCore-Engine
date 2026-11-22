@@ -10,11 +10,17 @@ namespace SpinoCore::Core::Input {
 }
 
 namespace SpinoCore::Core::UI::Elements {
+    /// @brief Rectangle that follows the mouse; a screen can have one.
     class Cursor final : public Rect {
     public:
+        /// @brief Creates a cursor.
+        /// @param input Size and colors of the cursor.
         explicit Cursor(const RectInput& input) : Rect(input) {}
 
+        /// @brief Sets the texture of the cursor.
+        /// @param name Name of a texture in the texture cache.
         void SetTexture(std::string name) { mTextureName = std::move(name); }
+        /// @return The texture name.
         [[nodiscard]] const std::string& GetTexture() const { return mTextureName; }
 
     protected:

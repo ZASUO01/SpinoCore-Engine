@@ -24,7 +24,7 @@ namespace SpinoCore::Core::Window {
         [[nodiscard]] Size2D GetSize() const noexcept override;
         bool SetSize(Size2D size) noexcept override;
 
-        [[nodiscard]]  static bool IsSystemCursorVisible() noexcept;
+        [[nodiscard]] static bool IsSystemCursorVisible() noexcept;
         static void SetSystemCursorVisible(bool visible) noexcept;
 
         [[nodiscard]] SDL_Window* GetSDLWindow() const { return mSDLWindow.get(); }

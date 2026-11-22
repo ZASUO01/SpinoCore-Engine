@@ -18,49 +18,83 @@ namespace SpinoCore::Graphics::Resources {
 }
 
 namespace SpinoCore::Core::UI::Elements {
+    /// @brief Horizontal alignment of text inside its element.
     enum class TextAlignment : std::uint8_t {
         Left,
         Center,
         Right,
     };
 
+    /// @brief What happens when text is wider than its element.
     enum class TextOverflow : std::uint8_t {
+        /// The text is drawn past the edges.
         Visible,
+        /// Glyphs past the edges are not drawn.
         Hidden,
+        /// The end of the text stays visible, as in an input field.
         ScrollToEnd,
     };
 
+    /// @brief Settings of a text element.
     struct TextInput final : RectInput {
+        /// UTF-8 text.
         std::string text{};
+        /// Name of a font in the font cache; empty uses the default font.
         std::string font{};
+        /// Font size.
         Graphics::Resources::FontSize fontSize{Graphics::Resources::FontSize::Size16};
+        /// RGBA text color.
         Math::Vector4f color{0.0f, 0.0f, 0.0f, 1.0f};
+        /// Horizontal alignment.
         TextAlignment alignment{TextAlignment::Center};
+        /// Overflow behaviour.
         TextOverflow overflow{TextOverflow::Visible};
     };
 
+    /// @brief Single line of text over a background rectangle.
     class Text : public Rect {
     public:
+        /// @brief Creates a text element; the background uses the rectangle settings of the input.
+        /// @param input Initial settings.
         explicit Text(const TextInput& input);
 
+        /// @brief Replaces the text.
+        /// @param text UTF-8 text.
         void SetText(std::string text) { mText = std::move(text); mIsLayoutDirty = true; }
+        /// @return The UTF-8 text.
         [[nodiscard]] const std::string& GetText() const { return mText; }
 
+        /// @brief Changes the font.
+        /// @param font Name in the font cache; a missing font draws the default one.
         void SetFont(std::string font) { mFontName = std::move(font); InvalidateFont(); }
+        /// @return The font name.
         [[nodiscard]] const std::string& GetFont() const { return mFontName; }
 
+        /// @brief Changes the font size.
+        /// @param size New size.
         void SetFontSize(const Graphics::Resources::FontSize size) { mFontSize = size; InvalidateFont(); }
+        /// @return The font size.
         [[nodiscard]] Graphics::Resources::FontSize GetFontSize() const { return mFontSize; }
 
+        /// @brief Changes the text color.
+        /// @param color RGBA color.
         void SetColor(const Math::Vector4f& color) { mColor = color; }
+        /// @return The text color.
         [[nodiscard]] const Math::Vector4f& GetColor() const { return mColor; }
 
+        /// @brief Changes the alignment.
+        /// @param alignment New alignment.
         void SetAlignment(const TextAlignment alignment) { mAlignment = alignment; mIsLayoutDirty = true; }
+        /// @return The alignment.
         [[nodiscard]] TextAlignment GetAlignment() const { return mAlignment; }
 
+        /// @brief Changes the overflow behaviour.
+        /// @param overflow New behaviour.
         void SetOverflow(const TextOverflow overflow) { mOverflow = overflow; mIsLayoutDirty = true; }
+        /// @return The overflow behaviour.
         [[nodiscard]] TextOverflow GetOverflow() const { return mOverflow; }
 
+        /// @return The background rectangle, a child of this element.
         [[nodiscard]] Rect& GetBackground() const { return *mBackground; }
 
     protected:

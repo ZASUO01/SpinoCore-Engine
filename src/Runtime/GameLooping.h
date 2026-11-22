@@ -21,7 +21,6 @@ namespace SpinoCore::Runtime {
         ~GameLooping() override = default;
 
         void Run(FrameOperations& operations) {
-            constexpr float fixedDeltaSeconds = std::chrono::duration<float>(FixedDelta).count();
             Duration accumulator{0};
             auto previousTime = Clock::now();
             auto fpsSampleStart = previousTime;
@@ -38,40 +37,13 @@ namespace SpinoCore::Runtime {
                 if (!operations.ProcessEvents()) break;
                 operations.ProcessFrameInputs();
 
-                if (operations.PrepareSimulation()) {
-                    if (!mPaused.load(std::memory_order_relaxed)) {
-                        accumulator += frameTime;
-                        while (accumulator >= FixedDelta) {
-                            operations.ProcessSimulationInputs();
-                            operations.UpdateSimulation(fixedDeltaSeconds);
-                            accumulator -= FixedDelta;
-                        }
-                    } else {
-                        operations.DiscardSimulationInputs();
-                    }
-                    operations.Interpolate(std::chrono::duration<float>(accumulator) / FixedDelta);
-                } else {
-                    operations.DiscardSimulationInputs();
-                    accumulator = Duration{0};
-                    previousTime = Clock::now();
-                }
+                StepSimulation(operations, frameTime, accumulator, previousTime);
                 operations.Render();
 
                 if (mStopRequested.load(std::memory_order_relaxed)) break;
 
-                const Duration minimumFramePeriod = operations.GetFramePeriod();
-                if (const Duration workTime = std::chrono::duration_cast<Duration>(Clock::now() - frameStart); workTime < minimumFramePeriod) {
-                    SDL_DelayPrecise(static_cast<Uint64>((minimumFramePeriod - workTime).count()));
-                }
-
-                ++framesInSample;
-                const auto frameEnd = Clock::now();
-                if (const auto sampleTime = frameEnd - fpsSampleStart; sampleTime >= FpsSampleInterval) {
-                    mMeasuredFps.store(static_cast<float>(framesInSample) / std::chrono::duration<float>(sampleTime).count(),
-                                       std::memory_order_relaxed);
-                    framesInSample = 0;
-                    fpsSampleStart = frameEnd;
-                }
+                WaitForFramePeriod(operations, frameStart);
+                SampleFps(fpsSampleStart, framesInSample);
             }
 
             mStopRequested.store(false, std::memory_order_relaxed);
@@ -86,6 +58,47 @@ namespace SpinoCore::Runtime {
         static constexpr Duration FixedDelta{1'000'000'000 / 60};
         static constexpr Duration MaxFrameTime{250'000'000};
         static constexpr Duration FpsSampleInterval{1'000'000'000};
+
+        void StepSimulation(FrameOperations& operations, const Duration frameTime, Duration& accumulator,
+                            Clock::time_point& previousTime) {
+            if (!operations.PrepareSimulation()) {
+                operations.DiscardSimulationInputs();
+                accumulator = Duration{0};
+                previousTime = Clock::now();
+                return;
+            }
+
+            if (mPaused.load(std::memory_order_relaxed)) {
+                operations.DiscardSimulationInputs();
+            } else {
+                constexpr float fixedDeltaSeconds = std::chrono::duration<float>(FixedDelta).count();
+                accumulator += frameTime;
+                while (accumulator >= FixedDelta) {
+                    operations.ProcessSimulationInputs();
+                    operations.UpdateSimulation(fixedDeltaSeconds);
+                    accumulator -= FixedDelta;
+                }
+            }
+            operations.Interpolate(std::chrono::duration<float>(accumulator) / FixedDelta);
+        }
+
+        static void WaitForFramePeriod(FrameOperations& operations, const Clock::time_point frameStart) {
+            const Duration minimumFramePeriod = operations.GetFramePeriod();
+            if (const Duration workTime = std::chrono::duration_cast<Duration>(Clock::now() - frameStart); workTime < minimumFramePeriod) {
+                SDL_DelayPrecise(static_cast<Uint64>((minimumFramePeriod - workTime).count()));
+            }
+        }
+
+        void SampleFps(Clock::time_point& sampleStart, std::uint32_t& framesInSample) {
+            ++framesInSample;
+            const auto frameEnd = Clock::now();
+            if (const auto sampleTime = frameEnd - sampleStart; sampleTime >= FpsSampleInterval) {
+                mMeasuredFps.store(static_cast<float>(framesInSample) / std::chrono::duration<float>(sampleTime).count(),
+                                   std::memory_order_relaxed);
+                framesInSample = 0;
+                sampleStart = frameEnd;
+            }
+        }
 
         std::atomic<bool> mStopRequested{false};
         std::atomic<bool> mPaused{false};

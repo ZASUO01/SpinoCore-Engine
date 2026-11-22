@@ -44,9 +44,9 @@ namespace SpinoCore::Logs {
         const ReentrancyGuard reentrancyGuard{};
 
         try {
-            const LogRecord record{level, std::chrono::system_clock::now(), location, message};
+            const LogRecord record{level, std::chrono::system_clock::now(), location, std::move(message)};
 
-            std::lock_guard lock(gMutex);
+            const std::scoped_lock lock(gMutex);
             if (gContext) {
                 gContext->Dispatch(record);
             }
@@ -57,7 +57,7 @@ namespace SpinoCore::Logs {
     LogSystem::LogSystem(std::unique_ptr<LogSink> sink)
     :mContext(sink ? std::move(sink) : std::make_unique<ConsoleSink>())
     {
-        std::lock_guard lock(gMutex);
+        const std::scoped_lock lock(gMutex);
         if (gContext) {
             throw std::logic_error("[LOG SYSTEM] Only one LogSystem may exist at a time");
         }
@@ -65,7 +65,7 @@ namespace SpinoCore::Logs {
     }
 
     LogSystem::~LogSystem() {
-        std::lock_guard lock(gMutex);
+        const std::scoped_lock lock(gMutex);
         gContext = nullptr;
     }
 }

@@ -117,7 +117,7 @@ namespace {
         data.clips.push_back({.name = "run", .duration = 1.0f, .tracks = {}});
         const Model model{data, {Model::Material{}}};
 
-        EXPECT_EQ(model.FindClip("run"), &model.GetClips()[0]);
+        EXPECT_EQ(model.FindClip("run"), model.GetClips().data());
         EXPECT_EQ(model.FindClip("fly"), nullptr);
     }
 

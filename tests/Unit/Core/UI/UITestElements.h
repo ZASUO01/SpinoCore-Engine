@@ -10,8 +10,7 @@
 #include "SpinoCore/Core/UI/Screen.h"
 
 namespace SpinoCore::Tests {
-    // Emits one command per draw, keyed by layer and draw order, and remembers its own name so
-    // the tests can see which elements were drawn.
+
     class TestElement final : public Core::UI::Elements::Element {
     public:
         explicit TestElement(const Core::UI::Elements::ElementInput& input = {}, std::string name = {},
@@ -28,14 +27,13 @@ namespace SpinoCore::Tests {
             if (mDrawn) mDrawn->push_back(mName);
         }
 
-        void OnProcessInput(const Core::Input::InputState& /*state*/) override {}
+        void OnProcessInput(const Core::Input::InputState&) override {}
 
     private:
         std::string mName;
         std::vector<std::string>* mDrawn;
     };
 
-    // Records the lifecycle callbacks the manager sends, prefixed with the screen's name.
     class TestScreen final : public Core::UI::Screen {
     public:
         TestScreen(std::string name, std::vector<std::string>& log) : mName(std::move(name)), mLog(log) {}

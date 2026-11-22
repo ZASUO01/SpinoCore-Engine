@@ -44,7 +44,6 @@ namespace {
     constexpr Vector4f Transparent{0.0f, 0.0f, 0.0f, 0.0f};
     constexpr Vector4f GreenColor{0.0f, 1.0f, 0.0f, 1.0f};
 
-    // Draws Images through the real Drawer and shader into the 16x16 test framebuffer, with real textures.
     class ImageDrawTests : public GLTestContext {
     protected:
         void SetUp() override {
@@ -62,13 +61,12 @@ namespace {
         void TearDown() override {
             std::error_code ignored;
             fs::remove_all(folder, ignored);
-            // Textures and GL objects go before the context the fixture owns.
+
             textures.reset();
             drawer.reset();
             GLTestContext::TearDown();
         }
 
-        // A texture of width x height whose pixels come from color(x, y), row 0 at the top.
         template <typename ColorAt>
         void AddTexture(const std::string& name, const int width, const int height, ColorAt color) {
             SDL_Surface* surface = SDL_CreateSurface(width, height, SDL_PIXELFORMAT_RGBA32);
@@ -86,7 +84,6 @@ namespace {
             textures->Add(name, std::make_unique<const Texture>(path));
         }
 
-        // Fills the whole 16x16 target.
         [[nodiscard]] static ImageInput FullScreen(const std::string& name, const Vector4f& background = Transparent) {
             ImageInput input{};
             input.anchor = Vector2f{8.0f, 8.0f};
@@ -104,7 +101,6 @@ namespace {
 
         void ClearTarget() const { glClear(GL_COLOR_BUFFER_BIT); }
 
-        // Reads a pixel addressed like the UI: from the top-left corner, y pointing down.
         [[nodiscard]] static Pixel UIPixel(const int x, const int y) { return ReadPixel(x, TargetSize - 1 - y); }
 
         std::optional<Drawer> drawer{};
@@ -140,7 +136,6 @@ namespace {
         EXPECT_EQ(UIPixel(8, 8), White);
     }
 
-    // Loads finish a few frames after the request: the image has to pick the texture up once it arrives.
     TEST_F(ImageDrawTests, TexturesCachedLaterAreUsedFromTheNextFrame) {
         Image image{FullScreen("hero")};
         Draw(image);
@@ -191,8 +186,6 @@ namespace {
         EXPECT_EQ(UIPixel(8, 8), Blue);
     }
 
-    // The demo's case: the manifest loads one texture per frame, so an image whose texture comes second
-    // is drawn once with the default while another image already has its own.
     TEST_F(ImageDrawTests, AnImageWaitingForItsTextureGetsItWhenItLoadsAfterAnother) {
         AddTexture("hero", 1, 1, [](int, int) { return Red; });
         Image image{FullScreen("image")};
@@ -266,7 +259,6 @@ namespace {
         EXPECT_EQ(UIPixel(8, 8), Green);
     }
 
-    // A textured command must not leave its texture bound for the plain rectangles drawn after it.
     TEST_F(ImageDrawTests, PlainRectanglesAfterAnImageAreNotTextured) {
         AddTexture("hero", 1, 1, [](int, int) { return Red; });
         Image image{FullScreen("hero")};
@@ -303,7 +295,6 @@ namespace {
         EXPECT_EQ(UIPixel(8, 8), lowColor);
     }
 
-    // Many images alternating two textures at the same order: grouped by texture, each still draws its own.
     TEST_F(ImageDrawTests, ImagesSharingADrawOrderEachKeepTheirTexture) {
         AddTexture("red", 1, 1, [](int, int) { return Red; });
         AddTexture("blue", 1, 1, [](int, int) { return Blue; });

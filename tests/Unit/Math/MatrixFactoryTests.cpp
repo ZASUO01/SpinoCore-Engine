@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
+#include <algorithm>
 #include <cmath>
 #include <gtest/gtest.h>
 #include "MathTestHelpers.h"
@@ -21,17 +22,13 @@ namespace {
 
     constexpr float HalfPi = SpinoCore::Math::Constants::PIOver2<float>;
 
-    // Projects a point and returns its normalized device coordinates.
     [[nodiscard]] Vector3f ToNDC(const Matrix4f& projection, const Vector3f& point) {
         const Vector4f clip = projection * Vector4f{point, 1.0f};
         return Vector3f{clip.x / clip.w, clip.y / clip.w, clip.z / clip.w};
     }
 
     [[nodiscard]] bool IsFinite(const Matrix4f& matrix) {
-        for (const float value : matrix.data) {
-            if (!std::isfinite(value)) return false;
-        }
-        return true;
+        return std::ranges::all_of(matrix.data, [](const float value) { return std::isfinite(value); });
     }
 
     TEST(MatrixFactoryTests, IdentityAxesFollowTheOpenGLConvention) {
@@ -56,7 +53,6 @@ namespace {
         EXPECT_TRUE(VectorsNear(MatrixFactory::CreateScale(1.0f, 2.0f, 3.0f).TransformPoint(Vector3f::One()), Vector3f{1.0f, 2.0f, 3.0f}));
     }
 
-    // Positive angles turn counter-clockwise when looking down the axis toward the origin (right-handed).
     TEST(MatrixFactoryTests, RotationsAreCounterClockwiseAndRightHanded) {
         EXPECT_TRUE(VectorsNear(MatrixFactory::CreateRotationX(HalfPi).TransformVector(Vector3f::UnitY()), Vector3f::UnitZ()));
         EXPECT_TRUE(VectorsNear(MatrixFactory::CreateRotationY(HalfPi).TransformVector(Vector3f::UnitZ()), Vector3f::UnitX()));
@@ -85,7 +81,6 @@ namespace {
 
         const Matrix4f transform = MatrixFactory::CreateTransform(translation, rotation, scale);
 
-        // (1, 0, 0) -> scaled (2, 0, 0) -> rotated (0, 2, 0) -> translated (10, 2, 0).
         EXPECT_TRUE(VectorsNear(transform.TransformPoint(Vector3f::UnitX()), Vector3f{10.0f, 2.0f, 0.0f}));
     }
 
@@ -97,7 +92,6 @@ namespace {
         EXPECT_TRUE(VectorsNear(MatrixFactory::GetTranslation(transform), Vector3f{1.0f, 2.0f, 3.0f}));
     }
 
-    // Euler angles are (pitch about X, yaw about Y, roll about Z), applied as yaw * pitch * roll.
     TEST(MatrixFactoryTests, EulerAnglesComposeAsYawPitchRoll) {
         const float pitch = 0.4f;
         const float yaw = -1.2f;
@@ -124,7 +118,6 @@ namespace {
         EXPECT_TRUE(VectorsNear(MatrixFactory::GetRotationEuler(transform), angles, 1e-4f));
     }
 
-    // Looking straight up or down loses one degree of freedom; the angles must still rebuild the same rotation.
     TEST(MatrixFactoryTests, EulerAnglesAtGimbalLockStillDescribeTheSameRotation) {
         const Matrix4f rotation = MatrixFactory::CreateFromQuaternion(Quaternionf::FromEuler(HalfPi, 0.5f, 0.3f));
 
@@ -194,9 +187,8 @@ namespace {
     TEST(MatrixFactoryTests, PerspectiveUsesAVerticalFieldOfViewAndTheAspectRatio) {
         const Matrix4f projection = MatrixFactory::CreatePerspectiveFOV(HalfPi, 800.0f, 600.0f, 0.1f, 100.0f);
 
-        // With a 90 degree vertical FOV the top edge at depth d is at y = d.
         EXPECT_NEAR(ToNDC(projection, Vector3f{0.0f, 5.0f, -5.0f}).y, 1.0f, 1e-5f);
-        // The right edge is wider by the aspect ratio.
+
         EXPECT_NEAR(ToNDC(projection, Vector3f{5.0f * 800.0f / 600.0f, 0.0f, -5.0f}).x, 1.0f, 1e-5f);
     }
 

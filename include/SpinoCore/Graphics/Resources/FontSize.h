@@ -2,7 +2,9 @@
 // Copyright (c) 2026 ZASUO01
 #pragma once
 
+/// @brief Graphics resource types shared with games.
 namespace SpinoCore::Graphics::Resources {
+    /// @brief Font sizes available for text; each value is the size in points.
     enum class FontSize : int {
         Size10 = 10,
         Size12 = 12,

@@ -52,7 +52,7 @@ namespace SpinoCore::Core::Actors::Components {
             mVelocity.z = 0.0f;
         }
 
-        const auto actor = GetActor();
+        auto* const actor = GetActor();
         actor->SetPosition(actor->GetPosition() + mVelocity * deltaTime);
         mAcceleration = Math::Vector3f::Zero();
     }

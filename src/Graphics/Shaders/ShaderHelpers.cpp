@@ -13,7 +13,6 @@ namespace SpinoCore::Graphics::Shaders {
             glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &logLength);
             if (logLength <= 1) return {};
 
-            // The reported length counts the null terminator, so keep only what GL actually wrote.
             std::string log(static_cast<std::size_t>(logLength), '\0');
             GLsizei written = 0;
             glGetShaderInfoLog(shaderID, logLength, &written, log.data());
@@ -26,7 +25,6 @@ namespace SpinoCore::Graphics::Shaders {
             glGetProgramiv(programID, GL_INFO_LOG_LENGTH, &logLength);
             if (logLength <= 1) return {};
 
-            // The reported length counts the null terminator, so keep only what GL actually wrote.
             std::string log(static_cast<std::size_t>(logLength), '\0');
             GLsizei written = 0;
             glGetProgramInfoLog(programID, logLength, &written, log.data());
@@ -42,7 +40,6 @@ namespace SpinoCore::Graphics::Shaders {
 
             glShaderSource(shaderID, 1, &contentsChar, &length);
             glCompileShader(shaderID);
-
 
             GLint status = 0;
             glGetShaderiv(shaderID, GL_COMPILE_STATUS, &status);

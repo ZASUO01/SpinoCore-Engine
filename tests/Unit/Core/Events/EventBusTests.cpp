@@ -24,10 +24,10 @@ namespace {
         std::optional<EventBus::Subscription> extra{};
     };
 
-    void RecordOne(PingEvent& /*event*/, void* context) { static_cast<Recorder*>(context)->calls.push_back(1); }
-    void RecordTwo(PingEvent& /*event*/, void* context) { static_cast<Recorder*>(context)->calls.push_back(2); }
-    void RecordValue(PingEvent& event, void* context) { static_cast<Recorder*>(context)->calls.push_back(event.value); } // NOLINT
-    void RecordOther(OtherEvent& /*event*/, void* context) { static_cast<Recorder*>(context)->calls.push_back(99); }
+    void RecordOne(PingEvent&, void* context) { static_cast<Recorder*>(context)->calls.push_back(1); }
+    void RecordTwo(PingEvent&, void* context) { static_cast<Recorder*>(context)->calls.push_back(2); }
+    void RecordValue(PingEvent& event, void* context) { static_cast<Recorder*>(context)->calls.push_back(event.value); }
+    void RecordOther(OtherEvent&, void* context) { static_cast<Recorder*>(context)->calls.push_back(99); }
 
     void StopAfterRecording(PingEvent& event, void* context) {
         RecordOne(event, context);
@@ -93,7 +93,7 @@ namespace {
 
     TEST_F(EventBusTests, AMovedSubscriptionKeepsListening) {
         auto original = bus.Listen<PingEvent>(&RecordOne, &recorder);
-        EventBus::Subscription moved{std::move(original)};
+        const EventBus::Subscription moved{std::move(original)};
         original.Reset();
         PingEvent event{};
 

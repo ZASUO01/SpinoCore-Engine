@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <format>
 #include <stdexcept>
+#include <utility>
 #include <glad/glad.h>
 
 namespace SpinoCore::Graphics::Geometry {
@@ -56,7 +57,7 @@ namespace SpinoCore::Graphics::Geometry {
 
             std::vector<std::uint32_t> locations;
             for (const auto&[location, type] : input.layout) {
-                if (location >= static_cast<std::uint32_t>(maxAttributes)) {
+                if (std::cmp_greater_equal(location, maxAttributes)) {
                     throw std::invalid_argument(std::format(
                         "[VERTEX ARRAY] Attribute location {} exceeds the limit of {}.", location, maxAttributes));
                 }
@@ -76,12 +77,13 @@ namespace SpinoCore::Graphics::Geometry {
         }
     }
 
-    VertexArray::VertexArray(const Input& input) {
+    VertexArray::VertexArray(const Input& input)
+    :mIndexCount(static_cast<std::uint32_t>(input.indices.size()))
+    {
         const GLuint stride = StrideOf(input.layout);
         Validate(input, stride);
 
         mVertexCount = static_cast<std::uint32_t>(input.vertexData.size() / stride);
-        mIndexCount = static_cast<std::uint32_t>(input.indices.size());
 
         glCreateBuffers(1, &mVertexBuffer);
         glNamedBufferStorage(mVertexBuffer, static_cast<GLsizeiptr>(input.vertexData.size()), input.vertexData.data(), 0);
@@ -91,7 +93,7 @@ namespace SpinoCore::Graphics::Geometry {
 
         GLuint offset = 0;
         for (const auto&[location, type] : input.layout) {
-            const AttributeFormat format = FormatOf(type); // NOLINT
+            const AttributeFormat format = FormatOf(type);
 
             glEnableVertexArrayAttrib(mVertexArray, location);
             if (format.integer) {

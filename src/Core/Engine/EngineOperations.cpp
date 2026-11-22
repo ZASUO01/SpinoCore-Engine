@@ -52,7 +52,7 @@ namespace SpinoCore::Core::Engine {
         mModules.collisionProcessor.Update();
     }
 
-    void EngineOperations::Interpolate(float /*alpha*/) {}
+    void EngineOperations::Interpolate(float) {}
 
     void EngineOperations::Render() {
         mModules.synthManager->SetDucking(mModules.soundManager->IsAnyPlaying() ? SoundDuckingGain : 1.0f);
