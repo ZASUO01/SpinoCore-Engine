@@ -9,6 +9,7 @@
 #include "SpinoCore/Math/MatrixFactory.h"
 #include "SpinoCore/Math/Quaternion.h"
 #include "SpinoCore/Math/Vector.h"
+#include "SpinoCore/Physics/Ray.h"
 
 namespace {
     using SpinoCore::Math::Quaternionf;
@@ -19,6 +20,7 @@ namespace {
     using SpinoCore::Physics::MakeOrientedBox;
     using SpinoCore::Physics::OrientedBox;
     using SpinoCore::Physics::Plane;
+    using SpinoCore::Physics::Ray;
     using SpinoCore::Physics::Sphere;
     namespace Physics = SpinoCore::Physics;
     namespace MatrixFactory = SpinoCore::Math::MatrixFactory;
@@ -178,5 +180,121 @@ namespace {
         ASSERT_TRUE(flipped.has_value());
         EXPECT_TRUE(Vector3f::NearlyEqual(flipped->normal, Vector3f::NegUnitX()));
         EXPECT_NEAR(flipped->depth, 0.3f, Tolerance);
+    }
+    TEST(ShapesTests, ARayTowardASphereHitsItsNearSurface) {
+        const Ray ray{.origin = Vector3f{0.0f, 0.0f, 5.0f}, .direction = Vector3f::NegUnitZ()};
+
+        const auto hit = Physics::IntersectRaySphere(ray, Sphere{.center = Vector3f::Zero(), .radius = 1.0f});
+
+        ASSERT_TRUE(hit.has_value());
+        EXPECT_NEAR(hit->distance, 4.0f, Tolerance);
+        EXPECT_TRUE(Vector3f::NearlyEqual(hit->normal, Vector3f::UnitZ()));
+    }
+
+    TEST(ShapesTests, ARayPointingAwayFromASphereMissesIt) {
+        const Ray ray{.origin = Vector3f{0.0f, 0.0f, 5.0f}, .direction = Vector3f::UnitZ()};
+
+        const auto hit = Physics::IntersectRaySphere(ray, Sphere{.center = Vector3f::Zero(), .radius = 1.0f});
+
+        EXPECT_FALSE(hit.has_value());
+    }
+
+    TEST(ShapesTests, ARayPassingBesideASphereMissesIt) {
+        const Ray ray{.origin = Vector3f{2.0f, 0.0f, 5.0f}, .direction = Vector3f::NegUnitZ()};
+
+        const auto hit = Physics::IntersectRaySphere(ray, Sphere{.center = Vector3f::Zero(), .radius = 1.0f});
+
+        EXPECT_FALSE(hit.has_value());
+    }
+
+    TEST(ShapesTests, ARayStartingInsideASphereHitsItAtItsOrigin) {
+        const Ray ray{.origin = Vector3f::Zero(), .direction = Vector3f::UnitX()};
+
+        const auto hit = Physics::IntersectRaySphere(ray, Sphere{.center = Vector3f::Zero(), .radius = 1.0f});
+
+        ASSERT_TRUE(hit.has_value());
+        EXPECT_NEAR(hit->distance, 0.0f, Tolerance);
+    }
+
+    TEST(ShapesTests, ARayTowardABoxHitsTheFaceItMeetsFirst) {
+        const Ray ray{.origin = Vector3f{-5.0f, 0.2f, 0.1f}, .direction = Vector3f::UnitX()};
+
+        const auto hit = Physics::IntersectRayBox(ray, UnitBoxAt(Vector3f::Zero()));
+
+        ASSERT_TRUE(hit.has_value());
+        EXPECT_NEAR(hit->distance, 4.5f, Tolerance);
+        EXPECT_TRUE(Vector3f::NearlyEqual(hit->normal, Vector3f{-1.0f, 0.0f, 0.0f}));
+    }
+
+    TEST(ShapesTests, ARayHitsARotatedBoxOnItsCorner) {
+        const Quaternionf turn{Vector3f::UnitY(), SpinoCore::Math::Operations::ToRadians(45.0f)};
+        const Ray ray{.origin = Vector3f{-5.0f, 0.0f, 0.0f}, .direction = Vector3f::UnitX()};
+
+        const auto hit = Physics::IntersectRayBox(ray, UnitBoxAt(Vector3f::Zero(), turn));
+
+        ASSERT_TRUE(hit.has_value());
+        EXPECT_NEAR(hit->distance, 5.0f - std::sqrt(0.5f), Tolerance);
+    }
+
+    TEST(ShapesTests, ARayPassingAboveABoxMissesIt) {
+        const Ray ray{.origin = Vector3f{-5.0f, 0.6f, 0.0f}, .direction = Vector3f::UnitX()};
+
+        const auto hit = Physics::IntersectRayBox(ray, UnitBoxAt(Vector3f::Zero()));
+
+        EXPECT_FALSE(hit.has_value());
+    }
+
+    TEST(ShapesTests, ARayTowardTheSideOfACapsuleHitsItsCylinder) {
+        const Ray ray{.origin = Vector3f{5.0f, 0.5f, 0.0f}, .direction = Vector3f{-1.0f, 0.0f, 0.0f}};
+
+        const auto hit = Physics::IntersectRayCapsule(ray, VerticalCapsuleAt(Vector3f::Zero()));
+
+        ASSERT_TRUE(hit.has_value());
+        EXPECT_NEAR(hit->distance, 4.5f, Tolerance);
+        EXPECT_TRUE(Vector3f::NearlyEqual(hit->normal, Vector3f::UnitX()));
+    }
+
+    TEST(ShapesTests, ARayFromAboveACapsuleHitsItsTopCap) {
+        const Ray ray{.origin = Vector3f{0.0f, 5.0f, 0.0f}, .direction = Vector3f{0.0f, -1.0f, 0.0f}};
+
+        const auto hit = Physics::IntersectRayCapsule(ray, VerticalCapsuleAt(Vector3f::Zero()));
+
+        ASSERT_TRUE(hit.has_value());
+        EXPECT_NEAR(hit->distance, 3.5f, Tolerance);
+        EXPECT_TRUE(Vector3f::NearlyEqual(hit->normal, Vector3f::UnitY()));
+    }
+
+    TEST(ShapesTests, ARayPassingBesideACapsuleMissesIt) {
+        const Ray ray{.origin = Vector3f{5.0f, 0.0f, 0.8f}, .direction = Vector3f{-1.0f, 0.0f, 0.0f}};
+
+        const auto hit = Physics::IntersectRayCapsule(ray, VerticalCapsuleAt(Vector3f::Zero()));
+
+        EXPECT_FALSE(hit.has_value());
+    }
+
+    TEST(ShapesTests, ARayGoingDownHitsTheGround) {
+        const Ray ray{.origin = Vector3f{1.0f, 3.0f, 2.0f}, .direction = Vector3f{0.0f, -1.0f, 0.0f}};
+
+        const auto hit = Physics::IntersectRayPlane(ray, Ground);
+
+        ASSERT_TRUE(hit.has_value());
+        EXPECT_NEAR(hit->distance, 3.0f, Tolerance);
+        EXPECT_TRUE(Vector3f::NearlyEqual(hit->normal, Vector3f::UnitY()));
+    }
+
+    TEST(ShapesTests, ARayParallelToTheGroundMissesIt) {
+        const Ray ray{.origin = Vector3f{0.0f, 3.0f, 0.0f}, .direction = Vector3f::UnitX()};
+
+        const auto hit = Physics::IntersectRayPlane(ray, Ground);
+
+        EXPECT_FALSE(hit.has_value());
+    }
+
+    TEST(ShapesTests, ARayGoingUpMissesTheGroundBelowIt) {
+        const Ray ray{.origin = Vector3f{0.0f, 3.0f, 0.0f}, .direction = Vector3f::UnitY()};
+
+        const auto hit = Physics::IntersectRayPlane(ray, Ground);
+
+        EXPECT_FALSE(hit.has_value());
     }
 }

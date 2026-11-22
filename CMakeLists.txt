@@ -87,6 +87,8 @@ target_sources(${PROJECT_NAME} PRIVATE
         "include/SpinoCore/Math/MatrixFactory.h"
         "include/SpinoCore/Math/Vector.h"
         "include/SpinoCore/Math/Quaternion.h"
+    #Physics
+        "include/SpinoCore/Physics/Ray.h"
     #Runtime
         "include/SpinoCore/Runtime/LoopingManager.h"
     #Sound

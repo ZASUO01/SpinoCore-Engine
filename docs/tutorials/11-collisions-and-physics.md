@@ -67,6 +67,24 @@ trigger->SetCollisionCallBack([coin](Components::ColliderComponent& other) {
 | `ApplyImpulse(impulse)` | Immediate change of velocity, divided by the mass. |
 | `SetVelocity(velocity)` | Replaces the velocity. |
 
+## Raycasts
+
+`ActorsManager::Raycast` returns the nearest enabled collider hit by a ray, or nothing. Triggers and static
+colliders are hit too; the optional filter skips colliders.
+
+```cpp
+#include "SpinoCore/Physics/Ray.h"
+
+const SpinoCore::Physics::Ray ray{.origin = eye, .direction = forward};
+const auto hit = ctx.actorsManager.Raycast(ray, 100.0f, [](const Components::ColliderComponent& collider) {
+    return collider.GetActor()->GetComponent<EnemyTag>() != nullptr;
+});
+if (hit) Logger::Info("Hit at {} meters", hit->distance);
+```
+
+`RaycastHit` has the `collider`, the `point`, the surface `normal` and the `distance` along the ray. The direction
+does not need to be normalized; a zero direction hits nothing.
+
 ## Debugging
 
 `LaunchOptions::debugColliders = true` draws the outline of every collider.

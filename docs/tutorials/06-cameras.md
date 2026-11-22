@@ -53,3 +53,15 @@ void OnSetup(const ControlContext& ctx) override {
 | `CleanUp` | Removes every camera except the default one. |
 
 The engine cleans up the cameras when the scene changes.
+
+## Aiming with the mouse
+
+`ScreenPointToRay` turns a point in window pixels into a ray from the camera eye, ready for
+`ActorsManager::Raycast` (see [Collisions and physics](11-collisions-and-physics.md)).
+
+```cpp
+const SpinoCore::Physics::Ray ray = camera.ScreenPointToRay(ctx.simulationInput.GetMousePosition());
+const auto hit = ctx.actorsManager.Raycast(ray, 100.0f);
+```
+
+`GetEye` and `GetTarget` return the current view.

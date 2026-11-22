@@ -38,6 +38,11 @@ namespace SpinoCore::Core::Actors {
         mPendingActors.clear();
     }
 
+    std::optional<Physics::RaycastHit> EngineActorsManager::Raycast(const Physics::Ray& ray, const float maxDistance, const Physics::RaycastFilter& filter) const {
+        if (!mCollisionProcessor) return std::nullopt;
+        return mCollisionProcessor->Raycast(ray, maxDistance, filter);
+    }
+
     void EngineActorsManager::UpdateActors(const float deltaTime) {
         mIsUpdatingActors = true;
         for (const auto& actor: mActors) {

@@ -2,9 +2,11 @@
 // Copyright (c) 2026 ZASUO01
 #pragma once
 #include <memory>
+#include <optional>
 #include <vector>
 #include "SpinoCore/Core/Actors/Actor.h"
 #include "SpinoCore/Core/Actors/ActorsManager.h"
+#include "SpinoCore/Physics/Ray.h"
 #include "Core/Actors/ComponentListener.h"
 
 namespace SpinoCore::Physics {
@@ -34,6 +36,7 @@ namespace SpinoCore::Core::Actors {
 
         Actor* AddActor(std::unique_ptr<Actor> actor) override;
         void CleanUp() override;
+        [[nodiscard]] std::optional<Physics::RaycastHit> Raycast(const Physics::Ray& ray, float maxDistance, const Physics::RaycastFilter& filter = {}) const override;
 
         void UpdateActors(float deltaTime);
         void SendInputToActors(const Input::InputState& state) const;

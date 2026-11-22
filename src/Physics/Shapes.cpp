@@ -4,7 +4,9 @@
 #include <algorithm>
 #include <cstddef>
 #include <limits>
+#include <utility>
 #include "SpinoCore/Math/Math.h"
+#include "SpinoCore/Physics/Ray.h"
 
 namespace SpinoCore::Physics {
     namespace {
@@ -162,5 +164,104 @@ namespace SpinoCore::Physics {
     std::optional<Contact> Flipped(const std::optional<Contact>& contact) {
         if (!contact) return std::nullopt;
         return Contact{.normal = contact->normal * -1.0f, .depth = contact->depth};
+    }
+    std::optional<RayIntersection> IntersectRaySphere(const Ray& ray, const Sphere& sphere) {
+        const Math::Vector3f offset = ray.origin - sphere.center;
+        const float along = offset.Dot(ray.direction);
+        const float outside = offset.LengthSq() - sphere.radius * sphere.radius;
+        if (outside <= 0.0f) return RayIntersection{.distance = 0.0f, .normal = ray.direction * -1.0f};
+        if (along > 0.0f) return std::nullopt;
+
+        const float discriminant = along * along - outside;
+        if (discriminant < 0.0f) return std::nullopt;
+
+        const float distance = -along - Math::Operations::Sqrt(discriminant);
+        const Math::Vector3f normal = (ray.PointAt(distance) - sphere.center).Normalized();
+        return RayIntersection{.distance = distance, .normal = normal};
+    }
+
+    std::optional<RayIntersection> IntersectRayBox(const Ray& ray, const OrientedBox& box) {
+        const Math::Vector3f offset = ray.origin - box.center;
+        float entry = 0.0f;
+        float exit = std::numeric_limits<float>::max();
+        Math::Vector3f normal = ray.direction * -1.0f;
+
+        for (std::size_t index = 0; index < 3; ++index) {
+            const Math::Vector3f& axis = box.axes[index];
+            const float halfExtent = Component(box.halfExtents, index);
+            const float start = offset.Dot(axis);
+            const float speed = ray.direction.Dot(axis);
+
+            if (Math::Operations::Abs(speed) <= Epsilon) {
+                if (Math::Operations::Abs(start) > halfExtent) return std::nullopt;
+                continue;
+            }
+
+            float nearSide = (-halfExtent - start) / speed;
+            float farSide = (halfExtent - start) / speed;
+            if (nearSide > farSide) std::swap(nearSide, farSide);
+
+            if (nearSide > entry) {
+                entry = nearSide;
+                normal = speed > 0.0f ? axis * -1.0f : axis;
+            }
+            exit = std::min(exit, farSide);
+            if (entry > exit) return std::nullopt;
+        }
+
+        return RayIntersection{.distance = entry, .normal = normal};
+    }
+
+    std::optional<RayIntersection> IntersectRayCapsule(const Ray& ray, const Capsule& capsule) {
+        std::optional<RayIntersection> nearest{};
+        const auto keepNearest = [&nearest](const std::optional<RayIntersection>& candidate) {
+            if (candidate && (!nearest || candidate->distance < nearest->distance)) nearest = candidate;
+        };
+
+        keepNearest(IntersectRaySphere(ray, Sphere{.center = capsule.start, .radius = capsule.radius}));
+        keepNearest(IntersectRaySphere(ray, Sphere{.center = capsule.end, .radius = capsule.radius}));
+
+        const Math::Vector3f segment = capsule.end - capsule.start;
+        const float length = segment.Length();
+        if (length <= Epsilon) return nearest;
+
+        const Math::Vector3f axis = segment * (1.0f / length);
+        const Math::Vector3f offset = ray.origin - capsule.start;
+        const Math::Vector3f offsetAcross = offset - axis * offset.Dot(axis);
+        const Math::Vector3f directionAcross = ray.direction - axis * ray.direction.Dot(axis);
+        const float outside = offsetAcross.LengthSq() - capsule.radius * capsule.radius;
+        const float height = offset.Dot(axis);
+
+        if (outside <= 0.0f && height >= 0.0f && height <= length) {
+            return RayIntersection{.distance = 0.0f, .normal = ray.direction * -1.0f};
+        }
+
+        const float a = directionAcross.LengthSq();
+        if (a <= Epsilon) return nearest;
+
+        const float b = offsetAcross.Dot(directionAcross);
+        const float discriminant = b * b - a * outside;
+        if (discriminant < 0.0f) return nearest;
+
+        const float distance = (-b - Math::Operations::Sqrt(discriminant)) / a;
+        if (distance < 0.0f) return nearest;
+
+        const Math::Vector3f point = ray.PointAt(distance);
+        const float pointHeight = (point - capsule.start).Dot(axis);
+        if (pointHeight < 0.0f || pointHeight > length) return nearest;
+
+        const Math::Vector3f normal = (point - (capsule.start + axis * pointHeight)).Normalized();
+        keepNearest(RayIntersection{.distance = distance, .normal = normal});
+        return nearest;
+    }
+
+    std::optional<RayIntersection> IntersectRayPlane(const Ray& ray, const Plane& plane) {
+        const float speed = plane.normal.Dot(ray.direction);
+        if (Math::Operations::Abs(speed) <= Epsilon) return std::nullopt;
+
+        const float distance = -SignedDistance(plane, ray.origin) / speed;
+        if (distance < 0.0f) return std::nullopt;
+
+        return RayIntersection{.distance = distance, .normal = speed < 0.0f ? plane.normal : plane.normal * -1.0f};
     }
 }

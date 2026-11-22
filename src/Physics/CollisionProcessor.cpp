@@ -2,6 +2,7 @@
 // Copyright (c) 2026 ZASUO01
 #include "CollisionProcessor.h"
 #include <algorithm>
+#include <initializer_list>
 #include <optional>
 #include "ColliderShapes.h"
 #include "OrientedBox.h"
@@ -45,6 +46,18 @@ namespace SpinoCore::Physics {
             return *static_cast<const PlaneColliderComponent*>(collider);
         }
 
+        [[nodiscard]] std::optional<RayIntersection> IntersectCollider(const Ray& ray, const ColliderComponent& collider) {
+            using Core::Actors::Components::ColliderType;
+
+            switch (collider.GetType()) {
+                case ColliderType::Sphere: return IntersectRaySphere(ray, SphereOf(AsSphere(&collider)));
+                case ColliderType::Capsule: return IntersectRayCapsule(ray, CapsuleOf(AsCapsule(&collider)));
+                case ColliderType::Box: return IntersectRayBox(ray, BoxOf(AsBox(&collider)));
+                case ColliderType::Plane: return IntersectRayPlane(ray, PlaneOf(AsPlane(&collider)));
+            }
+            return std::nullopt;
+        }
+
         void Move(const ColliderComponent& collider, const Math::Vector3f& offset) {
             Core::Actors::Actor* actor = collider.GetActor();
             actor->SetPosition(actor->GetPosition() + offset);
@@ -79,6 +92,32 @@ namespace SpinoCore::Physics {
                 TestCollision(dynamicCollider, staticCollider);
             }
         }
+    }
+
+    std::optional<RaycastHit> CollisionProcessor::Raycast(const Ray& ray, const float maxDistance, const RaycastFilter& filter) const {
+        if (ray.direction.LengthSq() <= 0.0f) return std::nullopt;
+
+        const Ray unitRay{.origin = ray.origin, .direction = ray.direction.Normalized()};
+        std::optional<RaycastHit> nearest{};
+
+        for (const auto* colliders : {&mDynamicColliders, &mStaticColliders}) {
+            for (ColliderComponent* collider : *colliders) {
+                if (!collider->IsEnabled() || (filter && !filter(*collider))) continue;
+
+                const std::optional<RayIntersection> intersection = IntersectCollider(unitRay, *collider);
+                if (!intersection || intersection->distance > maxDistance) continue;
+                if (nearest && intersection->distance >= nearest->distance) continue;
+
+                nearest = RaycastHit{
+                    .collider = collider,
+                    .point = unitRay.PointAt(intersection->distance),
+                    .normal = intersection->normal,
+                    .distance = intersection->distance,
+                };
+            }
+        }
+
+        return nearest;
     }
 
     void CollisionProcessor::TestCollision(ColliderComponent *a, ColliderComponent *b) {

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
 #include <memory>
+#include <optional>
 #include <utility>
 #include <gtest/gtest.h>
 #include "Core/Actors/EngineActorsManager.h"
@@ -9,7 +10,9 @@
 #include "SpinoCore/Core/Actors/Components/BoxColliderComponent.h"
 #include "SpinoCore/Core/Actors/Components/ColliderComponent.h"
 #include "SpinoCore/Core/Actors/Components/RigidBodyComponent.h"
+#include "SpinoCore/Core/Actors/Components/SphereColliderComponent.h"
 #include "SpinoCore/Math/Vector.h"
+#include "SpinoCore/Physics/Ray.h"
 
 namespace {
     using SpinoCore::Core::Actors::Actor;
@@ -20,8 +23,11 @@ namespace {
     using SpinoCore::Core::Actors::Components::ColliderComponent;
     using SpinoCore::Core::Actors::Components::RigidBodyComponent;
     using SpinoCore::Core::Actors::Components::RigidBodyInput;
+    using SpinoCore::Core::Actors::Components::SphereColliderComponent;
+    using SpinoCore::Core::Actors::Components::SphereColliderInput;
     using SpinoCore::Math::Vector3f;
     using SpinoCore::Physics::CollisionProcessor;
+    using SpinoCore::Physics::Ray;
 
     class StillActor final : public Actor {
     public:
@@ -46,6 +52,17 @@ namespace {
         Actor& AddBox(const Vector3f& position, const BoxColliderInput& collider, const Vector3f& scale = Vector3f::One()) {
             auto actor = std::make_unique<StillActor>(ActorInput{.position = position, .scale = scale});
             actor->AddComponent(std::make_unique<BoxColliderComponent>(*actor, collider));
+            Actor& added = *actor;
+            actors.AddActor(std::move(actor));
+            return added;
+        }
+
+        Actor& AddSphere(const Vector3f& position, const float radius = 0.5f) {
+            auto actor = std::make_unique<StillActor>(ActorInput{.position = position});
+            SphereColliderInput input{};
+            input.radius = radius;
+            input.isTrigger = true;
+            actor->AddComponent(std::make_unique<SphereColliderComponent>(*actor, input));
             Actor& added = *actor;
             actors.AddActor(std::move(actor));
             return added;
@@ -229,5 +246,98 @@ namespace {
         processor.Update();
 
         EXPECT_TRUE(Vector3f::NearlyEqual(body.GetVelocity(), Vector3f{2.0f, 0.0f, 0.0f}));
+    }
+    TEST_F(CollisionProcessorTests, ARaycastReturnsTheNearestColliderAlongTheRay) {
+        AddSphere(Vector3f{0.0f, 0.0f, -10.0f});
+        const Actor& nearest = AddSphere(Vector3f{0.0f, 0.0f, -4.0f});
+        const Ray ray{.origin = Vector3f::Zero(), .direction = Vector3f::NegUnitZ()};
+
+        const auto hit = processor.Raycast(ray, 100.0f);
+
+        ASSERT_TRUE(hit.has_value());
+        EXPECT_EQ(hit->collider, &ColliderOf(nearest));
+        EXPECT_NEAR(hit->distance, 3.5f, 1e-4f);
+        EXPECT_TRUE(Vector3f::NearlyEqual(hit->point, Vector3f{0.0f, 0.0f, -3.5f}));
+    }
+
+    TEST_F(CollisionProcessorTests, ARaycastHitsStaticAndDynamicColliders) {
+        const Actor& moving = AddBox(Vector3f{0.0f, 0.0f, -3.0f}, UnitBox(false));
+        AddBox(Vector3f{0.0f, 0.0f, -6.0f}, UnitBox(true));
+        const Ray ray{.origin = Vector3f::Zero(), .direction = Vector3f::NegUnitZ()};
+
+        const auto hit = processor.Raycast(ray, 100.0f);
+
+        ASSERT_TRUE(hit.has_value());
+        EXPECT_EQ(hit->collider, &ColliderOf(moving));
+    }
+
+    TEST_F(CollisionProcessorTests, ARaycastIgnoresCollidersBeyondTheMaximumDistance) {
+        AddSphere(Vector3f{0.0f, 0.0f, -10.0f});
+        const Ray ray{.origin = Vector3f::Zero(), .direction = Vector3f::NegUnitZ()};
+
+        const auto hit = processor.Raycast(ray, 5.0f);
+
+        EXPECT_FALSE(hit.has_value());
+    }
+
+    TEST_F(CollisionProcessorTests, ARaycastIgnoresDisabledColliders) {
+        const Actor& target = AddSphere(Vector3f{0.0f, 0.0f, -4.0f});
+        ColliderOf(target).SetEnabled(false);
+        const Ray ray{.origin = Vector3f::Zero(), .direction = Vector3f::NegUnitZ()};
+
+        const auto hit = processor.Raycast(ray, 100.0f);
+
+        EXPECT_FALSE(hit.has_value());
+    }
+
+    TEST_F(CollisionProcessorTests, ARaycastSkipsCollidersRejectedByTheFilter) {
+        const Actor& blocker = AddSphere(Vector3f{0.0f, 0.0f, -4.0f});
+        const Actor& wanted = AddSphere(Vector3f{0.0f, 0.0f, -8.0f});
+        const Ray ray{.origin = Vector3f::Zero(), .direction = Vector3f::NegUnitZ()};
+
+        const auto hit = processor.Raycast(ray, 100.0f, [&blocker](const ColliderComponent& collider) {
+            return collider.GetActor() != &blocker;
+        });
+
+        ASSERT_TRUE(hit.has_value());
+        EXPECT_EQ(hit->collider, &ColliderOf(wanted));
+    }
+
+    TEST_F(CollisionProcessorTests, ARaycastAcceptsADirectionThatIsNotNormalized) {
+        AddSphere(Vector3f{0.0f, 0.0f, -4.0f});
+        const Ray ray{.origin = Vector3f::Zero(), .direction = Vector3f{0.0f, 0.0f, -10.0f}};
+
+        const auto hit = processor.Raycast(ray, 100.0f);
+
+        ASSERT_TRUE(hit.has_value());
+        EXPECT_NEAR(hit->distance, 3.5f, 1e-4f);
+    }
+
+    TEST_F(CollisionProcessorTests, ARaycastWithoutADirectionHitsNothing) {
+        AddSphere(Vector3f::Zero());
+        const Ray ray{.origin = Vector3f{0.0f, 0.0f, 3.0f}, .direction = Vector3f::Zero()};
+
+        const auto hit = processor.Raycast(ray, 100.0f);
+
+        EXPECT_FALSE(hit.has_value());
+    }
+
+    TEST_F(CollisionProcessorTests, TheActorsManagerRaycastsAgainstTheCollidersOfItsActors) {
+        const Actor& target = AddSphere(Vector3f{0.0f, 2.0f, 0.0f});
+        const Ray ray{.origin = Vector3f::Zero(), .direction = Vector3f::UnitY()};
+
+        const auto hit = actors.Raycast(ray, 100.0f);
+
+        ASSERT_TRUE(hit.has_value());
+        EXPECT_EQ(hit->collider, &ColliderOf(target));
+    }
+
+    TEST(EngineActorsManagerRaycastTests, AManagerWithoutACollisionProcessorHitsNothing) {
+        EngineActorsManager actors{};
+        const Ray ray{.origin = Vector3f::Zero(), .direction = Vector3f::UnitY()};
+
+        const auto hit = actors.Raycast(ray, 100.0f);
+
+        EXPECT_FALSE(hit.has_value());
     }
 }

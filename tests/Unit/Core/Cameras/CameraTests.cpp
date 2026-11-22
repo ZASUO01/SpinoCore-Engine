@@ -9,11 +9,13 @@
 #include "SpinoCore/Math/Math.h"
 #include "SpinoCore/Math/Matrix.h"
 #include "SpinoCore/Math/Vector.h"
+#include "SpinoCore/Physics/Ray.h"
 
 namespace {
     using SpinoCore::Core::Cameras::Camera;
     using SpinoCore::Core::Cameras::DefaultCamera;
     using SpinoCore::Math::Matrix4f;
+    using SpinoCore::Math::Vector2f;
     using SpinoCore::Math::Vector3f;
     using SpinoCore::Math::Vector4f;
     namespace Operations = SpinoCore::Math::Operations;
@@ -127,5 +129,33 @@ namespace {
         const DefaultCamera camera{0.0f, 0.0f};
 
         EXPECT_TRUE(IsFinite(camera.GetProjectionMatrix()));
+    }
+    TEST(DefaultCameraTests, TheCenterOfTheViewportCastsARayFromTheEyeTowardTheTarget) {
+        const DefaultCamera camera{800.0f, 600.0f};
+
+        const SpinoCore::Physics::Ray ray = camera.ScreenPointToRay(Vector2f{400.0f, 300.0f});
+
+        EXPECT_TRUE(Vector3f::NearlyEqual(ray.origin, Vector3f{3.0f, 3.0f, 3.0f}, 1e-3f));
+        EXPECT_TRUE(Vector3f::NearlyEqual(ray.direction, Vector3f{-1.0f, -1.0f, -1.0f}.Normalized(), 1e-4f));
+    }
+
+    TEST(DefaultCameraTests, AScreenPointRayPassesThroughWhatIsDrawnAtThatPoint) {
+        const DefaultCamera camera{800.0f, 600.0f};
+        const Vector3f worldPoint{0.7f, -0.4f, 1.2f};
+        const Vector3f ndc = ToNDC(camera, worldPoint);
+        const Vector2f screenPoint{(ndc.x + 1.0f) * 400.0f, (1.0f - ndc.y) * 300.0f};
+
+        const SpinoCore::Physics::Ray ray = camera.ScreenPointToRay(screenPoint);
+
+        const Vector3f toPoint = (worldPoint - ray.origin).Normalized();
+        EXPECT_TRUE(Vector3f::NearlyEqual(ray.direction, toPoint, 1e-4f));
+    }
+
+    TEST(DefaultCameraTests, ScreenPointRaysHaveUnitLength) {
+        const DefaultCamera camera{800.0f, 600.0f};
+
+        const SpinoCore::Physics::Ray ray = camera.ScreenPointToRay(Vector2f{10.0f, 590.0f});
+
+        EXPECT_NEAR(ray.direction.Length(), 1.0f, Tolerance);
     }
 }

@@ -4,6 +4,7 @@
 #include "SpinoCore/Math/Matrix.h"
 #include "SpinoCore/Math/MatrixFactory.h"
 #include "SpinoCore/Math/Vector.h"
+#include "SpinoCore/Physics/Ray.h"
 
 /// @brief Cameras that give the view and projection used to draw the 3D scene.
 namespace SpinoCore::Core::Cameras {
@@ -32,6 +33,22 @@ namespace SpinoCore::Core::Cameras {
             mHeight = height;
             Apply3DProjection();
         }
+
+        [[nodiscard]] Physics::Ray ScreenPointToRay(const Math::Vector2f& screenPoint) const {
+            if (mWidth <= 0.0f || mHeight <= 0.0f) return Physics::Ray{.origin = mEye, .direction = (mTarget - mEye).Normalized()};
+
+            const float ndcX = 2.0f * screenPoint.x / mWidth - 1.0f;
+            const float ndcY = 1.0f - 2.0f * screenPoint.y / mHeight;
+            const Math::Matrix4f inverse = (mProjectionMatrix * mViewMatrix).GetInverse();
+            const Math::Vector4f farPoint = inverse * Math::Vector4f{ndcX, ndcY, 1.0f, 1.0f};
+            if (farPoint.w == 0.0f) return Physics::Ray{.origin = mEye, .direction = (mTarget - mEye).Normalized()};
+
+            const Math::Vector3f worldFar{farPoint.x / farPoint.w, farPoint.y / farPoint.w, farPoint.z / farPoint.w};
+            return Physics::Ray{.origin = mEye, .direction = (worldFar - mEye).Normalized()};
+        }
+
+        [[nodiscard]] const Math::Vector3f& GetEye() const { return mEye; }
+        [[nodiscard]] const Math::Vector3f& GetTarget() const { return mTarget; }
 
     protected:
         void Apply3DView() {

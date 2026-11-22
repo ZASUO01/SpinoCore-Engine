@@ -2,6 +2,8 @@
 // Copyright (c) 2026 ZASUO01
 #pragma once
 #include <memory>
+#include <optional>
+#include "SpinoCore/Physics/Ray.h"
 
 namespace SpinoCore::Core::Actors {
     class Actor;
@@ -17,5 +19,6 @@ namespace SpinoCore::Core::Actors {
         virtual Actor* AddActor(std::unique_ptr<Actor> actor) = 0;
         /// @brief Destroys every actor.
         virtual void CleanUp() = 0;
+        [[nodiscard]] virtual std::optional<Physics::RaycastHit> Raycast(const Physics::Ray& ray, float maxDistance, const Physics::RaycastFilter& filter = {}) const = 0;
     };
 }

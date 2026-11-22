@@ -5,6 +5,7 @@
 #include <optional>
 #include <vector>
 #include "OrientedBox.h"
+#include "SpinoCore/Physics/Ray.h"
 
 namespace SpinoCore::Core::Actors::Components {
     class BoxColliderComponent;
@@ -34,6 +35,7 @@ namespace SpinoCore::Physics {
         void RegisterCollider(ColliderComponent* collider);
         void UnregisterCollider(ColliderComponent* collider);
         void Update();
+        [[nodiscard]] std::optional<RaycastHit> Raycast(const Ray& ray, float maxDistance, const RaycastFilter& filter = {}) const;
 
         [[nodiscard]] std::size_t GetColliderCount() const noexcept { return mDynamicColliders.size() + mStaticColliders.size(); }
 
