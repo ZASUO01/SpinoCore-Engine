@@ -11,8 +11,14 @@
 #include "Core/Scenes/EngineScenesManager.h"
 #include "Core/UI/EngineScreensManager.h"
 #include "Files/EngineFileManager.h"
+#include "Sound/EngineSoundManager.h"
+#include "Sound/Synth/EngineSynthManager.h"
 
 namespace SpinoCore::Core::Engine {
+    namespace {
+        constexpr float SoundDuckingGain = 0.6f;
+    }
+
     EngineOperations::EngineOperations(EngineModules &modules) :mModules(modules){}
 
     bool EngineOperations::ProcessEvents() {
@@ -49,6 +55,7 @@ namespace SpinoCore::Core::Engine {
     void EngineOperations::Interpolate(float /*alpha*/) {}
 
     void EngineOperations::Render() {
+        mModules.synthManager->SetDucking(mModules.soundManager->IsAnyPlaying() ? SoundDuckingGain : 1.0f);
         mModules.actorsManager.GetDrawCommands(mModules.renderer->GetModelDrawList());
         mModules.actorsManager.GetParticleDrawCommands(mModules.renderer->GetParticleDrawList());
         if (mModules.renderer->IsDebugDrawEnabled()) mModules.actorsManager.GetDebugDrawCommands(mModules.renderer->GetDebugDrawList());

@@ -141,7 +141,17 @@ namespace SpinoCore::Sound::Synth {
         for (const Entry& entry : mSynths) entry.synth->Render(interleavedStereo);
 
         const float master = mMasterVolume.load(std::memory_order_relaxed);
-        for (float& sample : interleavedStereo) sample = std::clamp(sample * master, -1.0f, 1.0f);
+        const float target = mDuckingTarget.load(std::memory_order_relaxed);
+        const std::size_t frames = interleavedStereo.size() / Channels;
+        const float step = frames > 0 ? (target - mDucking) / static_cast<float>(frames) : 0.0f;
+        for (std::size_t frame = 0; frame < frames; ++frame) {
+            mDucking += step;
+            for (int channel = 0; channel < Channels; ++channel) {
+                float& sample = interleavedStereo[frame * Channels + static_cast<std::size_t>(channel)];
+                sample = std::clamp(sample * master * mDucking, -1.0f, 1.0f);
+            }
+        }
+        mDucking = target;
     }
 
     void EngineSynthManager::FeedStream(SDL_AudioStream* stream, const int requestedBytes) {

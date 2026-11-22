@@ -5,11 +5,13 @@
 #include "Assets/AssetCache.h"
 #include "Graphics/Resources/Font.h"
 #include "Graphics/Resources/Model.h"
+#include "Sound/Resources/AudioClip.h"
 
 namespace SpinoCore::Core::Engine {
     struct EngineCache final {
         Assets::AssetCache<Graphics::Resources::Texture> textureCache{};
         Assets::AssetCache<Graphics::Resources::Font> fontCache{};
         Assets::AssetCache<Graphics::Resources::Model> modelCache{};
+        Assets::AssetCache<Sound::Resources::AudioClip> soundCache{};
     };
 }

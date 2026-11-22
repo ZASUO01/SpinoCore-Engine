@@ -90,6 +90,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     #Runtime
         "include/SpinoCore/Runtime/LoopingManager.h"
     #Sound
+        "include/SpinoCore/Sound/SoundManager.h"
         "include/SpinoCore/Sound/Synth/Synthesizer.h"
         "include/SpinoCore/Sound/Synth/SynthManager.h"
         "include/SpinoCore/Sound/Synth/SynthUtils.h"
@@ -237,6 +238,10 @@ target_sources(${PROJECT_NAME} PRIVATE
         "src/SDL/Structs.cpp"
         "src/SDL/Structs.h"
     #Sound
+        "src/Sound/Resources/AudioClip.cpp"
+        "src/Sound/Resources/AudioClip.h"
+        "src/Sound/EngineSoundManager.cpp"
+        "src/Sound/EngineSoundManager.h"
         "src/Sound/Synth/CommandQueue.h"
         "src/Sound/Synth/EngineSynthManager.cpp"
         "src/Sound/Synth/EngineSynthManager.h"
@@ -287,10 +292,11 @@ set(SDL_TESTS OFF)
 set(SDL_EXAMPLES OFF)
 set(SDL_INSTALL OFF)
 set(SDL_PIPEWIRE OFF)
+set(SDL_X11_XTEST OFF)
 FetchContent_Declare(
         SDL3
         GIT_REPOSITORY "https://github.com/libsdl-org/SDL.git"
-        GIT_TAG        "release-3.2.0"
+        GIT_TAG        "release-3.4.20"
         GIT_SHALLOW    TRUE
         EXCLUDE_FROM_ALL
 )
@@ -330,7 +336,30 @@ FetchContent_Declare(
         EXCLUDE_FROM_ALL
 )
 
-FetchContent_MakeAvailable(SDL3 SDL3_image SDL3_ttf)
+set(SDLMIXER_INSTALL OFF)
+set(SDLMIXER_TESTS OFF)
+set(SDLMIXER_EXAMPLES OFF)
+set(SDLMIXER_VENDORED OFF)
+set(SDLMIXER_STRICT OFF)
+set(SDLMIXER_DEPS_SHARED OFF)
+set(SDLMIXER_FLAC_LIBFLAC OFF)
+set(SDLMIXER_GME OFF)
+set(SDLMIXER_MOD OFF)
+set(SDLMIXER_MP3_MPG123 OFF)
+set(SDLMIXER_MIDI OFF)
+set(SDLMIXER_OPUS OFF)
+set(SDLMIXER_VORBIS_VORBISFILE OFF)
+set(SDLMIXER_WAVPACK OFF)
+FetchContent_Declare(
+        SDL3_mixer
+        GIT_REPOSITORY "https://github.com/libsdl-org/SDL_mixer.git"
+        GIT_TAG        "release-3.2.4"
+        GIT_SHALLOW    TRUE
+        GIT_SUBMODULES ""
+        EXCLUDE_FROM_ALL
+)
+
+FetchContent_MakeAvailable(SDL3 SDL3_image SDL3_ttf SDL3_mixer)
 
 # ======================================
 # Link libraries
@@ -343,7 +372,7 @@ add_library(SpinoCore::json ALIAS SpinoCore-json)
 target_include_directories(SpinoCore-json SYSTEM INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/vendor")
 target_compile_features(SpinoCore-json INTERFACE cxx_std_11)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3-static SDL3_image::SDL3_image-static SDL3_ttf::SDL3_ttf-static SpinoCore::glad SpinoCore::json)
+target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3-static SDL3_image::SDL3_image-static SDL3_ttf::SDL3_ttf-static SDL3_mixer::SDL3_mixer-static SpinoCore::glad SpinoCore::json)
 target_link_libraries(${PROJECT_NAME} PUBLIC SDL3::Headers)
 
 # ======================================

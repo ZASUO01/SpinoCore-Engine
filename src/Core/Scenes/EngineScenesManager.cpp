@@ -8,6 +8,7 @@
 #include "SpinoCore/Core/UI/ScreensManager.h"
 #include "SpinoCore/Files/FileManager.h"
 #include "SpinoCore/Graphics/PostProcessManager.h"
+#include "SpinoCore/Sound/SoundManager.h"
 #include "SpinoCore/Sound/Synth/SynthManager.h"
 
 namespace SpinoCore::Core::Scenes {
@@ -72,5 +73,6 @@ namespace SpinoCore::Core::Scenes {
         mControlContext.actorsManager.CleanUp();
         mControlContext.postProcessManager.CleanUp();
         mControlContext.synthManager.CleanUp();
+        mControlContext.soundManager.CleanUp();
     }
 }

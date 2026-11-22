@@ -12,6 +12,7 @@
 #include "Core/Scenes/EngineScenesManager.h"
 #include "Core/UI/EngineScreensManager.h"
 #include "Graphics/PostProcess/EnginePostProcessManager.h"
+#include "Sound/EngineSoundManager.h"
 #include "Sound/Synth/EngineSynthManager.h"
 #include "SpinoCore/Core/Actors/Actor.h"
 #include "SpinoCore/Core/Cameras/Camera.h"
@@ -34,6 +35,7 @@ namespace {
     using SpinoCore::Core::Input::InputState;
     using SpinoCore::Core::Lighting::GlobalLight;
     using SpinoCore::Graphics::EnginePostProcessManager;
+    using SpinoCore::Sound::EngineSoundManager;
     using SpinoCore::Sound::Synth::AudioOutput;
     using SpinoCore::Sound::Synth::EngineSynthManager;
     using SpinoCore::Core::Cameras::CamerasManager;
@@ -138,6 +140,7 @@ namespace {
         GlobalLight globalLight{};
         EnginePostProcessManager postProcessManager{};
         EngineSynthManager synthManager{AudioOutput::Offline};
+        EngineSoundManager soundManager{nullptr, AudioOutput::Offline};
         InputState simulationInput{};
         StartContext startContext{.fileManager = fileManager};
         ControlContext controlContext{
@@ -149,6 +152,7 @@ namespace {
             .globalLight = globalLight,
             .postProcessManager = postProcessManager,
             .synthManager = synthManager,
+            .soundManager = soundManager,
             .simulationInput = simulationInput
         };
         std::optional<EngineScenesManager> scenesManager{ScenesManagerInput{.startContext = startContext, .controlContext = controlContext}};

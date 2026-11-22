@@ -5,6 +5,7 @@
 #include <string>
 #include <SDL3/SDL_error.h>
 #include <SDL3/SDL_init.h>
+#include <SDL3_mixer/SDL_mixer.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include "Context.h"
 #include "SpinoCore/Game/GameInfo.h"
@@ -30,9 +31,17 @@ namespace SpinoCore::SDL {
             SDL_Quit();
             throw std::runtime_error(std::format("[SDL CONTEXT] Failed to initialize SDL_ttf: {}", error));
         }
+
+        if (!MIX_Init()) {
+            const std::string error = SDL_GetError();
+            TTF_Quit();
+            SDL_Quit();
+            throw std::runtime_error(std::format("[SDL CONTEXT] Failed to initialize SDL_mixer: {}", error));
+        }
     }
 
     Context::~Context() {
+        MIX_Quit();
         TTF_Quit();
         SDL_Quit();
     }

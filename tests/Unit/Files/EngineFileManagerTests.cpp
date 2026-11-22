@@ -17,6 +17,7 @@
 #include "Graphics/Resources/Font.h"
 #include "Graphics/Resources/Model.h"
 #include "Graphics/Resources/Texture.h"
+#include "Sound/Resources/AudioClip.h"
 #include "SpinoCore/Files/FileManager.h"
 
 namespace {
@@ -28,6 +29,7 @@ namespace {
     using SpinoCore::Graphics::Resources::Font;
     using SpinoCore::Graphics::Resources::Model;
     using SpinoCore::Graphics::Resources::Texture;
+    using SpinoCore::Sound::Resources::AudioClip;
     using Bytes = std::vector<std::uint8_t>;
 
     [[nodiscard]] Bytes ReadAll(const fs::path& path) {
@@ -57,8 +59,9 @@ namespace {
 
         AssetCache<Texture> textureCache{};
         AssetCache<Font> fontCache{};
+        AssetCache<AudioClip> soundCache{};
         AssetCache<Model> modelCache{};
-        EngineFileManager fileManager{FileManagerInput{.textureCache = textureCache, .fontCache = fontCache, .modelCache = modelCache}};
+        EngineFileManager fileManager{FileManagerInput{.textureCache = textureCache, .fontCache = fontCache, .modelCache = modelCache, .soundCache = soundCache}};
         fs::path folder;
     };
 
@@ -254,7 +257,7 @@ namespace {
     }
 
     TEST_F(EngineFileManagerManifestTests, UnknownAssetTypesAreRejected) {
-        ExpectRejected(R"({"version": "1.0", "assets": [{"name": "hero", "type": "Sound", "path": "hero.wav"}]})");
+        ExpectRejected(R"({"version": "1.0", "assets": [{"name": "hero", "type": "Video", "path": "hero.mp4"}]})");
         ExpectRejected(R"({"version": "1.0", "assets": [{"name": "hero", "type": "None", "path": "hero.png"}]})");
         ExpectRejected(R"({"version": "1.0", "assets": [{"name": "hero", "type": "texture", "path": "hero.png"}]})");
     }
@@ -279,8 +282,9 @@ namespace {
 
         AssetCache<Texture> textureCache{};
         AssetCache<Font> fontCache{};
+        AssetCache<AudioClip> soundCache{};
         AssetCache<Model> modelCache{};
-        EXPECT_NO_THROW((EngineFileManager{FileManagerInput{.textureCache = textureCache, .fontCache = fontCache, .modelCache = modelCache}}));
+        EXPECT_NO_THROW((EngineFileManager{FileManagerInput{.textureCache = textureCache, .fontCache = fontCache, .modelCache = modelCache, .soundCache = soundCache}}));
 
         fs::current_path(previous);
         fs::remove_all(elsewhere);

@@ -16,11 +16,16 @@ namespace SpinoCore::Graphics::Resources {
     class Texture;
 }
 
+namespace SpinoCore::Sound::Resources {
+    class AudioClip;
+}
+
 namespace SpinoCore::Files {
     struct FileManagerInput final{
         Assets::AssetCache<Graphics::Resources::Texture>& textureCache;
         Assets::AssetCache<Graphics::Resources::Font>& fontCache;
         Assets::AssetCache<Graphics::Resources::Model>& modelCache;
+        Assets::AssetCache<Sound::Resources::AudioClip>& soundCache;
     };
 
     class EngineFileManager final : public FileManager{
@@ -67,6 +72,7 @@ namespace SpinoCore::Files {
         void LoadTexture(const FileRequest& request);
         void LoadFont(const FileRequest& request);
         void LoadModel(const FileRequest& request);
+        void LoadSound(const FileRequest& request);
         [[nodiscard]] std::string LoadTextureFile(const std::filesystem::path& path);
 
         std::queue<FileRequest> mRequestQueue;
@@ -79,5 +85,6 @@ namespace SpinoCore::Files {
         Assets::AssetCache<Graphics::Resources::Texture>& mTextureCache;
         Assets::AssetCache<Graphics::Resources::Font>& mFontCache;
         Assets::AssetCache<Graphics::Resources::Model>& mModelCache;
+        Assets::AssetCache<Sound::Resources::AudioClip>& mSoundCache;
     };
 }

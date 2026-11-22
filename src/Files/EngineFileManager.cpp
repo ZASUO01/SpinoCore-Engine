@@ -19,6 +19,7 @@
 #include "Graphics/Resources/ModelData.h"
 #include "Graphics/Resources/Texture.h"
 #include "SDL/Helpers/Helpers.h"
+#include "Sound/Resources/AudioClip.h"
 #include "SpinoCore/Math/Vector.h"
 #include "SpinoCore/Logs/Logger.h"
 #include "Utils/JSONHelpers.h"
@@ -40,6 +41,7 @@ namespace SpinoCore::Files {
             if (name == "Texture") return AssetType::Texture;
             if (name == "Font") return AssetType::Font;
             if (name == "Model") return AssetType::Model;
+            if (name == "Sound") return AssetType::Sound;
             return AssetType::None;
         }
 
@@ -105,6 +107,7 @@ namespace SpinoCore::Files {
     ,mTextureCache(input.textureCache)
     ,mFontCache(input.fontCache)
     ,mModelCache(input.modelCache)
+    ,mSoundCache(input.soundCache)
     {
         if (!DirectoryExists(mRootPath)) throw std::runtime_error("[FILE MANAGER] Assets directory is missing: " + mRootPath.string());
     }
@@ -212,6 +215,7 @@ namespace SpinoCore::Files {
                     case AssetType::Texture: LoadTexture(request); break;
                     case AssetType::Font: LoadFont(request); break;
                     case AssetType::Model: LoadModel(request); break;
+                    case AssetType::Sound: LoadSound(request); break;
                     default:
                         break;
                 }
@@ -298,5 +302,24 @@ namespace SpinoCore::Files {
             mTextureCache.Add(id, std::make_unique<const Graphics::Resources::Texture>(mRootPath / path));
         }
         return id;
+    }
+
+    void EngineFileManager::LoadSound(const FileRequest& request) {
+        if (mSoundCache.Contains(request.id)) {
+            Logs::Logger::Warn(R"([FILES] Sound "{}" is already cached; "{}" was not loaded.)", request.id, request.path.string());
+            return;
+        }
+
+        const auto file = ReadFile(mRootPath / request.path);
+        auto audio = file.has_value()
+            ? SDL::Helpers::LoadAudio(file.value(), Sound::Resources::ClipSampleRate, Sound::Resources::ClipChannels)
+            : std::nullopt;
+        if (!audio.has_value()) {
+            Logs::Logger::Error(R"([FILES] Failed to load sound "{}" from "{}".)", request.id, request.path.string());
+            mFailedLoads.push_back(request.id);
+            return;
+        }
+
+        mSoundCache.Add(request.id, std::make_unique<const Sound::Resources::AudioClip>(std::move(audio->samples)));
     }
 }

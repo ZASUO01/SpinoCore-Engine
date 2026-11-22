@@ -1,12 +1,17 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
 #include "SDL/Helpers/Helpers.h"
+#include <array>
+#include <cstddef>
 #include <string>
+#include <SDL3/SDL_audio.h>
 #include <SDL3/SDL_iostream.h>
 #include <SDL3/SDL_pixels.h>
 #include <SDL3/SDL_surface.h>
+#include <SDL3/SDL_stdinc.h>
 #include <SDL3/SDL_video.h>
 #include <SDL3_image/SDL_image.h>
+#include <SDL3_mixer/SDL_mixer.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include "SDL/Structs.h"
 
@@ -68,5 +73,47 @@ namespace SpinoCore::SDL::Helpers {
         if (!stream) return nullptr;
 
         return UniqueTTFFont(TTF_OpenFontIO(stream, true, pointSize));
+    }
+
+    std::optional<DecodedAudio> LoadAudio(const std::span<const std::uint8_t> encodedAudio, const int sampleRate, const int channels) {
+        if (encodedAudio.empty() || sampleRate <= 0 || channels <= 0 || !MIX_Init()) return std::nullopt;
+
+        SDL_IOStream* stream = SDL_IOFromConstMem(encodedAudio.data(), encodedAudio.size());
+        MIX_AudioDecoder* decoder = stream ? MIX_CreateAudioDecoder_IO(stream, true, 0) : nullptr;
+        if (!decoder) {
+            MIX_Quit();
+            return std::nullopt;
+        }
+
+        const SDL_AudioSpec spec{.format = SDL_AUDIO_F32, .channels = channels, .freq = sampleRate};
+        DecodedAudio audio{.samples = {}, .channels = channels, .sampleRate = sampleRate, .duration = 0.0f};
+        std::array<float, 4096> block{};
+        bool failed = false;
+
+        while (true) {
+            const int bytes = MIX_DecodeAudio(decoder, block.data(), static_cast<int>(sizeof(block)), &spec);
+            if (bytes < 0) failed = true;
+            if (bytes <= 0) break;
+            audio.samples.insert(audio.samples.end(), block.begin(), block.begin() + bytes / static_cast<int>(sizeof(float)));
+        }
+
+        MIX_DestroyAudioDecoder(decoder);
+        MIX_Quit();
+        if (failed || audio.samples.empty()) return std::nullopt;
+
+        audio.duration = static_cast<float>(audio.samples.size() / static_cast<std::size_t>(channels)) / static_cast<float>(sampleRate);
+        return audio;
+    }
+
+    std::optional<DecodedAudio> LoadAudio(const std::filesystem::path& path, const int sampleRate, const int channels) {
+        const std::u8string utf8 = path.u8string();
+        std::size_t size = 0;
+        void* contents = SDL_LoadFile(reinterpret_cast<const char*>(utf8.c_str()), &size);
+        if (!contents) return std::nullopt;
+
+        const std::span bytes(static_cast<const std::uint8_t*>(contents), size);
+        std::optional<DecodedAudio> audio = LoadAudio(bytes, sampleRate, channels);
+        SDL_free(contents);
+        return audio;
     }
 }

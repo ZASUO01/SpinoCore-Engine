@@ -45,6 +45,8 @@ namespace SpinoCore::Sound::Synth {
 
         bool SetVolume(std::string_view name, float volume) override;
         void SetMasterVolume(float volume) override;
+        void SetDucking(float gain) noexcept { mDuckingTarget.store(gain < 0.0f ? 0.0f : gain > 1.0f ? 1.0f : gain, std::memory_order_relaxed); }
+        [[nodiscard]] float GetDucking() const noexcept { return mDucking; }
         [[nodiscard]] float GetMasterVolume() const override { return mMasterVolume.load(std::memory_order_relaxed); }
 
         [[nodiscard]] bool Contains(std::string_view name) const override;
@@ -90,6 +92,8 @@ namespace SpinoCore::Sound::Synth {
         std::vector<Entry> mSynths;
         CommandQueue<Command, QueueCapacity> mCommands;
         std::atomic<float> mMasterVolume{1.0f};
+        std::atomic<float> mDuckingTarget{1.0f};
+        float mDucking{1.0f};
         std::array<float, ScratchFrames * 2> mScratch{};
     };
 }

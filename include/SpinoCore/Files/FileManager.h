@@ -11,6 +11,7 @@ namespace SpinoCore::Files {
         Texture,
         Font,
         Model,
+        Sound,
         None
     };
 

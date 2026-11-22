@@ -18,6 +18,8 @@
 #include "Core/Rendering/Drawer/DrawCommands.h"
 #include "Graphics/Resources/Font.h"
 #include "Graphics/PostProcess/EnginePostProcessManager.h"
+#include "Sound/EngineSoundManager.h"
+#include "Sound/Resources/AudioClip.h"
 #include "Sound/Synth/EngineSynthManager.h"
 #include "Graphics/Resources/Model.h"
 #include "Graphics/Resources/Texture.h"
@@ -67,7 +69,8 @@ namespace SpinoCore::Core::Engine {
         Files::FileManagerInput fileManagerInput {
             .textureCache = mEngineCache.textureCache,
             .fontCache = mEngineCache.fontCache,
-            .modelCache = mEngineCache.modelCache
+            .modelCache = mEngineCache.modelCache,
+            .soundCache = mEngineCache.soundCache
         };
         mEngineModules.fileManager.emplace(fileManagerInput);
 
@@ -84,6 +87,7 @@ namespace SpinoCore::Core::Engine {
         mEngineModules.camerasManager.emplace(size, *mEngineModules.renderer, mEngineModules.eventBus);
 
         mEngineModules.synthManager.emplace(Sound::Synth::AudioOutput::Device);
+        mEngineModules.soundManager.emplace(&mEngineCache.soundCache, Sound::Synth::AudioOutput::Device);
 
         const Scenes::StartContext sceneStartContext{
             .fileManager = *mEngineModules.fileManager
@@ -98,6 +102,7 @@ namespace SpinoCore::Core::Engine {
             .globalLight = mEngineModules.renderer->GetGlobalLight(),
             .postProcessManager = mEngineModules.postProcessManager,
             .synthManager = *mEngineModules.synthManager,
+            .soundManager = *mEngineModules.soundManager,
             .simulationInput = mEngineModules.simulationInput.GetState()
         };
 
@@ -110,6 +115,7 @@ namespace SpinoCore::Core::Engine {
 
     void Engine::Shutdown() noexcept {
         mEngineModules.scenesManager.reset();
+        mEngineModules.soundManager.reset();
         mEngineModules.screensManager.Clear();
         mEngineModules.fileManager.reset();
 
@@ -125,6 +131,7 @@ namespace SpinoCore::Core::Engine {
         mEngineCache.textureCache.SetDefault(std::make_unique<Graphics::Resources::Texture>());
         mEngineCache.fontCache.SetDefault(std::make_unique<Graphics::Resources::Font>());
         mEngineCache.modelCache.SetDefault(std::make_unique<Graphics::Resources::Model>());
+        mEngineCache.soundCache.SetDefault(std::make_unique<Sound::Resources::AudioClip>());
         mEngineCache.modelCache.Add(std::string(Rendering::CubeModelId), std::make_unique<Graphics::Resources::Model>());
     }
 }

@@ -23,6 +23,7 @@
 #include "Graphics/Resources/Font.h"
 #include "Graphics/Resources/Model.h"
 #include "Graphics/Resources/Texture.h"
+#include "Sound/Resources/AudioClip.h"
 #include "SpinoCore/Files/FileManager.h"
 #include "SpinoCore/Math/Vector.h"
 
@@ -34,6 +35,7 @@ namespace {
     using SpinoCore::Graphics::Resources::Font;
     using SpinoCore::Graphics::Resources::Model;
     using SpinoCore::Graphics::Resources::Texture;
+    using SpinoCore::Sound::Resources::AudioClip;
     using SpinoCore::Math::Vector4f;
     using SpinoCore::Tests::Base64;
     using SpinoCore::Tests::GLTFBuilder;
@@ -46,7 +48,7 @@ namespace {
             if (HasFatalFailure()) return;
             textureCache.emplace(std::make_unique<const Texture>());
             modelCache.emplace(std::make_unique<const Model>());
-            fileManager.emplace(FileManagerInput{.textureCache = *textureCache, .fontCache = fontCache, .modelCache = *modelCache});
+            fileManager.emplace(FileManagerInput{.textureCache = *textureCache, .fontCache = fontCache, .modelCache = *modelCache, .soundCache = soundCache});
             folder = fs::path("EngineFileManagerModelTests") / testing::UnitTest::GetInstance()->current_test_info()->name();
             fs::create_directories(fileManager->GetRootPath() / folder);
         }
@@ -116,6 +118,7 @@ namespace {
         std::optional<AssetCache<Texture>> textureCache{};
         std::optional<AssetCache<Model>> modelCache{};
         AssetCache<Font> fontCache{};
+        AssetCache<AudioClip> soundCache{};
         std::optional<EngineFileManager> fileManager{};
         fs::path folder;
     };
