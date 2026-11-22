@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 ZASUO01
 #pragma once
+#include <chrono>
 #include <optional>
 #include "SpinoCore/Utils/Size2D.h"
 #include "SDL/Structs.h"
@@ -12,6 +13,10 @@
 #include "SpinoCore/Math/Matrix.h"
 #include "Graphics/FrameBuffer.h"
 #include "SpinoCore/Core/Lighting/GlobalLight.h"
+
+namespace SpinoCore::Graphics {
+    class EnginePostProcessManager;
+}
 
 namespace SpinoCore::Core::Rendering {
     struct CameraMatrices final {
@@ -44,6 +49,8 @@ namespace SpinoCore::Core::Rendering {
         [[nodiscard]] ModelDrawList& GetModelDrawList() { return mDrawer.GetModelDrawList(); }
 
         [[nodiscard]] Lighting::GlobalLight& GetGlobalLight() noexcept { return mGlobalLight; }
+        void SetPostProcessManager(Graphics::EnginePostProcessManager* postProcessManager) noexcept { mPostProcess = postProcessManager; }
+        [[nodiscard]] const Graphics::FrameBuffer* GetFilterBuffer() const noexcept { return mFilterBuffer ? &*mFilterBuffer : nullptr; }
         [[nodiscard]] const Graphics::FrameBuffer* GetShadowMap() const noexcept { return mShadowMap ? &*mShadowMap : nullptr; }
 
     private:
@@ -52,6 +59,9 @@ namespace SpinoCore::Core::Rendering {
         static constexpr int SHADOW_MAP_SIZE = 2048;
 
         void DrawShadowMap();
+        void DrawScene();
+        void BeginPostProcess();
+        void EndPostProcess();
 
         void OnResize(const Events::WindowResizeEvent& event);
         void Resize(Utils::Size2D size, Utils::Size2D pixelSize);
@@ -60,6 +70,10 @@ namespace SpinoCore::Core::Rendering {
         Drawer mDrawer;
         Lighting::GlobalLight mGlobalLight;
         std::optional<Graphics::FrameBuffer> mShadowMap{};
+        Graphics::EnginePostProcessManager* mPostProcess{nullptr};
+        std::optional<Graphics::FrameBuffer> mFilterBuffer{};
+        Utils::Size2D mPixelSize{};
+        std::chrono::steady_clock::time_point mStartTime{std::chrono::steady_clock::now()};
         CameraMatrices mCamera{};
         Math::Matrix4f mOrthoViewProjectionMatrix{Math::Matrix4f::Identity()};
         Events::EventBus::Subscription mResizeSubscription;

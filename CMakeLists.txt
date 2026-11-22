@@ -67,6 +67,9 @@ target_sources(${PROJECT_NAME} PRIVATE
     #Graphics
         #Resources
             "include/SpinoCore/Graphics/Resources/FontSize.h"
+    #Graphics
+        "include/SpinoCore/Graphics/PostProcess.h"
+        "include/SpinoCore/Graphics/PostProcessManager.h"
     #Logs
         "include/SpinoCore/Logs/Logger.h"
         "include/SpinoCore/Logs/LogLevel.h"
@@ -183,6 +186,9 @@ target_sources(${PROJECT_NAME} PRIVATE
             "src/Graphics/Shaders/ShaderHelpers.cpp"
             "src/Graphics/Shaders/ShaderHelpers.h"
         "src/Graphics/FrameBuffer.h"
+        "src/Graphics/PostProcess/EnginePostProcessManager.cpp"
+        "src/Graphics/PostProcess/EnginePostProcessManager.h"
+        "src/Graphics/Shaders/Sources/PostProcessShader.h"
         "src/Graphics/FrameBuffer.cpp"
     #Logs
         "src/Logs/ConsoleSink.h"
@@ -301,6 +307,7 @@ target_include_directories(SpinoCore-json SYSTEM INTERFACE "${CMAKE_CURRENT_SOUR
 target_compile_features(SpinoCore-json INTERFACE cxx_std_11)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3-static SDL3_image::SDL3_image-static SDL3_ttf::SDL3_ttf-static SpinoCore::glad SpinoCore::json)
+target_link_libraries(${PROJECT_NAME} PUBLIC SDL3::Headers)
 
 # ======================================
 # Resources compiled into the engine

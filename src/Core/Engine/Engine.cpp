@@ -17,6 +17,7 @@
 #include "Core/Rendering/Renderer.h"
 #include "Core/Rendering/Drawer/DrawCommands.h"
 #include "Graphics/Resources/Font.h"
+#include "Graphics/PostProcess/EnginePostProcessManager.h"
 #include "Graphics/Resources/Model.h"
 #include "Graphics/Resources/Texture.h"
 #include "SpinoCore/Core/Lighting/GlobalLight.h"
@@ -76,6 +77,7 @@ namespace SpinoCore::Core::Engine {
         auto size = mEngineModules.window->GetSize();
         mEngineModules.renderer.emplace(window, size, mEngineModules.eventBus,
                                         Lighting::GlobalLight{launchOptions.enableGlobalLight, launchOptions.globalLight});
+        mEngineModules.renderer->SetPostProcessManager(&mEngineModules.postProcessManager);
 
         mEngineModules.camerasManager.emplace(size, *mEngineModules.renderer, mEngineModules.eventBus);
 
@@ -90,6 +92,7 @@ namespace SpinoCore::Core::Engine {
             .windowManager = *mEngineModules.window,
             .actorsManager = mEngineModules.actorsManager,
             .globalLight = mEngineModules.renderer->GetGlobalLight(),
+            .postProcessManager = mEngineModules.postProcessManager,
             .simulationInput = mEngineModules.simulationInput.GetState()
         };
 

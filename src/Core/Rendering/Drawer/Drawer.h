@@ -3,6 +3,7 @@
 #pragma once
 #include <cstdint>
 #include <optional>
+#include <span>
 #include <string>
 
 #include "DrawCommands.h"
@@ -10,6 +11,11 @@
 #include "Graphics/Resources/Texture.h"
 #include "Graphics/Shaders/Shader.h"
 #include "SpinoCore/Math/Matrix.h"
+#include "SpinoCore/Math/Vector.h"
+
+namespace SpinoCore::Graphics {
+    struct PostProcessUniform;
+}
 
 namespace SpinoCore::Core::Lighting {
     class GlobalLight;
@@ -24,7 +30,12 @@ namespace SpinoCore::Core::Rendering {
     class Drawer final {
     public:
         Drawer();
-        ~Drawer() = default;
+        ~Drawer();
+
+        Drawer(const Drawer&) = delete;
+        Drawer& operator=(const Drawer&) = delete;
+        Drawer(Drawer&&) = delete;
+        Drawer& operator=(Drawer&&) = delete;
 
         [[nodiscard]] ModelDrawList& GetModelDrawList() { return mModelDrawList;}
         [[nodiscard]] UIDrawList& GetUIDrawList() { return mUIDrawList; }
@@ -32,6 +43,8 @@ namespace SpinoCore::Core::Rendering {
         void DrawShadows(const Math::Matrix4f& lightViewProjection);
         void DrawModels(const Math::Matrix4f& viewProjection, const ModelLighting* lighting = nullptr);
         void DrawUI(const Math::Matrix4f& ortho);
+        void DrawPostProcess(const Graphics::Shaders::Shader& shader, std::uint32_t sceneTexture, const Math::Vector2f& resolution,
+                             float time, std::span<const Graphics::PostProcessUniform> uniforms) const;
     private:
         ModelDrawList mModelDrawList;
         UIDrawList mUIDrawList;
@@ -46,5 +59,6 @@ namespace SpinoCore::Core::Rendering {
         std::optional<Graphics::Shaders::Shader> mShadowShader{};
         std::optional<Graphics::Resources::Texture> mWhiteTexture{};
         std::optional<Graphics::Geometry::VertexArray> mUIQuadVertices{};
+        std::uint32_t mFullScreenVertexArray{0};
     };
 }

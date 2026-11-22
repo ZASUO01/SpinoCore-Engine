@@ -2,15 +2,18 @@
 // Copyright (c) 2026 ZASUO01
 #include "Drawer.h"
 #include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <span>
 #include <string>
+#include <variant>
 #include <glad/glad.h>
 #include "Graphics/Geometry/VertexArray.h"
 #include "Graphics/Resources/Model.h"
 #include "Graphics/Shaders/Sources/ModelShader.h"
 #include "Graphics/Shaders/Sources/UIShader.h"
 #include "SpinoCore/Core/Lighting/GlobalLight.h"
+#include "SpinoCore/Graphics/PostProcess.h"
 #include "SpinoCore/Math/Vector.h"
 
 namespace SpinoCore::Core::Rendering {
@@ -27,6 +30,32 @@ namespace SpinoCore::Core::Rendering {
         mWhiteTexture.emplace();
 
         BuildUIQuadVertices();
+        glCreateVertexArrays(1, &mFullScreenVertexArray);
+    }
+
+    Drawer::~Drawer() {
+        if (mFullScreenVertexArray != 0) glDeleteVertexArrays(1, &mFullScreenVertexArray);
+    }
+
+    void Drawer::DrawPostProcess(const Graphics::Shaders::Shader& shader, const std::uint32_t sceneTexture, const Math::Vector2f& resolution,
+                                 const float time, const std::span<const Graphics::PostProcessUniform> uniforms) const {
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_BLEND);
+
+        shader.SetActive();
+        for (std::size_t index = 0; index < uniforms.size(); ++index) {
+            const auto location = static_cast<std::int32_t>(index);
+            std::visit([&shader, location](const auto& value) { shader.SetUniform(location, value); }, uniforms[index].value);
+        }
+        shader.SetUniform(Graphics::PostProcessLocation::Resolution, resolution);
+        shader.SetUniform(Graphics::PostProcessLocation::Time, time);
+
+        glBindTextureUnit(0, sceneTexture);
+        glBindVertexArray(mFullScreenVertexArray);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(0);
+        glBindTextureUnit(0, 0);
+        glEnable(GL_DEPTH_TEST);
     }
 
     void Drawer::DrawShadows(const Math::Matrix4f& lightViewProjection) {

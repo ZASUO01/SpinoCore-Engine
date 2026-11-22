@@ -12,6 +12,7 @@
 #include "Core/Cameras/EngineCamerasManager.h"
 #include "Core/UI/EngineScreensManager.h"
 #include "Files/EngineFileManager.h"
+#include "Graphics/PostProcess/EnginePostProcessManager.h"
 
 namespace SpinoCore::Core::Engine {
     struct EngineModules final {
@@ -21,6 +22,7 @@ namespace SpinoCore::Core::Engine {
         std::optional<Files::EngineFileManager> fileManager{};
         std::optional<Window::EngineWindow> window{};
         std::optional<Rendering::Renderer> renderer{};
+        Graphics::EnginePostProcessManager postProcessManager{};
         std::optional<Cameras::EngineCamerasManager> camerasManager{};
         UI::EngineScreensManager screensManager{};
         Actors::EngineActorsManager actorsManager{};

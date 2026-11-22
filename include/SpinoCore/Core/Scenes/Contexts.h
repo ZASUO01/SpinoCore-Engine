@@ -14,6 +14,10 @@ namespace SpinoCore::Core::Input {
     class InputState;
 }
 
+namespace SpinoCore::Graphics {
+    class PostProcessManager;
+}
+
 namespace SpinoCore::Files {
     class FileManager;
 }
@@ -42,6 +46,7 @@ namespace SpinoCore::Core::Scenes {
         Window::WindowManager& windowManager;
         Actors::ActorsManager& actorsManager;
         Lighting::GlobalLight& globalLight;
+        Graphics::PostProcessManager& postProcessManager;
         const Input::InputState& simulationInput;
     };
 }
