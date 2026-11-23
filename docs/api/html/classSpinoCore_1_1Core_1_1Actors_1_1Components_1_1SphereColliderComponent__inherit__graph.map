@@ -1,0 +1,7 @@
+<map id="SpinoCore::Core::Actors::Components::SphereColliderComponent" name="SpinoCore::Core::Actors::Components::SphereColliderComponent">
+<area shape="rect" id="Node000001" title="Sphere collider that follows the actor position." alt="" coords="21,181,235,236"/>
+<area shape="rect" id="Node000002" href="$classSpinoCore_1_1Core_1_1Actors_1_1Components_1_1ColliderComponent.html" title="Base class of the colliders checked by the collision system." alt="" coords="5,93,251,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="131,147,131,181,125,181,125,147"/>
+<area shape="rect" id="Node000003" href="$classSpinoCore_1_1Core_1_1Actors_1_1Components_1_1Component.html" title="Base class of every actor component." alt="" coords="31,5,225,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="131,59,131,93,125,93,125,59"/>
+</map>

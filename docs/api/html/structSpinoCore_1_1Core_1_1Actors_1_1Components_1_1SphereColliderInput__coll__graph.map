@@ -1,0 +1,7 @@
+<map id="SpinoCore::Core::Actors::Components::SphereColliderInput" name="SpinoCore::Core::Actors::Components::SphereColliderInput">
+<area shape="rect" id="Node000001" title="Settings of a sphere collider." alt="" coords="5,181,253,221"/>
+<area shape="rect" id="Node000002" href="$structSpinoCore_1_1Core_1_1Actors_1_1Components_1_1ColliderInput.html" title="Initial settings shared by every collider." alt="" coords="28,93,231,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,147,132,181,127,181,127,147"/>
+<area shape="rect" id="Node000003" href="$structSpinoCore_1_1Core_1_1Actors_1_1Components_1_1ComponentInput.html" title="Initial settings shared by every component." alt="" coords="15,5,243,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="132,59,132,93,127,93,127,59"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="SpinoCore::Game::InitializationContext" name="SpinoCore::Game::InitializationContext">
+<area shape="rect" id="Node000001" title="Modules available to GameApplication::Initialize." alt="" coords="91,108,315,148"/>
+<area shape="rect" id="Node000002" href="$classSpinoCore_1_1Core_1_1Window_1_1WindowManager.html" title="Controls the game window." alt="" coords="5,5,192,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="130,53,185,106,181,110,126,57"/>
+<area shape="rect" id="Node000003" href="$classSpinoCore_1_1Core_1_1Scenes_1_1ScenesManager.html" title="Stack of scenes; only the top scene runs." alt="" coords="217,5,397,45"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="295,59,277,86,244,110,241,106,273,82,291,56"/>
+</map>

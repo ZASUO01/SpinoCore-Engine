@@ -1,0 +1,17 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$classSpinoCore_1_1Core_1_1UI_1_1Elements_1_1Element.html" title="Base class of UI elements." alt="" coords="5,101,159,141"/>
+<area shape="rect" id="Node000001" href="$classSpinoCore_1_1Core_1_1UI_1_1Elements_1_1Rect.html" title="Filled rectangle with optional rounded corners and border." alt="" coords="207,101,355,141"/>
+<area shape="poly" id="edge17_Node000000_Node000001" title=" " alt="" coords="173,119,206,119,206,124,173,124"/>
+<area shape="rect" id="Node000002" href="$classSpinoCore_1_1Core_1_1UI_1_1Elements_1_1Cursor.html" title="Rectangle that follows the mouse; a screen can have one." alt="" coords="410,5,558,45"/>
+<area shape="poly" id="edge18_Node000001_Node000002" title=" " alt="" coords="328,92,402,55,429,43,431,48,404,60,330,97"/>
+<area shape="rect" id="Node000003" href="$classSpinoCore_1_1Core_1_1UI_1_1Elements_1_1Image.html" title="Rectangle filled with a texture." alt="" coords="410,69,558,109"/>
+<area shape="poly" id="edge19_Node000001_Node000003" title=" " alt="" coords="368,105,409,98,410,104,369,110"/>
+<area shape="rect" id="Node000004" href="$classSpinoCore_1_1Core_1_1UI_1_1Elements_1_1InputField.html" title="Single line text box; a click focuses it and typed text is appended." alt="" coords="403,133,565,173"/>
+<area shape="poly" id="edge20_Node000001_Node000004" title=" " alt="" coords="369,132,403,138,402,143,368,138"/>
+<area shape="rect" id="Node000005" href="$classSpinoCore_1_1Core_1_1UI_1_1Elements_1_1Text.html" title="Single line of text over a background rectangle." alt="" coords="410,197,558,237"/>
+<area shape="poly" id="edge21_Node000001_Node000005" title=" " alt="" coords="330,145,404,183,431,195,429,200,402,188,328,150"/>
+<area shape="rect" id="Node000006" href="$classSpinoCore_1_1Core_1_1UI_1_1Elements_1_1Button.html" title="Text element that reacts to the mouse." alt="" coords="613,165,761,205"/>
+<area shape="poly" id="edge22_Node000005_Node000006" title=" " alt="" coords="571,201,613,194,613,200,572,206"/>
+<area shape="rect" id="Node000007" href="$classSpinoCore_1_1Core_1_1UI_1_1Elements_1_1Select.html" title="Text element that cycles through options with previous and next buttons." alt="" coords="613,229,761,269"/>
+<area shape="poly" id="edge23_Node000005_Node000007" title=" " alt="" coords="572,229,613,235,613,240,571,234"/>
+</map>

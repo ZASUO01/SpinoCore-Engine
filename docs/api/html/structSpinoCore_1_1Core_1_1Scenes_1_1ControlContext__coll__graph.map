@@ -1,0 +1,23 @@
+<map id="SpinoCore::Core::Scenes::ControlContext" name="SpinoCore::Core::Scenes::ControlContext">
+<area shape="rect" id="Node000001" title="Modules available to Scene::OnSetup, OnUpdate and OnFinish." alt="" coords="435,279,615,319"/>
+<area shape="rect" id="Node000002" href="$classSpinoCore_1_1Files_1_1FileManager.html" title="Queues asset loads and file writes and runs them a few per frame." alt="" coords="19,5,233,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="247,14,289,20,333,30,374,46,412,69,437,92,458,118,490,177,511,234,522,278,517,280,506,236,486,179,454,121,433,96,409,73,372,51,331,35,288,25,246,20"/>
+<area shape="rect" id="Node000003" href="$classSpinoCore_1_1Core_1_1Cameras_1_1CamerasManager.html" title="Keeps the scene cameras by name and selects the one used to draw." alt="" coords="30,55,222,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="236,81,280,90,326,102,371,119,412,142,448,174,478,211,517,278,512,281,474,214,445,177,409,147,368,124,324,107,279,95,235,87"/>
+<area shape="rect" id="Node000004" href="$classSpinoCore_1_1Core_1_1UI_1_1ScreensManager.html" title="Stack of UI screens." alt="" coords="52,119,200,159"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="214,148,311,170,363,187,412,208,464,242,505,277,502,281,461,246,409,212,361,192,310,175,213,154"/>
+<area shape="rect" id="Node000005" href="$classSpinoCore_1_1Core_1_1Window_1_1WindowManager.html" title="Controls the game window." alt="" coords="33,183,219,223"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="234,219,321,236,411,258,470,277,469,282,410,263,320,241,233,224"/>
+<area shape="rect" id="Node000006" href="$classSpinoCore_1_1Core_1_1Actors_1_1ActorsManager.html" title="Owns the actors of the current scene." alt="" coords="39,247,213,287"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="227,273,435,289,434,295,227,278"/>
+<area shape="rect" id="Node000007" href="$classSpinoCore_1_1Core_1_1Lighting_1_1GlobalLight.html" title="Directional light with an ambient term and a shadow map." alt="" coords="33,311,219,351"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="233,321,410,307,434,305,434,311,411,313,234,326"/>
+<area shape="rect" id="Node000008" href="$classSpinoCore_1_1Graphics_1_1PostProcessManager.html" title="Keeps post&#45;processes by name; at most one is applied at a time." alt="" coords="43,375,209,415"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="222,379,313,362,410,339,475,317,477,322,411,345,315,368,223,384"/>
+<area shape="rect" id="Node000009" href="$classSpinoCore_1_1Sound_1_1Synth_1_1SynthManager.html" title="Plays registered instruments on the audio device." alt="" coords="35,439,217,479"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="230,445,320,425,366,410,409,392,437,375,462,356,503,318,507,322,466,360,440,380,412,396,368,415,321,430,231,450"/>
+<area shape="rect" id="Node000010" href="$classSpinoCore_1_1Sound_1_1SoundManager.html" title="Plays clips from the sound cache on up to 16 slots." alt="" coords="5,504,247,529"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="260,508,337,490,374,476,409,457,445,426,475,388,497,350,513,319,517,321,502,353,479,391,449,430,412,462,377,481,339,496,261,513"/>
+<area shape="rect" id="Node000011" href="$classSpinoCore_1_1Core_1_1Input_1_1InputState.html" title="Snapshot of the keyboard and the mouse." alt="" coords="43,554,209,594"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="223,577,270,574,318,566,366,551,409,526,434,505,454,479,486,420,506,363,517,319,522,320,512,365,491,422,459,482,437,508,412,531,368,556,320,571,270,580,223,583"/>
+</map>

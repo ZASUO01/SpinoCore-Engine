@@ -1,0 +1,9 @@
+<map id="SpinoCore::Core::UI::Elements::Select" name="SpinoCore::Core::UI::Elements::Select">
+<area shape="rect" id="Node000001" title="Text element that cycles through options with previous and next buttons." alt="" coords="8,269,156,309"/>
+<area shape="rect" id="Node000002" href="$classSpinoCore_1_1Core_1_1UI_1_1Elements_1_1Text.html" title="Single line of text over a background rectangle." alt="" coords="8,181,156,221"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="85,235,85,269,79,269,79,235"/>
+<area shape="rect" id="Node000003" href="$classSpinoCore_1_1Core_1_1UI_1_1Elements_1_1Rect.html" title="Filled rectangle with optional rounded corners and border." alt="" coords="8,93,156,133"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="85,147,85,181,79,181,79,147"/>
+<area shape="rect" id="Node000004" href="$classSpinoCore_1_1Core_1_1UI_1_1Elements_1_1Element.html" title="Base class of UI elements." alt="" coords="5,5,159,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="85,59,85,93,79,93,79,59"/>
+</map>

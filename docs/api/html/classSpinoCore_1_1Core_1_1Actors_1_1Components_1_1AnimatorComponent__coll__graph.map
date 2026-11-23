@@ -1,0 +1,5 @@
+<map id="SpinoCore::Core::Actors::Components::AnimatorComponent" name="SpinoCore::Core::Actors::Components::AnimatorComponent">
+<area shape="rect" id="Node000001" title="Plays the skeletal animation clips of the ModelComponent of the same actor." alt="" coords="5,93,260,133"/>
+<area shape="rect" id="Node000002" href="$classSpinoCore_1_1Core_1_1Actors_1_1Components_1_1Component.html" title="Base class of every actor component." alt="" coords="35,5,230,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,59,135,93,130,93,130,59"/>
+</map>

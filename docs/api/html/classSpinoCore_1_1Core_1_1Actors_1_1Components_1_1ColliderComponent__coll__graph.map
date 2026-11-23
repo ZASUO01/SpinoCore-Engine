@@ -1,0 +1,5 @@
+<map id="SpinoCore::Core::Actors::Components::ColliderComponent" name="SpinoCore::Core::Actors::Components::ColliderComponent">
+<area shape="rect" id="Node000001" title="Base class of the colliders checked by the collision system." alt="" coords="5,93,251,133"/>
+<area shape="rect" id="Node000002" href="$classSpinoCore_1_1Core_1_1Actors_1_1Components_1_1Component.html" title="Base class of every actor component." alt="" coords="31,5,225,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="131,59,131,93,125,93,125,59"/>
+</map>

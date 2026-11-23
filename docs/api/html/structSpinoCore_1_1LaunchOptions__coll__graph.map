@@ -1,0 +1,11 @@
+<map id="SpinoCore::LaunchOptions" name="SpinoCore::LaunchOptions">
+<area shape="rect" id="Node000001" title="Options used when the engine starts." alt="" coords="608,63,800,88"/>
+<area shape="rect" id="Node000002" href="$structSpinoCore_1_1Game_1_1GameInfo.html" title="Application metadata given to SDL." alt="" coords="263,5,469,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="456,30,629,60,628,65,455,36"/>
+<area shape="rect" id="Node000003" href="$structSpinoCore_1_1Core_1_1Window_1_1WindowProps.html" title="Settings used to create the window." alt="" coords="273,55,459,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="473,73,608,73,608,78,473,78"/>
+<area shape="rect" id="Node000004" href="$structSpinoCore_1_1Utils_1_1Size2D.html" title="Width and height in pixels." alt="" coords="5,63,184,88"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="198,73,273,73,273,78,198,78"/>
+<area shape="rect" id="Node000005" href="$structSpinoCore_1_1Core_1_1Lighting_1_1GlobalLightSettings.html" title="Settings of the global light." alt="" coords="273,119,459,159"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="472,117,635,85,636,91,473,122"/>
+</map>

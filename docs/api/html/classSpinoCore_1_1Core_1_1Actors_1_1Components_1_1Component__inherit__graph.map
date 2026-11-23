@@ -1,0 +1,21 @@
+<map id="SpinoCore::Core::Actors::Components::Component" name="SpinoCore::Core::Actors::Components::Component">
+<area shape="rect" id="Node000001" title="Base class of every actor component." alt="" coords="5,177,200,217"/>
+<area shape="rect" id="Node000002" href="$classSpinoCore_1_1Core_1_1Actors_1_1Components_1_1AnimatorComponent.html" title="Plays the skeletal animation clips of the ModelComponent of the same actor." alt="" coords="251,49,506,89"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="138,167,188,131,247,99,279,87,281,92,249,104,191,136,141,171"/>
+<area shape="rect" id="Node000003" href="$classSpinoCore_1_1Core_1_1Actors_1_1Components_1_1ColliderComponent.html" title="Base class of the colliders checked by the collision system." alt="" coords="256,113,501,153"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="202,172,291,151,293,156,204,177"/>
+<area shape="rect" id="Node000008" href="$classSpinoCore_1_1Core_1_1Actors_1_1Components_1_1ModelComponent.html" title="Draws a model from the model cache with the actor transform." alt="" coords="261,177,496,217"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="214,195,261,195,261,200,214,200"/>
+<area shape="rect" id="Node000009" href="$classSpinoCore_1_1Core_1_1Actors_1_1Components_1_1ParticleEffectsComponent.html" title="Base class of particle effects; subclasses implement Emit to move and spawn particles." alt="" coords="273,242,485,297"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="194,218,274,239,273,245,193,223"/>
+<area shape="rect" id="Node000010" href="$classSpinoCore_1_1Core_1_1Actors_1_1Components_1_1RigidBodyComponent.html" title="Moves the actor with velocity, forces, gravity and friction." alt="" coords="248,321,509,361"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="136,225,186,267,249,307,279,319,277,324,247,312,183,272,132,229"/>
+<area shape="rect" id="Node000004" href="$classSpinoCore_1_1Core_1_1Actors_1_1Components_1_1BoxColliderComponent.html" title="Oriented box collider that follows the actor transform." alt="" coords="563,5,833,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="494,106,508,99,522,89,531,78,541,66,556,55,584,43,586,48,559,60,544,70,535,81,526,93,511,104,496,111"/>
+<area shape="rect" id="Node000005" href="$classSpinoCore_1_1Core_1_1Actors_1_1Components_1_1CapsuleColliderComponent.html" title="Vertical capsule collider that follows the actor transform." alt="" coords="587,70,809,125"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="515,115,586,107,587,113,516,121"/>
+<area shape="rect" id="Node000006" href="$classSpinoCore_1_1Core_1_1Actors_1_1Components_1_1PlaneColliderComponent.html" title="Infinite static plane, usually the ground." alt="" coords="557,149,839,189"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="515,146,557,151,557,156,515,151"/>
+<area shape="rect" id="Node000007" href="$classSpinoCore_1_1Core_1_1Actors_1_1Components_1_1SphereColliderComponent.html" title="Sphere collider that follows the actor position." alt="" coords="591,214,805,269"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="493,155,511,163,535,181,559,199,592,213,589,218,556,204,532,185,508,168,491,160"/>
+</map>

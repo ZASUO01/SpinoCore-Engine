@@ -1,0 +1,13 @@
+<map id="SpinoCore::Core::Actors::Components::ColliderInput" name="SpinoCore::Core::Actors::Components::ColliderInput">
+<area shape="rect" id="Node000001" title="Initial settings shared by every collider." alt="" coords="281,101,484,141"/>
+<area shape="rect" id="Node000003" href="$structSpinoCore_1_1Core_1_1Actors_1_1Components_1_1BoxColliderInput.html" title="Settings of a box collider." alt="" coords="545,5,773,45"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="437,93,531,55,571,43,572,48,533,60,439,98"/>
+<area shape="rect" id="Node000004" href="$structSpinoCore_1_1Core_1_1Actors_1_1Components_1_1CapsuleColliderInput.html" title="Settings of a capsule collider." alt="" coords="532,69,787,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="497,105,531,101,532,107,498,111"/>
+<area shape="rect" id="Node000005" href="$structSpinoCore_1_1Core_1_1Actors_1_1Components_1_1PlaneColliderInput.html" title="Settings of an infinite plane collider." alt="" coords="540,133,779,173"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="498,132,540,137,539,142,497,137"/>
+<area shape="rect" id="Node000006" href="$structSpinoCore_1_1Core_1_1Actors_1_1Components_1_1SphereColliderInput.html" title="Settings of a sphere collider." alt="" coords="535,197,783,237"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="439,145,533,183,572,195,571,200,531,188,437,149"/>
+<area shape="rect" id="Node000002" href="$structSpinoCore_1_1Core_1_1Actors_1_1Components_1_1ComponentInput.html" title="Initial settings shared by every component." alt="" coords="5,101,233,141"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="247,119,281,119,281,124,247,124"/>
+</map>

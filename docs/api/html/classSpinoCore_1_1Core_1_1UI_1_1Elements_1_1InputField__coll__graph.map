@@ -1,0 +1,7 @@
+<map id="SpinoCore::Core::UI::Elements::InputField" name="SpinoCore::Core::UI::Elements::InputField">
+<area shape="rect" id="Node000001" title="Single line text box; a click focuses it and typed text is appended." alt="" coords="5,181,168,221"/>
+<area shape="rect" id="Node000002" href="$classSpinoCore_1_1Core_1_1UI_1_1Elements_1_1Rect.html" title="Filled rectangle with optional rounded corners and border." alt="" coords="13,93,161,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="89,147,89,181,84,181,84,147"/>
+<area shape="rect" id="Node000003" href="$classSpinoCore_1_1Core_1_1UI_1_1Elements_1_1Element.html" title="Base class of UI elements." alt="" coords="10,5,163,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="89,59,89,93,84,93,84,59"/>
+</map>

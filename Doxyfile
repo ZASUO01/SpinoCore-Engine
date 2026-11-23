@@ -1,0 +1,7 @@
+PROJECT_NAME     = SpinoCore
+INPUT            = Engine/include
+RECURSIVE        = YES
+OUTPUT_DIRECTORY = docs/api
+STRIP_FROM_PATH  = Engine/include
+EXTRACT_PRIVATE  = NO
+GENERATE_LATEX   = NO
